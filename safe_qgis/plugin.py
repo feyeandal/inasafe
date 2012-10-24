@@ -498,7 +498,8 @@ class Plugin:
             #'rasterToolBar',
             'vectorToolBar',
 
-            'pluginToolBar', 'helpToolBar', 'webToolBar'
+            #'pluginToolBar',
+            'helpToolBar', 'webToolBar'
         ]
 
         for toolbar in toolbars:
