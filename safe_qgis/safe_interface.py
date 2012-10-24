@@ -15,7 +15,6 @@ Contact : ole.moller.nielsen@gmail.com
 """
 
 __author__ = 'tim@linfiniti.com, ole.moller.nielsen@gmail.com'
-__version__ = '0.5.1'
 __revision__ = '$Format:%H$'
 __date__ = '04/04/2012'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
@@ -38,12 +37,16 @@ from safe.api import (get_admissible_plugins,
                       buffered_bounding_box,
                       verify as verify_util,
                       VerificationError,
+                      InaSAFEError,
                       temp_dir,
                       unique_filename,
                       safe_tr as safeTr,
                       calculate_impact as safe_calculate_impact,
                       BoundingBoxError,
+                      ReadLayerError,
                       get_plugins, get_version)
+
+from safe.defaults import DEFAULTS
 # pylint: enable=W0611
 
 # InaSAFE GUI specific functionality
@@ -52,6 +55,8 @@ from safe_qgis.exceptions import (KeywordNotFoundException,
                                   StyleInfoNotFoundException,
                                   InvalidParameterException,
                                   InsufficientOverlapException)
+
+from safe.common.exceptions import BoundingBoxError, ReadLayerError
 LOGGER = logging.getLogger('InaSAFE')
 
 
@@ -67,7 +72,7 @@ def tr(theText):
        Translated version of the given string if available, otherwise
        the original string.
     """
-    myContext = "is_safe_interface"
+    myContext = "@default"
     return QCoreApplication.translate(myContext, theText)
 
 

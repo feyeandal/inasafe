@@ -12,7 +12,6 @@ Contact : ole.moller.nielsen@gmail.com
 """
 
 __author__ = 'tim@linfiniti.com'
-__version__ = '0.5.1'
 __revision__ = '$Format:%H$'
 __date__ = '29/01/2011'
 __copyright__ = 'Copyright 2012, Australia Indonesia Facility for '
@@ -41,7 +40,10 @@ from qgis.core import (QGis,
                        )
 
 from safe_interface import temp_dir
+
 from safe_qgis.exceptions import StyleError, MethodUnavailableError
+
+from safe_qgis.safe_interface import DEFAULTS, safeTr, get_version
 
 #do not remove this even if it is marked as unused by your IDE
 #resources are used by htmlfooter and header the comment will mark it unused
@@ -52,25 +54,35 @@ LOGGER = logging.getLogger('InaSAFE')
 
 
 def setVectorStyle(theQgisVectorLayer, theStyle):
-    """Set QGIS vector style based on InaSAFE style dictionary
+    """Set QGIS vector style based on InaSAFE style dictionary.
 
-    Input
-        theQgisVectorLayer: Qgis layer
-        theStyle: Dictionary of the form as in the example below
+    For **opaque** a value of **0** can be used. For **fully transparent**, a
+    value of **100** can be used. The function should take care to scale the
+    transparency level to between 0 and 100.
+
+    Args:
+        * theQgisVectorLayer: QgsMapLayer
+        * theStyle: dict - Dictionary of the form as in the example below
+
+    Returns:
+        None - Sets and saves style for theQgisVectorLayer
+
+    Raises:
+        None
+
+    Example:
 
         {'target_field': 'DMGLEVEL',
         'style_classes':
-        [{'opacity': 1, 'max': 1.5, 'colour': '#fecc5c',
+        [{'transparency': 1, 'max': 1.5, 'colour': '#fecc5c',
           'min': 0.5, 'label': 'Low damage', 'size' : 1},
-        {'opacity': 1, 'max': 2.5, 'colour': '#fd8d3c',
+        {'transparency': 55, 'max': 2.5, 'colour': '#fd8d3c',
          'min': 1.5, 'label': 'Medium damage', 'size' : 1},
-        {'opacity': 1, 'max': 3.5, 'colour': '#f31a1c',
+        {'transparency': 80, 'max': 3.5, 'colour': '#f31a1c',
          'min': 2.5, 'label': 'High damage', 'size' : 1}]}
 
         .. note:: The transparency and size keys are optional. Size applies
            to points only.
-    Output
-        Sets and saves style for theQgisVectorLayer
 
     """
     myTargetField = theStyle['target_field']
@@ -143,7 +155,7 @@ def setVectorStyle(theQgisVectorLayer, theStyle):
         # Convert transparency % to opacity
         # alpha = 0: transparent
         # alpha = 1: opaque
-        alpha = 1 - myTransparencyPercent / 100
+        alpha = 1 - myTransparencyPercent / 100.0
         mySymbol.setAlpha(alpha)
         myRange = QgsRendererRangeV2(myMin,
                                      myMax,
@@ -165,16 +177,18 @@ def setRasterStyle(theQgsRasterLayer, theStyle):
     for the passed in layer.
 
     Args:
-        theQgsRasterLayer: Qgis layer
-        style: Dictionary of the form as in the example below
+        * theQgsRasterLayer: QgsRasterLayer
+        * style: dict - Dictionary of the form as in the example below.
+
+    Example:
         style_classes = [dict(colour='#38A800', quantity=2, transparency=0),
-                         dict(colour='#38A800', quantity=5, transparency=1),
-                         dict(colour='#79C900', quantity=10, transparency=1),
-                         dict(colour='#CEED00', quantity=20, transparency=1),
-                         dict(colour='#FFCC00', quantity=50, transparency=1),
-                         dict(colour='#FF6600', quantity=100, transparency=1),
-                         dict(colour='#FF0000', quantity=200, transparency=1),
-                         dict(colour='#7A0000', quantity=300, transparency=1)]
+                         dict(colour='#38A800', quantity=5, transparency=50),
+                         dict(colour='#79C900', quantity=10, transparency=50),
+                         dict(colour='#CEED00', quantity=20, transparency=50),
+                         dict(colour='#FFCC00', quantity=50, transparency=34),
+                         dict(colour='#FF6600', quantity=100, transparency=77),
+                         dict(colour='#FF0000', quantity=200, transparency=24),
+                         dict(colour='#7A0000', quantity=300, transparency=22)]
 
     Returns:
         list: RangeList
@@ -197,20 +211,23 @@ def _setLegacyRasterStyle(theQgsRasterLayer, theStyle):
     for the passed in layer.
 
     Args:
-        theQgsRasterLayer: Qgis layer
-        style: Dictionary of the form as in the example below
-        style_classes = [dict(colour='#38A800', quantity=2, transparency=0),
-                         dict(colour='#38A800', quantity=5, transparency=1),
-                         dict(colour='#79C900', quantity=10, transparency=1),
-                         dict(colour='#CEED00', quantity=20, transparency=1),
-                         dict(colour='#FFCC00', quantity=50, transparency=1),
-                         dict(colour='#FF6600', quantity=100, transparency=1),
-                         dict(colour='#FF0000', quantity=200, transparency=1),
-                         dict(colour='#7A0000', quantity=300, transparency=1)]
+        * theQgsRasterLayer: QgsRasterLayer.
+        * style: dict - Dictionary of the form as in the example below.
 
     Returns:
-        list: RangeList
-        list: TransparencyList
+        * list: RangeList
+        * list: TransparencyList
+
+    Example:
+
+        style_classes = [dict(colour='#38A800', quantity=2, transparency=0),
+                         dict(colour='#38A800', quantity=5, transparency=50),
+                         dict(colour='#79C900', quantity=10, transparency=50),
+                         dict(colour='#CEED00', quantity=20, transparency=50),
+                         dict(colour='#FFCC00', quantity=50, transparency=34),
+                         dict(colour='#FF6600', quantity=100, transparency=77),
+                         dict(colour='#FF0000', quantity=200, transparency=24),
+                         dict(colour='#7A0000', quantity=300, transparency=22)]
 
     .. note:: There is currently a limitation in QGIS in that
        pixel transparency values can not be specified in ranges and
@@ -243,6 +260,13 @@ def _setLegacyRasterStyle(theQgsRasterLayer, theStyle):
         if 'transparency' in myClass:
             myTransparencyPercent = int(myClass['transparency'])
         if myTransparencyPercent > 0:
+            # Always assign the transparency to the class' specified quantity
+            myPixel = \
+                    QgsRasterTransparency.TransparentSingleValuePixel()
+            myPixel.pixelValue = myMax
+            myPixel.percentTransparent = myTransparencyPercent
+            myTransparencyList.append(myPixel)
+
             # Check if range extrema are integers so we know if we can
             # use them to calculate a value range
             if ((myLastValue == int(myLastValue)) and (myMax == int(myMax))):
@@ -285,20 +309,23 @@ def _setNewRasterStyle(theQgsRasterLayer, theStyle):
     for the passed in layer.
 
     Args:
-        theQgsRasterLayer: Qgis layer
-        style: Dictionary of the form as in the example below
-        style_classes = [dict(colour='#38A800', quantity=2, transparency=0),
-                         dict(colour='#38A800', quantity=5, transparency=1),
-                         dict(colour='#79C900', quantity=10, transparency=1),
-                         dict(colour='#CEED00', quantity=20, transparency=1),
-                         dict(colour='#FFCC00', quantity=50, transparency=1),
-                         dict(colour='#FF6600', quantity=100, transparency=1),
-                         dict(colour='#FF0000', quantity=200, transparency=1),
-                         dict(colour='#7A0000', quantity=300, transparency=1)]
+        * theQgsRasterLayer: QgsRasterLayer
+        * style: Dictionary of the form as in the example below.
 
     Returns:
-        list: RangeList
-        list: TransparencyList
+        * list: RangeList
+        * list: TransparencyList
+
+    Example:
+        style_classes = [dict(colour='#38A800', quantity=2, transparency=0),
+                         dict(colour='#38A800', quantity=5, transparency=50),
+                         dict(colour='#79C900', quantity=10, transparency=50),
+                         dict(colour='#CEED00', quantity=20, transparency=50),
+                         dict(colour='#FFCC00', quantity=50, transparency=34),
+                         dict(colour='#FF6600', quantity=100, transparency=77),
+                         dict(colour='#FF0000', quantity=200, transparency=24),
+                         dict(colour='#7A0000', quantity=300, transparency=22)]
+
     """
     # Note imports here to prevent importing on unsupported QGIS versions
     # pylint: disable=E0611
@@ -381,8 +408,7 @@ def tr(theText):
        Translated version of the given string if available, otherwise
        the original string.
     """
-    myContext = "Utilities"
-    return QCoreApplication.translate(myContext, theText)
+    return QCoreApplication.translate('@default', theText)
 
 
 def getExceptionWithStacktrace(e, html=False, context=None):
@@ -624,7 +650,6 @@ def setupLogger():
     myConsoleHandler.setLevel(logging.ERROR)
 
     myQgisHandler = QgsLogHandler()
-    myFileHandler.setLevel(myDefaultHanderLevel)
 
     # TODO: User opt in before we enable email based logging.
     # Email handler for errors
@@ -673,6 +698,147 @@ def setupLogger():
     #addLoggingHanderOnce(myLogger, myEmailHandler)
     addLoggingHanderOnce(myLogger, myQgisHandler)
 
+
+def isLayerPolygonal(theLayer):
+    """tell if a qgis theLayer is vectorial and d its geometries polygons
+   Args:
+       the theLayer
+    Returns:
+        bool - true if the theLayer contains polygons
+    Raises:
+       None
+    """
+    try:
+        return (theLayer.type() == QgsMapLayer.VectorLayer) and (
+            theLayer.geometryType() == QGis.Polygon)
+    except AttributeError:
+        return False
+
+
+def getLayerAttributeNames(theLayer, theAllowedTypes, theCurrentKeyword=None):
+    """iterates over self.layer and returns all the attribute names of
+       attributes that have int or string as field type and the position
+       of the theCurrentKeyword in the attribute names list
+
+    Args:
+       * theAllowedTypes: list(Qvariant) - a list of QVariants types that are
+            acceptable for the attribute.
+            e.g.: [QtCore.QVariant.Int, QtCore.QVariant.String]
+       * theCurrentKeyword - the currently stored keyword for the attribute
+
+    Returns:
+       * all the attribute names of attributes that have int or string as
+            field type
+       * the position of the theCurrentKeyword in the attribute names list,
+            this is None if theCurrentKeyword is not in the lis of attributes
+    Raises:
+       no exceptions explicitly raised
+    """
+
+    if theLayer.type() == QgsMapLayer.VectorLayer:
+        myProvider = theLayer.dataProvider()
+        myProvider = myProvider.fields()
+        myFields = []
+        mySelectedIndex = None
+        i = 0
+        for f in myProvider:
+            # show only int or string myFields to be chosen as aggregation
+            # attribute other possible would be float
+            if myProvider[f].type() in theAllowedTypes:
+                myCurrentFieldName = myProvider[f].name()
+                myFields.append(myCurrentFieldName)
+                if theCurrentKeyword == myCurrentFieldName:
+                    mySelectedIndex = i
+                i += 1
+        return myFields, mySelectedIndex
+    else:
+        return None, None
+
+
+def getDefaults(theDefault=None):
+    """returns a dictionary of defaults values to be used
+        it takes the DEFAULTS from safe and modifies them according to qgis
+        QSettings
+
+    Args:
+       * theDefault: a key of the defaults dictionary
+
+    Returns:
+       * A dictionary of defaults values to be used
+       * or the default value if a key is passed
+       * or None if the requested default value is not valid
+    Raises:
+       no exceptions explicitly raised
+    """
+    mySettings = QtCore.QSettings()
+    myDefaults = DEFAULTS
+
+    myDefaults['FEM_RATIO'] = mySettings.value(
+        'inasafe/defaultFemaleRatio',
+        DEFAULTS['FEM_RATIO']).toDouble()[0]
+
+    if theDefault is None:
+        return myDefaults
+    elif theDefault in myDefaults:
+        return myDefaults[theDefault]
+    else:
+        return None
+
+
+#def copyInMemory(vLayer, copyName=''):
+#    """Return a memory copy of a layer
+#
+#    Input
+#        origLayer: layer
+#        copyName: the name of the copy
+#    Output
+#        memory copy of a layer
+#
+#    """
+#
+#    if copyName is '':
+#        copyName = vLayer.name() + ' TMP'
+#
+#    if vLayer.type() == QgsMapLayer.VectorLayer:
+#        vType = vLayer.geometryType()
+#        if vType == QGis.Point:
+#            typeStr = 'Point'
+#        elif vType == QGis.Line:
+#            typeStr = 'Line'
+#        elif vType == QGis.Polygon:
+#            typeStr = 'Polygon'
+#        else:
+#            raise memoryLayerCreationError('Layer is whether Point or '
+#                                           'Line or Polygon')
+#    else:
+#        raise memoryLayerCreationError('Layer is not a VectorLayer')
+#
+#    crs = vLayer.crs().authid().toLower()
+#    uri = typeStr + '?crs=' + crs + '&index=yes'
+#    memLayer = QgsVectorLayer(uri, copyName, 'memory')
+#    memProvider = memLayer.dataProvider()
+#
+#    vProvider = vLayer.dataProvider()
+#    vAttrs = vProvider.attributeIndexes()
+#    vFields = vProvider.fields()
+#
+#    fields = []
+#    for i in vFields:
+#        fields.append(vFields[i])
+#
+#    memProvider.addAttributes(fields)
+#
+#    vProvider.select(vAttrs)
+#    ft = QgsFeature()
+#    while vProvider.nextFeature(ft):
+#        memProvider.addFeatures([ft])
+#
+#    # Next two lines a workaround for a QGIS bug (lte 1.8)
+#    # preventing mem layer attributes being saved to shp.
+#    memLayer.startEditing()
+#    memLayer.commitChanges()
+#
+#    return memLayer
 
 def mmToPoints(theMM, theDpi):
     """Convert measurement in points to one in mm.
@@ -760,7 +926,7 @@ def humaniseSeconds(theSeconds):
     if theSeconds < 60:
         return tr('%i seconds' % theSeconds)
     if theSeconds < 120:
-        return  tr('a minute')
+        return tr('a minute')
     if theSeconds < 3600:
         return tr('minutes' % myMinutes)
     if theSeconds < 7200:
@@ -771,3 +937,81 @@ def humaniseSeconds(theSeconds):
         # If all else fails...
         return tr('%i days, %i hours and %i minutes' % (
             myDays, myHours, myMinutes))
+
+
+def impactLayerAttribution(theKeywords, theInaSAFEFlag=False):
+    """Make a little table for attribution of data sources used in impact.
+
+    Args:
+        * theKeywords: dict{} - a keywords dict for an impact layer.
+        * theInaSAFEFlag: bool - whether to show a little InaSAFE promotional
+            text in the attribution output. Defaults to False.
+
+    Returns:
+        str: an html snippet containing attribution information for the impact
+            layer. If no keywords are present or no appropriate keywords are
+            present, None is returned.
+
+    Raises:
+        None
+    """
+    if theKeywords is None:
+        return None
+    myReport = ''
+    myJoinWords = ' - %s ' % tr('sourced from')
+    myHazardDetails = tr('Hazard details')
+    myHazardTitleKeyword = 'hazard_title'
+    myHazardSourceKeyword = 'hazard_source'
+    myExposureDetails = tr('Exposure details')
+    myExposureTitleKeyword = 'exposure_title'
+    myExposureSourceKeyword = 'exposure_source'
+
+    if myHazardTitleKeyword in theKeywords:
+        # We use safe translation infrastructure for this one (rather than Qt)
+        myHazardTitle = safeTr(theKeywords[myHazardTitleKeyword])
+    else:
+        myHazardTitle = tr('Hazard layer')
+
+    if myHazardSourceKeyword in theKeywords:
+        # We use safe translation infrastructure for this one (rather than Qt)
+        myHazardSource = safeTr(theKeywords[myHazardSourceKeyword])
+    else:
+        myHazardSource = tr('an unknown source')
+
+    if myExposureTitleKeyword in theKeywords:
+        myExposureTitle = theKeywords[myExposureTitleKeyword]
+    else:
+        myExposureTitle = tr('Exposure layer')
+
+    if myExposureSourceKeyword in theKeywords:
+        myExposureSource = theKeywords[myExposureSourceKeyword]
+    else:
+        myExposureSource = tr('an unknown source')
+
+    myReport += ('<table class="table table-striped condensed'
+                 ' bordered-table">')
+    myReport += '<tr><th>%s</th></tr>' % myHazardDetails
+    myReport += '<tr><td>%s%s %s.</td></tr>' % (
+        myHazardTitle,
+        myJoinWords,
+        myHazardSource)
+
+    myReport += '<tr><th>%s</th></tr>' % myExposureDetails
+    myReport += '<tr><td>%s%s %s.</td></tr>' % (
+        myExposureTitle,
+        myJoinWords,
+        myExposureSource)
+
+    if theInaSAFEFlag:
+        myReport += '<tr><th>%s</th></tr>' % tr('Software notes')
+        myInaSAFEPhrase = tr('This report was created using InaSAFE '
+                              'version %1. Visit http://inasafe.org to get '
+                              'your free copy of this software!').arg(
+                                get_version())
+        myInaSAFEPhrase += tr('InaSAFE has been jointly developed by'
+                               ' BNPB, AusAid & the World Bank')
+        myReport += '<tr><td>%s</td></tr>' % myInaSAFEPhrase
+
+    myReport += '</table>'
+
+    return myReport

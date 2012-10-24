@@ -6,6 +6,7 @@ from safe.storage.vector import Vector
 from safe.common.utilities import ugettext as tr
 from safe.common.tables import Table, TableRow
 from safe.engine.interpolation import assign_hazard_values_to_exposure_data
+from safe.common.utilities import get_defaults
 
 
 class FloodEvacuationFunctionVectorHazard(FunctionProvider):
@@ -19,12 +20,20 @@ class FloodEvacuationFunctionVectorHazard(FunctionProvider):
 
     :param requires category=='exposure' and \
                     subcategory=='population' and \
-                    layertype=='raster' and \
-                    datatype=='density'
+                    layertype=='raster'
     """
 
     title = tr('Need evacuation')
     target_field = 'population'
+    defaults = get_defaults()
+    parameters = {
+        'postprocessors':
+            {'Gender': {'on': True},
+             'Age': {'on': True,
+                     'params': {
+                    'youth_ratio': defaults['YOUTH_RATIO'],
+                    'adult_ratio': defaults['ADULT_RATIO'],
+                    'elder_ratio': defaults['ELDER_RATIO']}}}}
 
     def run(self, layers):
         """Risk plugin for flood population evacuation
@@ -160,11 +169,13 @@ class FloodEvacuationFunctionVectorHazard(FunctionProvider):
 
             if i == 0:
                 label = tr('0')
+                transparency = 100
             else:
                 label = tr('%i - %i') % (lo, hi)
+                transparency = 0
 
             entry = dict(label=label, colour=colour, min=lo, max=hi,
-                         transparency=0, size=1)
+                         transparency=transparency, size=1)
             style_classes.append(entry)
 
         # Override style info with new classes and name
@@ -179,6 +190,7 @@ class FloodEvacuationFunctionVectorHazard(FunctionProvider):
                    name=tr('Population affected by flood prone areas'),
                    keywords={'impact_summary': impact_summary,
                              'impact_table': impact_table,
-                             'map_title': map_title},
+                             'map_title': map_title,
+                             'target_field': self.target_field},
                    style_info=style_info)
         return V

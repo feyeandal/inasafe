@@ -11,7 +11,6 @@ Contact : ole.moller.nielsen@gmail.com
 
 """
 __author__ = 'tim@linfiniti.com'
-__version__ = '0.5.1'
 __date__ = '10/01/2011'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
@@ -22,9 +21,10 @@ import logging
 
 from safe_qgis.safe_interface import temp_dir, unique_filename
 from safe_qgis.utilities_test import (getQgisTestApp,
-                                      assertHashesForFile,
-                                      loadLayer)
+                                      loadLayer,
+                                      checkImages)
 from safe_qgis.html_renderer import HtmlRenderer
+from safe_qgis.keyword_io import KeywordIO
 
 QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
 LOGGER = logging.getLogger('InaSAFE')
@@ -35,9 +35,20 @@ class HtmlRendererTest(unittest.TestCase):
     def setUp(self):
         pass
 
-    def sampleHtml(self):
-        """Helper function to generate some sample html."""
-        myHtml = ('<table>'
+    def sampleHtml(self, theLineCount=100):
+        """Helper function to generate some sample html.
+
+        Args:
+            theLineCount: How many lines of fake html you want. Default is 100.
+
+        Returns:
+            str: an html snippet containing a table with theLineCount rows.
+
+        Raises:
+            None
+        """
+        myHtml = ('<table class="table table-striped condensed'
+                  ' bordered-table">'
                   '<thead>'
                   '<tr>'
                   '<th>Wilayah</th>'
@@ -46,9 +57,10 @@ class HtmlRendererTest(unittest.TestCase):
                   '<th>Wilayah</th>'
                   '<th>Jumlah Penduduk</th>'
                   '<th>Jumlah Penduduk yang Mungkin</th>'
-                  '</tr>')
+                  '</tr>'
+                  '</thead>')
         i = 0
-        while i < 100:
+        while i < theLineCount:
             i += 1
             myHtml += ('<tr>'
                        '<td>%(i)s</td><td>%(i)s</td><td>%(i)s</td>'
@@ -100,7 +112,9 @@ class HtmlRendererTest(unittest.TestCase):
         myPath = unique_filename(prefix='impactTable',
                                  suffix='.pdf',
                                  dir=temp_dir('test'))
-        myPath = myHtmlRenderer.printImpactTable(myLayer,
+        myKeywordIO = KeywordIO()
+        myKeywords = myKeywordIO.readKeywords(myLayer)
+        myPath = myHtmlRenderer.printImpactTable(myKeywords,
                                                  theFilename=myPath)
         myMessage = 'Rendered output does not exist: %s' % myPath
         assert os.path.exists(myPath), myMessage
@@ -110,14 +124,14 @@ class HtmlRendererTest(unittest.TestCase):
         # size check.
         mySize = os.stat(myPath).st_size
         myExpectedSize = 20936  # as rendered on linux ub 12.04 64
-        myMessage = ('Expected rendered map pdf to be at least %s, got %s'
+        myMessage = ('Expected rendered table pdf to be at least %s, got %s'
                      % (myExpectedSize, mySize))
         assert mySize >= myExpectedSize, myMessage
 
     def test_renderHtmlToPixmap(self):
         """Test that we can render html to a pixmap."""
         LOGGER.debug('InaSAFE HtmlRenderer testing renderHtmlToPixmap')
-        myHtml = self.sampleHtml()
+        myHtml = self.sampleHtml(20)
         LOGGER.debug(myHtml)
         myPageDpi = 300
         myRenderer = HtmlRenderer(myPageDpi)
@@ -127,17 +141,21 @@ class HtmlRendererTest(unittest.TestCase):
         LOGGER.debug(myPath)
         myWidth = 250
         myPixmap = myRenderer.renderHtmlToPixmap(myHtml, myWidth)
+        assert not myPixmap.isNull()
         LOGGER.debug(myPixmap.__class__)
         myPixmap.save(myPath)
         myMessage = 'Rendered output does not exist: %s' % myPath
         assert os.path.exists(myPath), myMessage
-        myExpectedHashes = ['1b4ef78f93581086af944340a7d1dacc',  # ub12.04-64
-                            'aa110b049db7d6305b212543c2167383',  # ub12.04 xvfb
-                            '8e626bda4310f174d40a076af65c6023',  # ub11.04-64
-                            '869bb116ebebc1497ee9881eece0efc3',  # ub11.10-64
-                            '',
-                            ]
-        assertHashesForFile(myExpectedHashes, myPath)
+
+        myControlImages = ['renderHtmlToPixmap.png',
+                           'renderHtmlToPixmap-variantWindosVistaSP2-32.png',
+                           'renderHtmlToPixmap-variantUB11.04-64.png',
+                           'renderHtmlToPixmap-variantUB11.10-64.png']
+        myTolerance = 1000  # to allow for version number changes in disclaimer
+        myFlag, myMessage = checkImages(myControlImages,
+                                                  myPath,
+                                                  myTolerance)
+        assert myFlag, myMessage
 
 if __name__ == '__main__':
     suite = unittest.makeSuite(HtmlRendererTest, 'test')

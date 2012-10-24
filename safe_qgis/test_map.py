@@ -1,20 +1,13 @@
-"""
-InaSAFE Disaster risk assessment tool developed by AusAid and World Bank
-- **GUI Test Cases.**
-
-Contact : ole.moller.nielsen@gmail.com
-
-.. note:: This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
+"""**Tests for map creation in QGIS plugin.**
 
 """
-__author__ = 'tim@linfiniti.com'
-__version__ = '0.6.0'
-__date__ = '10/01/2011'
-__copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
-                 'Disaster Reduction')
+
+__author__ = 'Tim Sutton <tim@linfiniti.com>'
+__revision__ = '$Format:%H$'
+__date__ = '01/11/2010'
+__license__ = "GPL"
+__copyright__ = 'Copyright 2012, Australia Indonesia Facility for '
+__copyright__ += 'Disaster Reduction'
 
 import unittest
 from unittest import expectedFailure
@@ -32,10 +25,9 @@ from qgis.core import (QgsMapLayerRegistry,
 from qgis.gui import QgsMapCanvasLayer
 from safe_qgis.safe_interface import temp_dir, unique_filename
 from safe_qgis.utilities_test import (getQgisTestApp,
-                                      assertHashesForFile,
-                                      hashForFile,
                                       loadLayer,
-                                      setJakartaGeoExtent)
+                                      setJakartaGeoExtent,
+                                      checkImages)
 from safe_qgis.utilities import setupPrinter
 from safe_qgis.map import Map
 
@@ -77,8 +69,7 @@ class MapTest(unittest.TestCase):
         mySize = os.stat(myPath).st_size
         myExpectedSize = 352798  # as rendered on linux ub 12.04 64
         myMessage = 'Expected rendered map pdf to be at least %s, got %s' % (
-            myExpectedSize, mySize
-        )
+            myExpectedSize, mySize)
         assert mySize >= myExpectedSize, myMessage
 
     def test_renderComposition(self):
@@ -94,10 +85,10 @@ class MapTest(unittest.TestCase):
         myMap = Map(IFACE)
         myMap.setImpactLayer(myLayer)
         myMap.composeMap()
-        myImagePath, myImage, myTargetArea = myMap.renderComposition()
+        myImagePath, myControlImage, myTargetArea = myMap.renderComposition()
         LOGGER.debug(myImagePath)
 
-        assert myImage is not None
+        assert myControlImage is not None
 
         myDimensions = [myTargetArea.left(),
                         myTargetArea.top(),
@@ -105,21 +96,25 @@ class MapTest(unittest.TestCase):
                         myTargetArea.right()]
         myExpectedDimensions = [0.0, 0.0, 3507.0, 2480.0]
         myMessage = 'Expected target area to be %s, got %s' % (
-            str(myExpectedDimensions), str(myDimensions)
-        )
+            str(myExpectedDimensions), str(myDimensions))
         assert myExpectedDimensions == myDimensions, myMessage
 
         myMessage = 'Rendered output does not exist'
         assert os.path.exists(myImagePath), myMessage
-        # Note these hashes will be affected every time get_version
-        # changes due to the version being embeded in the pdf
-        myExpectedHashes = [
-                            '0109d8bac8fd27677d373ebf66546d19',
-                            '9a4ac96de64bbe1dda2616d01158913d',  # ub12.04-64
-                            'ddf3cd2e9059e85c9d5b525d9f00c7dd',  # Jenkins
-                            '7d308ea9d88ef55a101766adaabf179f',  # ub11.10-64
-                            '']
-        assertHashesForFile(myExpectedHashes, myImagePath)
+
+        myAcceptableImages = ['renderComposition.png',
+                              'renderComposition-variantUB12.04.png',
+                              'renderComposition-variantWindosVistaSP2-32.png',
+                              'renderComposition-variantJenkins.png',
+                              'renderComposition-variantUB11.10-64.png']
+        # Beta version and version changes  can introduce a few extra chars
+        # into the metadata section so we set a reasonable tolerance to cope
+        # with this.
+        myTolerance = 8000
+        myFlag, myMessage = checkImages(myAcceptableImages,
+                                           myImagePath,
+                                           myTolerance)
+        assert myFlag, myMessage
 
     def test_getMapTitle(self):
         """Getting the map title from the keywords"""
@@ -199,14 +194,17 @@ class MapTest(unittest.TestCase):
             myMap.drawPixmap(myPixmap, myWidthMM, i, i + 40)
 
         myImagePath, _, _ = myMap.renderComposition()
-        LOGGER.debug('Artifacts image path: %s' % myImagePath)
-        LOGGER.debug('Artifacts pdf path: %s' % myPath)
-        myUnwantedHash = 'd05e9223d50baf8bb147475aa96d6ba3'
-        myHash = hashForFile(myImagePath)
         # when this test no longer matches our broken render hash
         # we know the issue is fixed
-        myMessage = 'Windows map render still draws with artifacts.'
-        assert myHash != myUnwantedHash, myMessage
+
+        myControlImages = ['windowsArtifacts.png']
+        myTolerance = 0  # to allow for version number changes in disclaimer
+        myFlag, myMessage = checkImages(myControlImages,
+                                        myImagePath,
+                                        myTolerance)
+        myMessage += ('\nWe want these images to match, if they dont '
+                     'there may be rendering artifacts in windows.\n')
+        assert myFlag, myMessage
 
 if __name__ == '__main__':
     suite = unittest.makeSuite(MapTest, 'test')

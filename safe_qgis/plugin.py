@@ -12,7 +12,6 @@ Contact : ole.moller.nielsen@gmail.com
 """
 
 __author__ = 'tim@linfiniti.com'
-__version__ = '0.5.1'
 __revision__ = '$Format:%H$'
 __date__ = '10/01/2011'
 __copyright__ = 'Copyright 2012, Australia Indonesia Facility for '
@@ -409,6 +408,7 @@ class Plugin:
         myDialog = KeywordsDialog(self.iface.mainWindow(),
                                       self.iface,
                                       self.dockWidget)
+        myDialog.setModal(True)
         myDialog.show()
 
     def showImpactFunctionsDoc(self):

@@ -11,7 +11,6 @@ Contact : ole.moller.nielsen@gmail.com
 
 """
 __author__ = 'tim@linfiniti.com'
-__version__ = '0.5.1'
 __revision__ = '$Format:%H$'
 __date__ = '10/01/2011'
 __copyright__ = 'Copyright 2012, Australia Indonesia Facility for '
@@ -37,8 +36,7 @@ from safe_qgis.keyword_io import KeywordIO
 from safe_qgis.map_legend import MapLegend
 from safe_qgis.utilities import (setupPrinter,
                                  pointsToMM,
-                                 mmToPoints,
-                                 humaniseSeconds)
+                                 mmToPoints)
 # Don't remove this even if it is flagged as unused by your ide
 # it is needed for qrc:/ url resolution. See Qt Resources docs.
 import safe_qgis.resources     # pylint: disable=W0611
@@ -675,33 +673,27 @@ class Map():
         #user: timlinux
         #host_name: ultrabook
         #time_stamp: 2012-10-13_23:10:31
-        myUser = self.keywordIO.readKeywords(self.layer, 'user')
-        myHost = self.keywordIO.readKeywords(self.layer, 'host_name')
+        #myUser = self.keywordIO.readKeywords(self.layer, 'user')
+        #myHost = self.keywordIO.readKeywords(self.layer, 'host_name')
         myDateTime = self.keywordIO.readKeywords(self.layer, 'time_stamp')
         myTokens = myDateTime.split('_')
         myDate = myTokens[0]
         myTime = myTokens[1]
-        myElapsedTime = self.keywordIO.readKeywords(self.layer, 'elapsed_time')
-        myElapsedTime = humaniseSeconds(myElapsedTime)
+        #myElapsedTime = self.keywordIO.readKeywords(self.layer,
+        #                                            'elapsed_time')
+        #myElapsedTime = humaniseSeconds(myElapsedTime)
         myLongVersion = get_version()
         myTokens = myLongVersion.split('.')
         myVersion = '%s.%s.%s' % (myTokens[0], myTokens[1], myTokens[2])
-        myLabelText = self.tr('Assessment carried out on host "%s"'
-                         'by user "%s" using InaSAFE release %s (QGIS '
-                         'plugin version).\n'
-                         'Date and time of assessment: %s %s\n'
-                         'Elapsed time for assessment calculation: %s\n'
-                         'Special note: This assessment is a guide - we '
-                         'strongly recommend that you ground truth the '
-                         'results shown here before deploying resources '
-                         'and / or personnel.' % (
-                         myHost,
-                         myUser,
-                         myVersion,
-                         myDate,
-                         myTime,
-                         myElapsedTime))
-        myFontSize = 8
+        myLabelText = self.tr('Date and time of assessment: %1 %2\n'
+                              'Special note: This assessment is a guide - we '
+                              'strongly recommend that you ground truth the '
+                              'results shown here before deploying resources '
+                              'and / or personnel.\n'
+                              'Assessment carried out using InaSAFE release '
+                              '%3 (QGIS plugin version).').arg(
+                              myDate).arg(myTime).arg(myVersion)
+        myFontSize = 6
         myFontWeight = QtGui.QFont.Normal
         myItalicsFlag = True
         myFont = QtGui.QFont('verdana',
