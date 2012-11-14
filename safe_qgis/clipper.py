@@ -370,28 +370,49 @@ def _clipRasterLayer(theLayer, theExtent, theCellSize=None,
     myCommand = myExecutablePrefix + myCommand
 
     LOGGER.debug(myCommand)
-    myResult = QProcess().execute(myCommand)
-
+    # myResult = QProcess().execute(myCommand)
+    myProcess = QProcess()
+    myProcess.start(myCommand)
+    myProcess.waitForFinished()
+    myResult = myProcess.readAllStandardError()
+    # QProcess.execute(myCommand)
     # For QProcess exit codes see
     # http://qt-project.org/doc/qt-4.8/qprocess.html#execute
-    if myResult == -2:  # cannot be started
-        myMessageDetail = tr('Process could not be started.')
+    #    if myResult == -2:  # cannot be started
+    #        myMessageDetail = tr('Process could not be started.')
+    #    myMessage = tr('<p>Error while executing the following shell command:'
+    #                     '</p><pre>%s</pre><p>Error message: %s'
+    #                     % (myCommand, myMessageDetail))
+    #        raise CallGDALError(myMessage)
+    #    elif myResult == -1:  # process crashed
+    #        myMessageDetail = tr('Process could not be started.')
+    #    myMessage = tr('<p>Error while executing the following shell command:'
+    #                       '</p><pre>%s</pre><p>Error message: %s'
+    #                       % (myCommand, myMessageDetail))
+    #        raise CallGDALError(myMessage)
+    if myResult == '' or myResult is None:
+        # .. todo:: Check the result of the shell call is ok
+        myKeywordIO = KeywordIO()
+        myKeywordIO.copyKeywords(theLayer, myFilename,
+                             theExtraKeywords=theExtraKeywords)
+        return myFilename  # Filename of created file
+    elif (myResult.contains('ERROR 1') and
+            myResult.contains('dataset is illegal') and
+            myResult.contains('sizes must be larger than zero.')):
+        myHelp = tr('Please zoom out.')
+        myProblem = tr('The scale is too large, less than one pixel of raster'
+                        'is covered')
         myMessage = tr('<p>Error while executing the following shell command:'
-                     '</p><pre>%s</pre><p>Error message: %s'
-                     % (myCommand, myMessageDetail))
+                           '</p><pre>%s</pre><p>Error message: %s'
+                           '</p><p>Problem: %s'
+                           '</p><p>Solution: %s'
+                           % (myCommand, myResult, myProblem, myHelp))
         raise CallGDALError(myMessage)
-    elif myResult == -1:  # process crashed
-        myMessageDetail = tr('Process could not be started.')
+    else:
         myMessage = tr('<p>Error while executing the following shell command:'
                        '</p><pre>%s</pre><p>Error message: %s'
-                       % (myCommand, myMessageDetail))
-        raise CallGDALError(myMessage)
-
-    # .. todo:: Check the result of the shell call is ok
-    myKeywordIO = KeywordIO()
-    myKeywordIO.copyKeywords(theLayer, myFilename,
-                             theExtraKeywords=theExtraKeywords)
-    return myFilename  # Filename of created file
+                       % (myCommand, myResult))
+        raise Exception(myMessage)
 
 
 def extentToKml(theExtent):

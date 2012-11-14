@@ -10,7 +10,7 @@ Contact : ole.moller.nielsen@gmail.com
      (at your option) any later version.
 
 """
-from unittest import expectedFailure
+# from unittest import expectedFailure
 
 __author__ = 'tim@linfiniti.com'
 __date__ = '20/01/2011'
@@ -122,7 +122,7 @@ class ClipperTest(unittest.TestCase):
         assert myNewRasterLayer.rasterUnitsPerPixel() == mySize, myMessage
 
     # See issue #349
-    @expectedFailure
+    #@expectedFailure
     def test_clipOnePixel(self):
         # Create a raster layer
         myRasterPath = os.path.join(EXPDATA, 'glp10ag.asc')
