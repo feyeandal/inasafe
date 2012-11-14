@@ -399,7 +399,7 @@ def _clipRasterLayer(theLayer, theExtent, theCellSize=None,
     elif (myResult.contains('ERROR 1') and
             myResult.contains('dataset is illegal') and
             myResult.contains('sizes must be larger than zero.')):
-        myHelp = tr('Please zoom out.')
+        myHelp = tr('Please zoom out...')
         myProblem = tr('The scale is too large, less than one pixel of raster'
                         'is covered')
         myMessage = tr('<p>Error while executing the following shell command:'
