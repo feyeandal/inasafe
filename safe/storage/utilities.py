@@ -739,7 +739,7 @@ def array2line(A, geometry_type=ogr.wkbLinearRing):
 
     try:
         A = ensure_numeric(A, numpy.float)
-    except Exception, e:
+    except Exception as e:
         msg = ('Array (%s) could not be converted to numeric array. '
                'I got type %s. Error message: %s'
                % (A, str(type(A)), e))
