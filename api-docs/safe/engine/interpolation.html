@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../index.html" />
     <link rel="up" title="Package::safe.engine" href="../engine.html" />
@@ -96,12 +96,16 @@ the returned layer.</p>
 </li>
 <li><dl class="first docutils">
 <dt>attribute_name:</dt>
-<dd><p class="first last">If hazard layer is of type raster, this is the name for new
+<dd><p class="first">If hazard layer is of type raster, this will be the name for new
 attribute in the result containing the hazard level.
-If None (default) the name of hazard is used.
-If hazard layer is of type vector, it is the name of the
-attribute to transfer from the hazard layer into the result.
-If None (default) all attributes are transferred.</p>
+If None (default) the name of hazard layer is used.</p>
+<p>If hazard layer is polygon and exposure layer raster, this will be
+the name of the new attribute containing the raster value at each
+point.</p>
+<p>If hazard and exposure layers are both of type vector,
+this attribute is ignored.</p>
+<p class="last">If hazard and exposure layers are both of type raster,
+this attribute is ignored.</p>
 </dd>
 </dl>
 </li>
@@ -185,7 +189,7 @@ Raster-Raster:   Raster data</p>
 
 <dl class="function">
 <dt id="safe.engine.interpolation.interpolate_polygon_lines">
-<tt class="descclassname">safe.engine.interpolation.</tt><tt class="descname">interpolate_polygon_lines</tt><big>(</big><em>source</em>, <em>target</em>, <em>layer_name=None</em>, <em>attribute_name=None</em><big>)</big><a class="reference internal" href="../../../_modules/safe/engine/interpolation.html#interpolate_polygon_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.engine.interpolation.interpolate_polygon_lines" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">safe.engine.interpolation.</tt><tt class="descname">interpolate_polygon_lines</tt><big>(</big><em>source</em>, <em>target</em>, <em>layer_name=None</em><big>)</big><a class="reference internal" href="../../../_modules/safe/engine/interpolation.html#interpolate_polygon_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.engine.interpolation.interpolate_polygon_lines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolate from polygon vector layer to line vector data</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -197,12 +201,6 @@ Raster-Raster:   Raster data</p>
 <li><dl class="first docutils">
 <dt>layer_name: Optional name of returned interpolated layer.</dt>
 <dd><p class="first last">If None the name of target is used for the returned layer.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>attribute_name: Name for new attribute.</dt>
-<dd><p class="first last">If None (default) the name of source is used</p>
 </dd>
 </dl>
 </li>
@@ -222,7 +220,7 @@ line that was clipped.</p>
 
 <dl class="function">
 <dt id="safe.engine.interpolation.interpolate_polygon_points">
-<tt class="descclassname">safe.engine.interpolation.</tt><tt class="descname">interpolate_polygon_points</tt><big>(</big><em>source</em>, <em>target</em>, <em>layer_name=None</em>, <em>attribute_name=None</em><big>)</big><a class="reference internal" href="../../../_modules/safe/engine/interpolation.html#interpolate_polygon_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.engine.interpolation.interpolate_polygon_points" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">safe.engine.interpolation.</tt><tt class="descname">interpolate_polygon_points</tt><big>(</big><em>source</em>, <em>target</em>, <em>layer_name=None</em><big>)</big><a class="reference internal" href="../../../_modules/safe/engine/interpolation.html#interpolate_polygon_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.engine.interpolation.interpolate_polygon_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolate from polygon vector layer to point vector data</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -237,17 +235,14 @@ line that was clipped.</p>
 </dd>
 </dl>
 </li>
-<li><dl class="first docutils">
-<dt>attribute_name: Name for new attribute.</dt>
-<dd><p class="first last">If None (default) the name of source is used</p>
-</dd>
-</dl>
-</li>
 </ul>
 </dd>
 <dt>Output</dt>
 <dd>I: Vector data set; points located as target with values interpolated
 from source</dd>
+<dt>Note</dt>
+<dd>All attribute names from polygons are transferred to the points
+that are inside them.</dd>
 </dl>
 </dd></dl>
 
@@ -290,7 +285,7 @@ from source</dd>
 
 <dl class="function">
 <dt id="safe.engine.interpolation.interpolate_polygon_vector">
-<tt class="descclassname">safe.engine.interpolation.</tt><tt class="descname">interpolate_polygon_vector</tt><big>(</big><em>source</em>, <em>target</em>, <em>layer_name=None</em>, <em>attribute_name=None</em><big>)</big><a class="reference internal" href="../../../_modules/safe/engine/interpolation.html#interpolate_polygon_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.engine.interpolation.interpolate_polygon_vector" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">safe.engine.interpolation.</tt><tt class="descname">interpolate_polygon_vector</tt><big>(</big><em>source</em>, <em>target</em>, <em>layer_name=None</em><big>)</big><a class="reference internal" href="../../../_modules/safe/engine/interpolation.html#interpolate_polygon_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.engine.interpolation.interpolate_polygon_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolate from polygon vector layer to vector data</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -302,12 +297,6 @@ from source</dd>
 <li><dl class="first docutils">
 <dt>layer_name: Optional name of returned interpolated layer.</dt>
 <dd><p class="first last">If None the name of target is used for the returned layer.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>attribute_name: Name for new attribute.</dt>
-<dd><p class="first last">If None (default) the name of source is used</p>
 </dd>
 </dl>
 </li>
@@ -425,6 +414,28 @@ attributes (optional): Attributes for each center</p>
 </dl>
 </dd></dl>
 
+<dl class="function">
+<dt id="safe.engine.interpolation.tag_polygons_by_grid">
+<tt class="descclassname">safe.engine.interpolation.</tt><tt class="descname">tag_polygons_by_grid</tt><big>(</big><em>polygons</em>, <em>grid</em>, <em>threshold=0</em>, <em>tag='affected'</em><big>)</big><a class="reference internal" href="../../../_modules/safe/engine/interpolation.html#tag_polygons_by_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.engine.interpolation.tag_polygons_by_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tag polygons by raster values</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>polygons: Polygon layer</li>
+<li>grid: Raster layer</li>
+<li>threshold: Threshold for grid value to tag polygon</li>
+<li>tag: Name of new tag</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>Polygon layer: Same as input polygon but with extra attribute tag</dt>
+<dd>set according to grid values</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 <p>This module forms part of the <a class="reference external" href="http://inasafe.org">InaSAFE</a> tool.</p>
 </div>
 
@@ -494,9 +505,9 @@ attributes (optional): Attributes for each center</p>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -60,23 +60,16 @@
           <div class="body">
             
   <h1>Source code for safe_qgis.test_map</h1><div class="highlight"><pre>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">InaSAFE Disaster risk assessment tool developed by AusAid and World Bank</span>
-<span class="sd">- **GUI Test Cases.**</span>
-
-<span class="sd">Contact : ole.moller.nielsen@gmail.com</span>
-
-<span class="sd">.. note:: This program is free software; you can redistribute it and/or modify</span>
-<span class="sd">     it under the terms of the GNU General Public License as published by</span>
-<span class="sd">     the Free Software Foundation; either version 2 of the License, or</span>
-<span class="sd">     (at your option) any later version.</span>
+<span class="sd">&quot;&quot;&quot;**Tests for map creation in QGIS plugin.**</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;tim@linfiniti.com&#39;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.6.0&#39;</span>
-<span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;10/01/2011&#39;</span>
-<span class="n">__copyright__</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Copyright 2012, Australia Indonesia Facility for &#39;</span>
-                 <span class="s">&#39;Disaster Reduction&#39;</span><span class="p">)</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Tim Sutton &lt;tim@linfiniti.com&gt;&#39;</span>
+<span class="n">__revision__</span> <span class="o">=</span> <span class="s">&#39;$Format:%H$&#39;</span>
+<span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;01/11/2010&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&#39;Copyright 2012, Australia Indonesia Facility for &#39;</span>
+<span class="n">__copyright__</span> <span class="o">+=</span> <span class="s">&#39;Disaster Reduction&#39;</span>
 
 <span class="kn">import</span> <span class="nn">unittest</span>
 <span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">expectedFailure</span>
@@ -94,11 +87,10 @@
 <span class="kn">from</span> <span class="nn">qgis.gui</span> <span class="kn">import</span> <span class="n">QgsMapCanvasLayer</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">unique_filename</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.utilities_test</span> <span class="kn">import</span> <span class="p">(</span><span class="n">getQgisTestApp</span><span class="p">,</span>
-                                      <span class="n">assertHashesForFile</span><span class="p">,</span>
-                                      <span class="n">hashForFile</span><span class="p">,</span>
                                       <span class="n">loadLayer</span><span class="p">,</span>
-                                      <span class="n">setJakartaGeoExtent</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.utilities</span> <span class="kn">import</span> <span class="n">setupPrinter</span>
+                                      <span class="n">setJakartaGeoExtent</span><span class="p">,</span>
+                                      <span class="n">checkImages</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.utilities</span> <span class="kn">import</span> <span class="n">setupPrinter</span><span class="p">,</span> <span class="n">dpiToMeters</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.map</span> <span class="kn">import</span> <span class="n">Map</span>
 
 <span class="n">QGISAPP</span><span class="p">,</span> <span class="n">CANVAS</span><span class="p">,</span> <span class="n">IFACE</span><span class="p">,</span> <span class="n">PARENT</span> <span class="o">=</span> <span class="n">getQgisTestApp</span><span class="p">()</span>
@@ -139,8 +131,7 @@
         <span class="n">mySize</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">myPath</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
         <span class="n">myExpectedSize</span> <span class="o">=</span> <span class="mi">352798</span>  <span class="c"># as rendered on linux ub 12.04 64</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Expected rendered map pdf to be at least </span><span class="si">%s</span><span class="s">, got </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">myExpectedSize</span><span class="p">,</span> <span class="n">mySize</span>
-        <span class="p">)</span>
+            <span class="n">myExpectedSize</span><span class="p">,</span> <span class="n">mySize</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">mySize</span> <span class="o">&gt;=</span> <span class="n">myExpectedSize</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="MapTest.test_renderComposition"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_map.html#safe_qgis.test_map.MapTest.test_renderComposition">[docs]</a>    <span class="k">def</span> <span class="nf">test_renderComposition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -156,10 +147,10 @@
         <span class="n">myMap</span> <span class="o">=</span> <span class="n">Map</span><span class="p">(</span><span class="n">IFACE</span><span class="p">)</span>
         <span class="n">myMap</span><span class="o">.</span><span class="n">setImpactLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
         <span class="n">myMap</span><span class="o">.</span><span class="n">composeMap</span><span class="p">()</span>
-        <span class="n">myImagePath</span><span class="p">,</span> <span class="n">myImage</span><span class="p">,</span> <span class="n">myTargetArea</span> <span class="o">=</span> <span class="n">myMap</span><span class="o">.</span><span class="n">renderComposition</span><span class="p">()</span>
+        <span class="n">myImagePath</span><span class="p">,</span> <span class="n">myControlImage</span><span class="p">,</span> <span class="n">myTargetArea</span> <span class="o">=</span> <span class="n">myMap</span><span class="o">.</span><span class="n">renderComposition</span><span class="p">()</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">myImagePath</span><span class="p">)</span>
 
-        <span class="k">assert</span> <span class="n">myImage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="k">assert</span> <span class="n">myControlImage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
 
         <span class="n">myDimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">myTargetArea</span><span class="o">.</span><span class="n">left</span><span class="p">(),</span>
                         <span class="n">myTargetArea</span><span class="o">.</span><span class="n">top</span><span class="p">(),</span>
@@ -167,21 +158,26 @@
                         <span class="n">myTargetArea</span><span class="o">.</span><span class="n">right</span><span class="p">()]</span>
         <span class="n">myExpectedDimensions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">3507.0</span><span class="p">,</span> <span class="mf">2480.0</span><span class="p">]</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Expected target area to be </span><span class="si">%s</span><span class="s">, got </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">myExpectedDimensions</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">myDimensions</span><span class="p">)</span>
-        <span class="p">)</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">myExpectedDimensions</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">myDimensions</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">myExpectedDimensions</span> <span class="o">==</span> <span class="n">myDimensions</span><span class="p">,</span> <span class="n">myMessage</span>
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Rendered output does not exist&#39;</span>
         <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">myImagePath</span><span class="p">),</span> <span class="n">myMessage</span>
-        <span class="c"># Note these hashes will be affected every time get_version</span>
-        <span class="c"># changes due to the version being embeded in the pdf</span>
-        <span class="n">myExpectedHashes</span> <span class="o">=</span> <span class="p">[</span>
-                            <span class="s">&#39;0109d8bac8fd27677d373ebf66546d19&#39;</span><span class="p">,</span>
-                            <span class="s">&#39;9a4ac96de64bbe1dda2616d01158913d&#39;</span><span class="p">,</span>  <span class="c"># ub12.04-64</span>
-                            <span class="s">&#39;ddf3cd2e9059e85c9d5b525d9f00c7dd&#39;</span><span class="p">,</span>  <span class="c"># Jenkins</span>
-                            <span class="s">&#39;7d308ea9d88ef55a101766adaabf179f&#39;</span><span class="p">,</span>  <span class="c"># ub11.10-64</span>
-                            <span class="s">&#39;&#39;</span><span class="p">]</span>
-        <span class="n">assertHashesForFile</span><span class="p">(</span><span class="n">myExpectedHashes</span><span class="p">,</span> <span class="n">myImagePath</span><span class="p">)</span>
+
+        <span class="n">myAcceptableImages</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;renderComposition.png&#39;</span><span class="p">,</span>
+                              <span class="s">&#39;renderComposition-variantUB12.04.png&#39;</span><span class="p">,</span>
+                              <span class="s">&#39;renderComposition-variantWindosVistaSP2-32.png&#39;</span><span class="p">,</span>
+                              <span class="s">&#39;renderComposition-variantJenkins.png&#39;</span><span class="p">,</span>
+                              <span class="s">&#39;renderComposition-variantUB11.10-64.png&#39;</span><span class="p">,</span>
+                              <span class="s">&#39;renderComposition-variantUB11.04-64.png&#39;</span><span class="p">]</span>
+        <span class="c"># Beta version and version changes  can introduce a few extra chars</span>
+        <span class="c"># into the metadata section so we set a reasonable tolerance to cope</span>
+        <span class="c"># with this.</span>
+        <span class="n">myTolerance</span> <span class="o">=</span> <span class="mi">8000</span>
+        <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span> <span class="o">=</span> <span class="n">checkImages</span><span class="p">(</span><span class="n">myAcceptableImages</span><span class="p">,</span>
+                                           <span class="n">myImagePath</span><span class="p">,</span>
+                                           <span class="n">myTolerance</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="MapTest.test_getMapTitle"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_map.html#safe_qgis.test_map.MapTest.test_getMapTitle">[docs]</a>    <span class="k">def</span> <span class="nf">test_getMapTitle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Getting the map title from the keywords&quot;&quot;&quot;</span>
@@ -237,13 +233,16 @@
         <span class="n">setupPrinter</span><span class="p">(</span><span class="n">myPath</span><span class="p">)</span>
         <span class="n">myMap</span><span class="o">.</span><span class="n">setupComposition</span><span class="p">()</span>
 
-        <span class="n">myPixmap</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPixmap</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-        <span class="c">#myPixmap.fill(QtGui.QColor(250, 250, 250))</span>
+        <span class="n">myImage</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QImage</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QImage</span><span class="o">.</span><span class="n">Format_RGB32</span><span class="p">)</span>
+        <span class="n">myImage</span><span class="o">.</span><span class="n">setDotsPerMeterX</span><span class="p">(</span><span class="n">dpiToMeters</span><span class="p">(</span><span class="mi">300</span><span class="p">))</span>
+        <span class="n">myImage</span><span class="o">.</span><span class="n">setDotsPerMeterY</span><span class="p">(</span><span class="n">dpiToMeters</span><span class="p">(</span><span class="mi">300</span><span class="p">))</span>
+        <span class="c">#myImage.fill(QtGui.QColor(250, 250, 250))</span>
         <span class="c"># Look at the output, you will see antialiasing issues around some</span>
         <span class="c"># of the boxes drawn...</span>
-        <span class="n">myPixmap</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">))</span>
+        <span class="c"># myImage.fill(QtGui.QColor(200, 200, 200))</span>
+        <span class="n">myImage</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">200</span> <span class="o">+</span> <span class="mi">200</span> <span class="o">*</span> <span class="mi">256</span> <span class="o">+</span> <span class="mi">200</span> <span class="o">*</span> <span class="mi">256</span> <span class="o">*</span> <span class="mi">256</span><span class="p">)</span>
         <span class="n">myFilename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">(),</span> <span class="s">&#39;greyBox&#39;</span><span class="p">)</span>
-        <span class="n">myPixmap</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">myFilename</span><span class="p">,</span> <span class="s">&#39;PNG&#39;</span><span class="p">)</span>
+        <span class="n">myImage</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">myFilename</span><span class="p">,</span> <span class="s">&#39;PNG&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">190</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
             <span class="n">myPicture</span> <span class="o">=</span> <span class="n">QgsComposerPicture</span><span class="p">(</span><span class="n">myMap</span><span class="o">.</span><span class="n">composition</span><span class="p">)</span>
             <span class="n">myPicture</span><span class="o">.</span><span class="n">setPictureFile</span><span class="p">(</span><span class="n">myFilename</span><span class="p">)</span>
@@ -254,21 +253,25 @@
                                       <span class="mi">10</span><span class="p">)</span>  <span class="c"># height</span>
             <span class="n">myMap</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">myPicture</span><span class="p">)</span>
             <span class="c"># Same drawing drawn directly as a pixmap</span>
-            <span class="n">myPixmapItem</span> <span class="o">=</span> <span class="n">myMap</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">addPixmap</span><span class="p">(</span><span class="n">myPixmap</span><span class="p">)</span>
+            <span class="n">myPixmapItem</span> <span class="o">=</span> <span class="n">myMap</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">addPixmap</span><span class="p">(</span>
+                <span class="n">QtGui</span><span class="o">.</span><span class="n">QPixmap</span><span class="o">.</span><span class="n">fromImage</span><span class="p">(</span><span class="n">myImage</span><span class="p">))</span>
             <span class="n">myPixmapItem</span><span class="o">.</span><span class="n">setOffset</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">20</span><span class="p">)</span>
-            <span class="c"># Same drawing using our drawPixmap Helper</span>
+            <span class="c"># Same drawing using our drawImage Helper</span>
             <span class="n">myWidthMM</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">myMap</span><span class="o">.</span><span class="n">drawPixmap</span><span class="p">(</span><span class="n">myPixmap</span><span class="p">,</span> <span class="n">myWidthMM</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">40</span><span class="p">)</span>
+            <span class="n">myMap</span><span class="o">.</span><span class="n">drawImage</span><span class="p">(</span><span class="n">myImage</span><span class="p">,</span> <span class="n">myWidthMM</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">40</span><span class="p">)</span>
 
         <span class="n">myImagePath</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">myMap</span><span class="o">.</span><span class="n">renderComposition</span><span class="p">()</span>
-        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Artifacts image path: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myImagePath</span><span class="p">)</span>
-        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Artifacts pdf path: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myPath</span><span class="p">)</span>
-        <span class="n">myUnwantedHash</span> <span class="o">=</span> <span class="s">&#39;d05e9223d50baf8bb147475aa96d6ba3&#39;</span>
-        <span class="n">myHash</span> <span class="o">=</span> <span class="n">hashForFile</span><span class="p">(</span><span class="n">myImagePath</span><span class="p">)</span>
         <span class="c"># when this test no longer matches our broken render hash</span>
         <span class="c"># we know the issue is fixed</span>
-        <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Windows map render still draws with artifacts.&#39;</span>
-        <span class="k">assert</span> <span class="n">myHash</span> <span class="o">!=</span> <span class="n">myUnwantedHash</span><span class="p">,</span> <span class="n">myMessage</span>
+
+        <span class="n">myControlImages</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;windowsArtifacts.png&#39;</span><span class="p">]</span>
+        <span class="n">myTolerance</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span> <span class="o">=</span> <span class="n">checkImages</span><span class="p">(</span><span class="n">myControlImages</span><span class="p">,</span>
+                                        <span class="n">myImagePath</span><span class="p">,</span>
+                                        <span class="n">myTolerance</span><span class="p">)</span>
+        <span class="n">myMessage</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">We want these images to match, if they do not &#39;</span>
+                     <span class="s">&#39;there may be rendering artifacts in windows.</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span>
 </div></div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">suite</span> <span class="o">=</span> <span class="n">unittest</span><span class="o">.</span><span class="n">makeSuite</span><span class="p">(</span><span class="n">MapTest</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">)</span>
@@ -322,9 +325,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

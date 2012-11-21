@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../../index.html" />
     <link rel="up" title="Module code" href="../../../index.html" /> 
@@ -104,8 +104,8 @@
                  <span class="mi">9</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">median</span><span class="o">=</span><span class="mf">10.5</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)}</span>
 
 
-<div class="viewcode-block" id="PadangEarthquakeBuildingDamageFunction"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/earthquake/padang_building_impact_model.html#safe.impact_functions.earthquake.padang_building_impact_model.PadangEarthquakeBuildingDamageFunction">[docs]</a><span class="k">class</span> <span class="nc">PadangEarthquakeBuildingDamageFunction</span><span class="p">(</span><span class="n">FunctionProvider</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Risk plugin for Padang earthquake damage to buildings</span>
+<span class="k">class</span> <span class="nc">PadangEarthquakeBuildingDamageFunction</span><span class="p">(</span><span class="n">FunctionProvider</span><span class="p">):</span>
+<div class="viewcode-block" id="PadangEarthquakeBuildingDamageFunction"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/earthquake/padang_building_impact_model.html#safe.impact_functions.earthquake.padang_building_impact_model.PadangEarthquakeBuildingDamageFunction">[docs]</a>    <span class="sd">&quot;&quot;&quot;Risk plugin for Padang earthquake damage to buildings</span>
 
 <span class="sd">    :param requires category==&#39;hazard&#39; and \</span>
 <span class="sd">                    subcategory==&#39;earthquake&#39; and \</span>
@@ -120,8 +120,8 @@
 
     <span class="n">title</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Be damaged depending on building type&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="PadangEarthquakeBuildingDamageFunction.run"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/earthquake/padang_building_impact_model.html#safe.impact_functions.earthquake.padang_building_impact_model.PadangEarthquakeBuildingDamageFunction.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Risk plugin for Padang building survey</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">):</span>
+<div class="viewcode-block" id="PadangEarthquakeBuildingDamageFunction.run"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/earthquake/padang_building_impact_model.html#safe.impact_functions.earthquake.padang_building_impact_model.PadangEarthquakeBuildingDamageFunction.run">[docs]</a>        <span class="sd">&quot;&quot;&quot;Risk plugin for Padang building survey</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Extract data</span>
@@ -186,10 +186,10 @@
                       <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Buildings&#39;</span><span class="p">),</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Total&#39;</span><span class="p">)],</span>
                                <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
                       <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;All&#39;</span><span class="p">),</span> <span class="n">N</span><span class="p">]),</span>
-                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;No damage&#39;</span><span class="p">),</span> <span class="n">count_none</span><span class="p">]),</span>
-                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Low damage&#39;</span><span class="p">),</span> <span class="n">count_low</span><span class="p">]),</span>
-                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Medium damage&#39;</span><span class="p">),</span> <span class="n">count_medium</span><span class="p">]),</span>
-                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;High damage&#39;</span><span class="p">),</span> <span class="n">count_high</span><span class="p">])]</span>
+                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;No damage&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_none</span><span class="p">)]),</span>
+                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Low damage&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_low</span><span class="p">)]),</span>
+                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Medium damage&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_medium</span><span class="p">)]),</span>
+                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;High damage&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_high</span><span class="p">)])]</span>
 
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Notes&#39;</span><span class="p">),</span> <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Levels of impact are defined by post 2009 &#39;</span>
@@ -204,13 +204,13 @@
 
         <span class="c"># Create style</span>
         <span class="n">style_classes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;No damage&#39;</span><span class="p">),</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-                              <span class="n">colour</span><span class="o">=</span><span class="s">&#39;#00ff00&#39;</span><span class="p">,</span> <span class="n">transparency</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                              <span class="n">colour</span><span class="o">=</span><span class="s">&#39;#00ff00&#39;</span><span class="p">,</span> <span class="n">transparency</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
                          <span class="nb">dict</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Low damage&#39;</span><span class="p">),</span> <span class="nb">min</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">33</span><span class="p">,</span>
-                              <span class="n">colour</span><span class="o">=</span><span class="s">&#39;#ffff00&#39;</span><span class="p">,</span> <span class="n">transparency</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                              <span class="n">colour</span><span class="o">=</span><span class="s">&#39;#ffff00&#39;</span><span class="p">,</span> <span class="n">transparency</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
                          <span class="nb">dict</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Medium damage&#39;</span><span class="p">),</span> <span class="nb">min</span><span class="o">=</span><span class="mi">33</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">66</span><span class="p">,</span>
-                              <span class="n">colour</span><span class="o">=</span><span class="s">&#39;#ffaa00&#39;</span><span class="p">,</span> <span class="n">transparency</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                              <span class="n">colour</span><span class="o">=</span><span class="s">&#39;#ffaa00&#39;</span><span class="p">,</span> <span class="n">transparency</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
                          <span class="nb">dict</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;High damage&#39;</span><span class="p">),</span> <span class="nb">min</span><span class="o">=</span><span class="mi">66</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-                              <span class="n">colour</span><span class="o">=</span><span class="s">&#39;#ff0000&#39;</span><span class="p">,</span> <span class="n">transparency</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+                              <span class="n">colour</span><span class="o">=</span><span class="s">&#39;#ff0000&#39;</span><span class="p">,</span> <span class="n">transparency</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
         <span class="n">style_info</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">target_field</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_field</span><span class="p">,</span>
                           <span class="n">style_classes</span><span class="o">=</span><span class="n">style_classes</span><span class="p">)</span>
 
@@ -224,8 +224,8 @@
                              <span class="s">&#39;map_title&#39;</span><span class="p">:</span> <span class="n">map_title</span><span class="p">,</span>
                              <span class="s">&#39;target_field&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_field</span><span class="p">},</span>
                    <span class="n">style_info</span><span class="o">=</span><span class="n">style_info</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">V</span></div></div>
-</pre></div>
+        <span class="k">return</span> <span class="n">V</span>
+</pre></div></div></div>
 
           </div>
         </div>
@@ -273,9 +273,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

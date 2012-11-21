@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -74,7 +74,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;tim@linfiniti.com&#39;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.5.1&#39;</span>
 <span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;10/01/2011&#39;</span>
 <span class="n">__copyright__</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Copyright 2012, Australia Indonesia Facility for &#39;</span>
                  <span class="s">&#39;Disaster Reduction&#39;</span><span class="p">)</span>
@@ -122,7 +121,6 @@
         <span class="sd">&quot;&quot;&quot;Library translations are working.&quot;&quot;&quot;</span>
         <span class="c"># Import this late so that i18n setup is already in place</span>
         <span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="n">ugettext</span> <span class="k">as</span> <span class="n">tr</span>
-        <span class="n">myUntranslatedString</span> <span class="o">=</span> <span class="s">&#39;Temporarily Closed&#39;</span>
 
         <span class="c"># Test indonesian too</span>
         <span class="n">myParent</span> <span class="o">=</span> <span class="n">QWidget</span><span class="p">()</span>
@@ -130,10 +128,10 @@
         <span class="n">myIface</span> <span class="o">=</span> <span class="n">QgisInterface</span><span class="p">(</span><span class="n">myCanvas</span><span class="p">)</span>
         <span class="n">myPlugin</span> <span class="o">=</span> <span class="n">Plugin</span><span class="p">(</span><span class="n">myIface</span><span class="p">)</span>
         <span class="n">myPlugin</span><span class="o">.</span><span class="n">setupI18n</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">)</span>  <span class="c"># indonesian</span>
-        <span class="n">myExpectedString</span> <span class="o">=</span> <span class="s">&#39;Ditutup sementara&#39;</span>
-        <span class="n">myTranslation</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="n">myUntranslatedString</span><span class="p">)</span>
+        <span class="n">myExpectedString</span> <span class="o">=</span> <span class="s">&#39;Letusan gunung berapi&#39;</span>
+        <span class="n">myTranslation</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;A volcano eruption&#39;</span><span class="p">)</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Translated: </span><span class="si">%s</span><span class="se">\n</span><span class="s">Got: </span><span class="si">%s</span><span class="se">\n</span><span class="s">Expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                            <span class="n">myUntranslatedString</span><span class="p">,</span>
+                            <span class="s">&#39;A volcano eruption&#39;</span><span class="p">,</span>
                             <span class="n">myTranslation</span><span class="p">,</span>
                             <span class="n">myExpectedString</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">myTranslation</span> <span class="o">==</span> <span class="n">myExpectedString</span><span class="p">,</span> <span class="n">myMessage</span>
@@ -236,9 +234,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

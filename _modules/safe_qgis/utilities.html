@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -74,7 +74,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;tim@linfiniti.com&#39;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.5.1&#39;</span>
 <span class="n">__revision__</span> <span class="o">=</span> <span class="s">&#39;$Format:%H$&#39;</span>
 <span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;29/01/2011&#39;</span>
 <span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&#39;Copyright 2012, Australia Indonesia Facility for &#39;</span>
@@ -103,9 +102,10 @@
                        <span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">safe_interface</span> <span class="kn">import</span> <span class="n">temp_dir</span>
+
 <span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="n">StyleError</span><span class="p">,</span> <span class="n">MethodUnavailableError</span>
 
-<span class="kn">from</span> <span class="nn">safe.defaults</span> <span class="kn">import</span> <span class="n">DEFAULTS</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">DEFAULTS</span><span class="p">,</span> <span class="n">safeTr</span><span class="p">,</span> <span class="n">get_version</span>
 
 <span class="c">#do not remove this even if it is marked as unused by your IDE</span>
 <span class="c">#resources are used by htmlfooter and header the comment will mark it unused</span>
@@ -116,25 +116,35 @@
 
 
 <div class="viewcode-block" id="setVectorStyle"><a class="viewcode-back" href="../../api-docs/safe_qgis/utilities.html#safe_qgis.utilities.setVectorStyle">[docs]</a><span class="k">def</span> <span class="nf">setVectorStyle</span><span class="p">(</span><span class="n">theQgisVectorLayer</span><span class="p">,</span> <span class="n">theStyle</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Set QGIS vector style based on InaSAFE style dictionary</span>
+    <span class="sd">&quot;&quot;&quot;Set QGIS vector style based on InaSAFE style dictionary.</span>
 
-<span class="sd">    Input</span>
-<span class="sd">        theQgisVectorLayer: Qgis layer</span>
-<span class="sd">        theStyle: Dictionary of the form as in the example below</span>
+<span class="sd">    For **opaque** a value of **0** can be used. For **fully transparent**, a</span>
+<span class="sd">    value of **100** can be used. The function should take care to scale the</span>
+<span class="sd">    transparency level to between 0 and 100.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        * theQgisVectorLayer: QgsMapLayer</span>
+<span class="sd">        * theStyle: dict - Dictionary of the form as in the example below</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None - Sets and saves style for theQgisVectorLayer</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    Example:</span>
 
 <span class="sd">        {&#39;target_field&#39;: &#39;DMGLEVEL&#39;,</span>
 <span class="sd">        &#39;style_classes&#39;:</span>
-<span class="sd">        [{&#39;opacity&#39;: 1, &#39;max&#39;: 1.5, &#39;colour&#39;: &#39;#fecc5c&#39;,</span>
+<span class="sd">        [{&#39;transparency&#39;: 1, &#39;max&#39;: 1.5, &#39;colour&#39;: &#39;#fecc5c&#39;,</span>
 <span class="sd">          &#39;min&#39;: 0.5, &#39;label&#39;: &#39;Low damage&#39;, &#39;size&#39; : 1},</span>
-<span class="sd">        {&#39;opacity&#39;: 1, &#39;max&#39;: 2.5, &#39;colour&#39;: &#39;#fd8d3c&#39;,</span>
+<span class="sd">        {&#39;transparency&#39;: 55, &#39;max&#39;: 2.5, &#39;colour&#39;: &#39;#fd8d3c&#39;,</span>
 <span class="sd">         &#39;min&#39;: 1.5, &#39;label&#39;: &#39;Medium damage&#39;, &#39;size&#39; : 1},</span>
-<span class="sd">        {&#39;opacity&#39;: 1, &#39;max&#39;: 3.5, &#39;colour&#39;: &#39;#f31a1c&#39;,</span>
+<span class="sd">        {&#39;transparency&#39;: 80, &#39;max&#39;: 3.5, &#39;colour&#39;: &#39;#f31a1c&#39;,</span>
 <span class="sd">         &#39;min&#39;: 2.5, &#39;label&#39;: &#39;High damage&#39;, &#39;size&#39; : 1}]}</span>
 
 <span class="sd">        .. note:: The transparency and size keys are optional. Size applies</span>
 <span class="sd">           to points only.</span>
-<span class="sd">    Output</span>
-<span class="sd">        Sets and saves style for theQgisVectorLayer</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">myTargetField</span> <span class="o">=</span> <span class="n">theStyle</span><span class="p">[</span><span class="s">&#39;target_field&#39;</span><span class="p">]</span>
@@ -207,7 +217,7 @@
         <span class="c"># Convert transparency % to opacity</span>
         <span class="c"># alpha = 0: transparent</span>
         <span class="c"># alpha = 1: opaque</span>
-        <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">myTransparencyPercent</span> <span class="o">/</span> <span class="mi">100</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">myTransparencyPercent</span> <span class="o">/</span> <span class="mf">100.0</span>
         <span class="n">mySymbol</span><span class="o">.</span><span class="n">setAlpha</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
         <span class="n">myRange</span> <span class="o">=</span> <span class="n">QgsRendererRangeV2</span><span class="p">(</span><span class="n">myMin</span><span class="p">,</span>
                                      <span class="n">myMax</span><span class="p">,</span>
@@ -229,16 +239,18 @@
 <span class="sd">    for the passed in layer.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        theQgsRasterLayer: Qgis layer</span>
-<span class="sd">        style: Dictionary of the form as in the example below</span>
+<span class="sd">        * theQgsRasterLayer: QgsRasterLayer</span>
+<span class="sd">        * style: dict - Dictionary of the form as in the example below.</span>
+
+<span class="sd">    Example:</span>
 <span class="sd">        style_classes = [dict(colour=&#39;#38A800&#39;, quantity=2, transparency=0),</span>
-<span class="sd">                         dict(colour=&#39;#38A800&#39;, quantity=5, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#79C900&#39;, quantity=10, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#CEED00&#39;, quantity=20, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#FFCC00&#39;, quantity=50, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#FF6600&#39;, quantity=100, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#FF0000&#39;, quantity=200, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#7A0000&#39;, quantity=300, transparency=1)]</span>
+<span class="sd">                         dict(colour=&#39;#38A800&#39;, quantity=5, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#79C900&#39;, quantity=10, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#CEED00&#39;, quantity=20, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#FFCC00&#39;, quantity=50, transparency=34),</span>
+<span class="sd">                         dict(colour=&#39;#FF6600&#39;, quantity=100, transparency=77),</span>
+<span class="sd">                         dict(colour=&#39;#FF0000&#39;, quantity=200, transparency=24),</span>
+<span class="sd">                         dict(colour=&#39;#7A0000&#39;, quantity=300, transparency=22)]</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list: RangeList</span>
@@ -261,20 +273,23 @@
 <span class="sd">    for the passed in layer.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        theQgsRasterLayer: Qgis layer</span>
-<span class="sd">        style: Dictionary of the form as in the example below</span>
-<span class="sd">        style_classes = [dict(colour=&#39;#38A800&#39;, quantity=2, transparency=0),</span>
-<span class="sd">                         dict(colour=&#39;#38A800&#39;, quantity=5, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#79C900&#39;, quantity=10, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#CEED00&#39;, quantity=20, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#FFCC00&#39;, quantity=50, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#FF6600&#39;, quantity=100, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#FF0000&#39;, quantity=200, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#7A0000&#39;, quantity=300, transparency=1)]</span>
+<span class="sd">        * theQgsRasterLayer: QgsRasterLayer.</span>
+<span class="sd">        * style: dict - Dictionary of the form as in the example below.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        list: RangeList</span>
-<span class="sd">        list: TransparencyList</span>
+<span class="sd">        * list: RangeList</span>
+<span class="sd">        * list: TransparencyList</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        style_classes = [dict(colour=&#39;#38A800&#39;, quantity=2, transparency=0),</span>
+<span class="sd">                         dict(colour=&#39;#38A800&#39;, quantity=5, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#79C900&#39;, quantity=10, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#CEED00&#39;, quantity=20, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#FFCC00&#39;, quantity=50, transparency=34),</span>
+<span class="sd">                         dict(colour=&#39;#FF6600&#39;, quantity=100, transparency=77),</span>
+<span class="sd">                         dict(colour=&#39;#FF0000&#39;, quantity=200, transparency=24),</span>
+<span class="sd">                         dict(colour=&#39;#7A0000&#39;, quantity=300, transparency=22)]</span>
 
 <span class="sd">    .. note:: There is currently a limitation in QGIS in that</span>
 <span class="sd">       pixel transparency values can not be specified in ranges and</span>
@@ -307,6 +322,13 @@
         <span class="k">if</span> <span class="s">&#39;transparency&#39;</span> <span class="ow">in</span> <span class="n">myClass</span><span class="p">:</span>
             <span class="n">myTransparencyPercent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">myClass</span><span class="p">[</span><span class="s">&#39;transparency&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">myTransparencyPercent</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># Always assign the transparency to the class&#39; specified quantity</span>
+            <span class="n">myPixel</span> <span class="o">=</span> \
+                    <span class="n">QgsRasterTransparency</span><span class="o">.</span><span class="n">TransparentSingleValuePixel</span><span class="p">()</span>
+            <span class="n">myPixel</span><span class="o">.</span><span class="n">pixelValue</span> <span class="o">=</span> <span class="n">myMax</span>
+            <span class="n">myPixel</span><span class="o">.</span><span class="n">percentTransparent</span> <span class="o">=</span> <span class="n">myTransparencyPercent</span>
+            <span class="n">myTransparencyList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">myPixel</span><span class="p">)</span>
+
             <span class="c"># Check if range extrema are integers so we know if we can</span>
             <span class="c"># use them to calculate a value range</span>
             <span class="k">if</span> <span class="p">((</span><span class="n">myLastValue</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">myLastValue</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">myMax</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">myMax</span><span class="p">))):</span>
@@ -349,20 +371,23 @@
 <span class="sd">    for the passed in layer.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        theQgsRasterLayer: Qgis layer</span>
-<span class="sd">        style: Dictionary of the form as in the example below</span>
-<span class="sd">        style_classes = [dict(colour=&#39;#38A800&#39;, quantity=2, transparency=0),</span>
-<span class="sd">                         dict(colour=&#39;#38A800&#39;, quantity=5, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#79C900&#39;, quantity=10, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#CEED00&#39;, quantity=20, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#FFCC00&#39;, quantity=50, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#FF6600&#39;, quantity=100, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#FF0000&#39;, quantity=200, transparency=1),</span>
-<span class="sd">                         dict(colour=&#39;#7A0000&#39;, quantity=300, transparency=1)]</span>
+<span class="sd">        * theQgsRasterLayer: QgsRasterLayer</span>
+<span class="sd">        * style: Dictionary of the form as in the example below.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        list: RangeList</span>
-<span class="sd">        list: TransparencyList</span>
+<span class="sd">        * list: RangeList</span>
+<span class="sd">        * list: TransparencyList</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        style_classes = [dict(colour=&#39;#38A800&#39;, quantity=2, transparency=0),</span>
+<span class="sd">                         dict(colour=&#39;#38A800&#39;, quantity=5, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#79C900&#39;, quantity=10, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#CEED00&#39;, quantity=20, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#FFCC00&#39;, quantity=50, transparency=34),</span>
+<span class="sd">                         dict(colour=&#39;#FF6600&#39;, quantity=100, transparency=77),</span>
+<span class="sd">                         dict(colour=&#39;#FF0000&#39;, quantity=200, transparency=24),</span>
+<span class="sd">                         dict(colour=&#39;#7A0000&#39;, quantity=300, transparency=22)]</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Note imports here to prevent importing on unsupported QGIS versions</span>
     <span class="c"># pylint: disable=E0611</span>
@@ -445,47 +470,62 @@
 <span class="sd">       Translated version of the given string if available, otherwise</span>
 <span class="sd">       the original string.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">myContext</span> <span class="o">=</span> <span class="s">&quot;Utilities&quot;</span>
-    <span class="k">return</span> <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">myContext</span><span class="p">,</span> <span class="n">theText</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="s">&#39;@default&#39;</span><span class="p">,</span> <span class="n">theText</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="getExceptionWithStacktrace"><a class="viewcode-back" href="../../api-docs/safe_qgis/utilities.html#safe_qgis.utilities.getExceptionWithStacktrace">[docs]</a><span class="k">def</span> <span class="nf">getExceptionWithStacktrace</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">html</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Convert exception into a string and and stack trace</span>
+<div class="viewcode-block" id="getExceptionWithStacktrace"><a class="viewcode-back" href="../../api-docs/safe_qgis/utilities.html#safe_qgis.utilities.getExceptionWithStacktrace">[docs]</a><span class="k">def</span> <span class="nf">getExceptionWithStacktrace</span><span class="p">(</span><span class="n">theException</span><span class="p">,</span> <span class="n">theHtml</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">theContext</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert exception into a string containing a stack trace.</span>
 
-<span class="sd">    Input</span>
-<span class="sd">        e: Exception object</span>
-<span class="sd">        html: Optional flat if output is to wrapped as html</span>
-<span class="sd">        context: Optional context message</span>
+<span class="sd">    .. note: OS File path separators will be replaced with &lt;wbr&gt; which is a</span>
+<span class="sd">        &#39;soft wrap&#39; (when theHtml=True)_that will ensure that long paths do not</span>
+<span class="sd">        force the web frame to be very wide.</span>
 
-<span class="sd">    Output</span>
-<span class="sd">        Exception with stack trace info suitable for display</span>
+<span class="sd">    Args:</span>
+<span class="sd">        * theException: Exception object.</span>
+<span class="sd">        * theHtml: Optional flag if output is to be wrapped as theHtml.</span>
+<span class="sd">        * theContext: Optional theContext message.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Exception: with stack trace info suitable for display.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">myTraceback</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_tb</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">2</span><span class="p">]))</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">html</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
-            <span class="n">myErrorMessage</span> <span class="o">=</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39; : &#39;</span> <span class="o">+</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">theHtml</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">theException</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">theException</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">myErrorMessage</span> <span class="o">=</span> <span class="p">(</span><span class="n">theException</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39; : &#39;</span> <span class="o">+</span>
                               <span class="n">tr</span><span class="p">(</span><span class="s">&#39;No details provided&#39;</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">myErrorMessage</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39; : &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">myErrorMessage</span> <span class="o">=</span> <span class="p">(</span><span class="n">theException</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39; : &#39;</span> <span class="o">+</span>
+                              <span class="nb">str</span><span class="p">(</span><span class="n">theException</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">myErrorMessage</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="n">myTraceback</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
-            <span class="n">myErrorMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;&lt;b&gt;&#39;</span> <span class="o">+</span> <span class="n">e</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39;&lt;/b&gt; : &#39;</span> <span class="o">+</span>
-                              <span class="n">tr</span><span class="p">(</span><span class="s">&#39;No details provided&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">theException</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">theException</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">myErrorMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;&lt;b&gt;&#39;</span> <span class="o">+</span> <span class="n">theException</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span>
+                              <span class="s">&#39;&lt;/b&gt; : &#39;</span> <span class="o">+</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;No details provided&#39;</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">myErrorMessage</span> <span class="o">=</span> <span class="s">&#39;&lt;b&gt;&#39;</span> <span class="o">+</span> <span class="n">e</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39;&lt;/b&gt; : &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">myWrappedMessage</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">theException</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span>
+                                                         <span class="s">&#39;&lt;wbr&gt;&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+            <span class="c"># If the message contained some html above has a side effect of</span>
+            <span class="c"># turning &lt;/foo&gt; into &lt;&lt;wbr&gt;/foo&gt; and &lt;hr /&gt; into &lt;hr &lt;wbr&gt;/&gt;</span>
+            <span class="c"># so we need to revert that using the next two lines.</span>
+            <span class="n">myWrappedMessage</span> <span class="o">=</span> <span class="n">myWrappedMessage</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;&lt;wbr&gt;&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span>
+                                                        <span class="s">&#39;&lt;&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+            <span class="n">myWrappedMessage</span> <span class="o">=</span> <span class="n">myWrappedMessage</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;wbr&gt;&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s">&#39;&gt;&#39;</span><span class="p">,</span>
+                                                        <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s">&#39;&gt;&#39;</span><span class="p">)</span>
+
+            <span class="n">myErrorMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;&lt;b&gt;&#39;</span> <span class="o">+</span> <span class="n">theException</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span>
+                              <span class="s">&#39;&lt;/b&gt; : &#39;</span> <span class="o">+</span> <span class="n">myWrappedMessage</span><span class="p">)</span>
 
         <span class="n">myTraceback</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;&lt;pre id=&quot;traceback&quot; class=&quot;prettyprint&quot;&#39;</span>
               <span class="s">&#39; style=&quot;display: none;&quot;&gt;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">myTraceback</span> <span class="o">+</span> <span class="s">&#39;&lt;/pre&gt;&#39;</span><span class="p">)</span>
 
-        <span class="c"># Wrap string in html</span>
+        <span class="c"># Wrap string in theHtml</span>
         <span class="n">s</span> <span class="o">=</span> <span class="s">&#39;&lt;table class=&quot;condensed&quot;&gt;&#39;</span>
-        <span class="k">if</span> <span class="n">context</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">context</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">theContext</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">theContext</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
             <span class="n">s</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;&lt;tr&gt;&lt;th class=&quot;warning button-cell&quot;&gt;&#39;</span>
                   <span class="o">+</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Error:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&lt;/th&gt;&lt;/tr&gt;</span><span class="se">\n</span><span class="s">&#39;</span>
-                  <span class="s">&#39;&lt;tr&gt;&lt;td&gt;&#39;</span> <span class="o">+</span> <span class="n">context</span> <span class="o">+</span> <span class="s">&#39;&lt;/td&gt;&lt;/tr&gt;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                  <span class="s">&#39;&lt;tr&gt;&lt;td&gt;&#39;</span> <span class="o">+</span> <span class="n">theContext</span> <span class="o">+</span> <span class="s">&#39;&lt;/td&gt;&lt;/tr&gt;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
         <span class="c"># now the string from the error itself</span>
         <span class="n">s</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;&lt;tr&gt;&lt;th class=&quot;problem button-cell&quot;&gt;&#39;</span>
               <span class="o">+</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Problem:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&lt;/th&gt;&lt;/tr&gt;</span><span class="se">\n</span><span class="s">&#39;</span>
@@ -688,7 +728,6 @@
     <span class="n">myConsoleHandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
 
     <span class="n">myQgisHandler</span> <span class="o">=</span> <span class="n">QgsLogHandler</span><span class="p">()</span>
-    <span class="n">myFileHandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">myDefaultHanderLevel</span><span class="p">)</span>
 
     <span class="c"># TODO: User opt in before we enable email based logging.</span>
     <span class="c"># Email handler for errors</span>
@@ -711,9 +750,10 @@
     <span class="c"># &#39;INSAFE_SENTRY=1&#39; present (value can be anything) will this be enabled.</span>
     <span class="k">if</span> <span class="s">&#39;INASAFE_SENTRY&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
+            <span class="c">#pylint: disable=F0401</span>
             <span class="kn">from</span> <span class="nn">raven.handlers.logging</span> <span class="kn">import</span> <span class="n">SentryHandler</span>
             <span class="kn">from</span> <span class="nn">raven</span> <span class="kn">import</span> <span class="n">Client</span>
-
+            <span class="c">#pylint: enable=F0401</span>
             <span class="n">myClient</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="s">&#39;http://5aee75e47c6740af842b3ef138d3ad33:16160af&#39;</span>
                               <span class="s">&#39;d794847b98a34e1fde0ed5a8d@sentry.linfiniti.com/&#39;</span>
                               <span class="s">&#39;4&#39;</span><span class="p">)</span>
@@ -813,8 +853,8 @@
     <span class="n">myDefaults</span> <span class="o">=</span> <span class="n">DEFAULTS</span>
 
     <span class="n">myDefaults</span><span class="p">[</span><span class="s">&#39;FEM_RATIO&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mySettings</span><span class="o">.</span><span class="n">value</span><span class="p">(</span>
-        <span class="s">&#39;inasafe/defaultFemaleRatio&#39;</span><span class="p">,</span> <span class="n">DEFAULTS</span><span class="p">[</span><span class="s">&#39;FEM_RATIO&#39;</span><span class="p">]</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">toDouble</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="s">&#39;inasafe/defaultFemaleRatio&#39;</span><span class="p">,</span>
+        <span class="n">DEFAULTS</span><span class="p">[</span><span class="s">&#39;FEM_RATIO&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">toDouble</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">theDefault</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">myDefaults</span>
@@ -911,6 +951,22 @@
     <span class="k">return</span> <span class="n">myMM</span>
 
 </div>
+<div class="viewcode-block" id="dpiToMeters"><a class="viewcode-back" href="../../api-docs/safe_qgis/utilities.html#safe_qgis.utilities.dpiToMeters">[docs]</a><span class="k">def</span> <span class="nf">dpiToMeters</span><span class="p">(</span><span class="n">theDpi</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert dots per inch (dpi) to dots perMeters.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        theDpi: int - dots per inch in the print / display medium</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        int - dpm converted value</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        Any exceptions raised by the InaSAFE library will be propagated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">myInchAsMM</span> <span class="o">=</span> <span class="mf">25.4</span>
+    <span class="n">myInchesPerM</span> <span class="o">=</span> <span class="mf">1000.0</span> <span class="o">/</span> <span class="n">myInchAsMM</span>
+    <span class="n">myDotsPerM</span> <span class="o">=</span> <span class="n">myInchesPerM</span> <span class="o">*</span> <span class="n">theDpi</span>
+    <span class="k">return</span> <span class="n">myDotsPerM</span>
+
+</div>
 <div class="viewcode-block" id="setupPrinter"><a class="viewcode-back" href="../../api-docs/safe_qgis/utilities.html#safe_qgis.utilities.setupPrinter">[docs]</a><span class="k">def</span> <span class="nf">setupPrinter</span><span class="p">(</span><span class="n">theFilename</span><span class="p">,</span>
                  <span class="n">theResolution</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
                  <span class="n">thePageHeight</span><span class="o">=</span><span class="mi">297</span><span class="p">,</span>
@@ -975,7 +1031,85 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># If all else fails...</span>
         <span class="k">return</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%i</span><span class="s"> days, </span><span class="si">%i</span><span class="s"> hours and </span><span class="si">%i</span><span class="s"> minutes&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">myDays</span><span class="p">,</span> <span class="n">myHours</span><span class="p">,</span> <span class="n">myMinutes</span><span class="p">))</span></div>
+            <span class="n">myDays</span><span class="p">,</span> <span class="n">myHours</span><span class="p">,</span> <span class="n">myMinutes</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="impactLayerAttribution"><a class="viewcode-back" href="../../api-docs/safe_qgis/utilities.html#safe_qgis.utilities.impactLayerAttribution">[docs]</a><span class="k">def</span> <span class="nf">impactLayerAttribution</span><span class="p">(</span><span class="n">theKeywords</span><span class="p">,</span> <span class="n">theInaSAFEFlag</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a little table for attribution of data sources used in impact.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        * theKeywords: dict{} - a keywords dict for an impact layer.</span>
+<span class="sd">        * theInaSAFEFlag: bool - whether to show a little InaSAFE promotional</span>
+<span class="sd">            text in the attribution output. Defaults to False.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: an html snippet containing attribution information for the impact</span>
+<span class="sd">            layer. If no keywords are present or no appropriate keywords are</span>
+<span class="sd">            present, None is returned.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">theKeywords</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">myReport</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">myJoinWords</span> <span class="o">=</span> <span class="s">&#39; - </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;sourced from&#39;</span><span class="p">)</span>
+    <span class="n">myHazardDetails</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Hazard details&#39;</span><span class="p">)</span>
+    <span class="n">myHazardTitleKeyword</span> <span class="o">=</span> <span class="s">&#39;hazard_title&#39;</span>
+    <span class="n">myHazardSourceKeyword</span> <span class="o">=</span> <span class="s">&#39;hazard_source&#39;</span>
+    <span class="n">myExposureDetails</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Exposure details&#39;</span><span class="p">)</span>
+    <span class="n">myExposureTitleKeyword</span> <span class="o">=</span> <span class="s">&#39;exposure_title&#39;</span>
+    <span class="n">myExposureSourceKeyword</span> <span class="o">=</span> <span class="s">&#39;exposure_source&#39;</span>
+
+    <span class="k">if</span> <span class="n">myHazardTitleKeyword</span> <span class="ow">in</span> <span class="n">theKeywords</span><span class="p">:</span>
+        <span class="c"># We use safe translation infrastructure for this one (rather than Qt)</span>
+        <span class="n">myHazardTitle</span> <span class="o">=</span> <span class="n">safeTr</span><span class="p">(</span><span class="n">theKeywords</span><span class="p">[</span><span class="n">myHazardTitleKeyword</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">myHazardTitle</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Hazard layer&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">myHazardSourceKeyword</span> <span class="ow">in</span> <span class="n">theKeywords</span><span class="p">:</span>
+        <span class="c"># We use safe translation infrastructure for this one (rather than Qt)</span>
+        <span class="n">myHazardSource</span> <span class="o">=</span> <span class="n">safeTr</span><span class="p">(</span><span class="n">theKeywords</span><span class="p">[</span><span class="n">myHazardSourceKeyword</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">myHazardSource</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;an unknown source&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">myExposureTitleKeyword</span> <span class="ow">in</span> <span class="n">theKeywords</span><span class="p">:</span>
+        <span class="n">myExposureTitle</span> <span class="o">=</span> <span class="n">theKeywords</span><span class="p">[</span><span class="n">myExposureTitleKeyword</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">myExposureTitle</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Exposure layer&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">myExposureSourceKeyword</span> <span class="ow">in</span> <span class="n">theKeywords</span><span class="p">:</span>
+        <span class="n">myExposureSource</span> <span class="o">=</span> <span class="n">theKeywords</span><span class="p">[</span><span class="n">myExposureSourceKeyword</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">myExposureSource</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;an unknown source&#39;</span><span class="p">)</span>
+
+    <span class="n">myReport</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;&lt;table class=&quot;table table-striped condensed&#39;</span>
+                 <span class="s">&#39; bordered-table&quot;&gt;&#39;</span><span class="p">)</span>
+    <span class="n">myReport</span> <span class="o">+=</span> <span class="s">&#39;&lt;tr&gt;&lt;th&gt;</span><span class="si">%s</span><span class="s">&lt;/th&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">myHazardDetails</span>
+    <span class="n">myReport</span> <span class="o">+=</span> <span class="s">&#39;&lt;tr&gt;&lt;td&gt;</span><span class="si">%s%s</span><span class="s"> </span><span class="si">%s</span><span class="s">.&lt;/td&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">myHazardTitle</span><span class="p">,</span>
+        <span class="n">myJoinWords</span><span class="p">,</span>
+        <span class="n">myHazardSource</span><span class="p">)</span>
+
+    <span class="n">myReport</span> <span class="o">+=</span> <span class="s">&#39;&lt;tr&gt;&lt;th&gt;</span><span class="si">%s</span><span class="s">&lt;/th&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">myExposureDetails</span>
+    <span class="n">myReport</span> <span class="o">+=</span> <span class="s">&#39;&lt;tr&gt;&lt;td&gt;</span><span class="si">%s%s</span><span class="s"> </span><span class="si">%s</span><span class="s">.&lt;/td&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">myExposureTitle</span><span class="p">,</span>
+        <span class="n">myJoinWords</span><span class="p">,</span>
+        <span class="n">myExposureSource</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">theInaSAFEFlag</span><span class="p">:</span>
+        <span class="n">myReport</span> <span class="o">+=</span> <span class="s">&#39;&lt;tr&gt;&lt;th&gt;</span><span class="si">%s</span><span class="s">&lt;/th&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Software notes&#39;</span><span class="p">)</span>
+        <span class="n">myInaSAFEPhrase</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;This report was created using InaSAFE &#39;</span>
+                              <span class="s">&#39;version %1. Visit http://inasafe.org to get &#39;</span>
+                              <span class="s">&#39;your free copy of this software!&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
+                                <span class="n">get_version</span><span class="p">())</span>
+        <span class="n">myInaSAFEPhrase</span> <span class="o">+=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;InaSAFE has been jointly developed by&#39;</span>
+                               <span class="s">&#39; BNPB, AusAid &amp; the World Bank&#39;</span><span class="p">)</span>
+        <span class="n">myReport</span> <span class="o">+=</span> <span class="s">&#39;&lt;tr&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s">&lt;/td&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">myInaSAFEPhrase</span>
+
+    <span class="n">myReport</span> <span class="o">+=</span> <span class="s">&#39;&lt;/table&gt;&#39;</span>
+
+    <span class="k">return</span> <span class="n">myReport</span></div>
 </pre></div>
 
           </div>
@@ -1024,9 +1158,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

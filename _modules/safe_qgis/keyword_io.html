@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -69,7 +69,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;tim@linfiniti.com&#39;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.5.1&#39;</span>
 <span class="n">__revision__</span> <span class="o">=</span> <span class="s">&#39;$Format:%H$&#39;</span>
 <span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;29/01/2011&#39;</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL&quot;</span>
@@ -356,7 +355,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">sqlite</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keywordDbPath</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">sqlite</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">raise</span>
 </div>
 <div class="viewcode-block" id="KeywordIO.closeConnection"><a class="viewcode-back" href="../../api-docs/safe_qgis/keyword_io.html#safe_qgis.keyword_io.KeywordIO.closeConnection">[docs]</a>    <span class="k">def</span> <span class="nf">closeConnection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -392,25 +391,26 @@
             <span class="n">myCursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
             <span class="n">myCursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;SELECT SQLITE_VERSION()&#39;</span><span class="p">)</span>
             <span class="n">myData</span> <span class="o">=</span> <span class="n">myCursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
-            <span class="c">#print &quot;SQLite version: %s&quot; % myData</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SQLite version: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">myData</span><span class="p">)</span>
             <span class="c"># Check if we have some tables, if not create them</span>
             <span class="n">mySQL</span> <span class="o">=</span> <span class="s">&#39;select sql from sqlite_master where type = </span><span class="se">\&#39;</span><span class="s">table</span><span class="se">\&#39;</span><span class="s">;&#39;</span>
             <span class="n">myCursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mySQL</span><span class="p">)</span>
             <span class="n">myData</span> <span class="o">=</span> <span class="n">myCursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
-            <span class="c">#print &quot;Tables: %s&quot; % myData</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Tables: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">myData</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">myData</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="c">#print &#39;No tables found&#39;</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;No tables found&#39;</span><span class="p">)</span>
                 <span class="n">mySQL</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;create table keyword (hash varchar(32) primary key,&#39;</span>
                          <span class="s">&#39;dict text);&#39;</span><span class="p">)</span>
-                <span class="k">print</span> <span class="n">mySQL</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">mySQL</span><span class="p">)</span>
                 <span class="n">myCursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mySQL</span><span class="p">)</span>
-                <span class="n">myData</span> <span class="o">=</span> <span class="n">myCursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+                <span class="c">#myData = myCursor.fetchone()</span>
+                <span class="n">myCursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c">#print &#39;Keywords table already exists&#39;</span>
-                <span class="k">pass</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Keywords table already exists&#39;</span><span class="p">)</span>
+
             <span class="k">return</span> <span class="n">myCursor</span>
         <span class="k">except</span> <span class="n">sqlite</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">raise</span>
 </div>
 <div class="viewcode-block" id="KeywordIO.areKeywordsFileBased"><a class="viewcode-back" href="../../api-docs/safe_qgis/keyword_io.html#safe_qgis.keyword_io.KeywordIO.areKeywordsFileBased">[docs]</a>    <span class="k">def</span> <span class="nf">areKeywordsFileBased</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theLayer</span><span class="p">):</span>
@@ -496,10 +496,10 @@
             <span class="n">myCursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mySQL</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">sqlite</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&quot;SQLITE Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SQLITE Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
             <span class="k">raise</span>
         <span class="k">finally</span><span class="p">:</span>
@@ -552,10 +552,10 @@
                              <span class="p">(</span><span class="n">sqlite</span><span class="o">.</span><span class="n">Binary</span><span class="p">(</span><span class="n">myPickle</span><span class="p">),</span> <span class="n">myHash</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">sqlite</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&quot;SQLITE Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SQLITE Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
             <span class="k">raise</span>
         <span class="k">finally</span><span class="p">:</span>
@@ -607,9 +607,9 @@
                 <span class="k">raise</span> <span class="n">KeywordNotFoundException</span><span class="p">(</span><span class="s">&#39;No hash found for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myHash</span><span class="p">)</span>
 
         <span class="k">except</span> <span class="n">sqlite</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Error </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">raise</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">closeConnection</span><span class="p">()</span></div></div>
@@ -661,9 +661,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

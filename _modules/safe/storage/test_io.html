@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" /> 
@@ -310,6 +310,8 @@
         <span class="c"># Check</span>
         <span class="k">assert</span> <span class="n">R</span> <span class="o">==</span> <span class="n">L</span><span class="p">,</span> <span class="n">msg</span>
 </div>
+    <span class="n">test_donut_polygons</span><span class="o">.</span><span class="n">slow</span> <span class="o">=</span> <span class="bp">True</span>
+
 <div class="viewcode-block" id="Test_IO.test_analysis_of_vector_data_top_N"><a class="viewcode-back" href="../../../api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_analysis_of_vector_data_top_N">[docs]</a>    <span class="k">def</span> <span class="nf">test_analysis_of_vector_data_top_N</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Analysis of vector data - get top N of an attribute</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -737,7 +739,7 @@
         <span class="n">V_ref</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">get_topN</span><span class="p">(</span><span class="s">&#39;FLOOR_AREA&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 
         <span class="n">geometry</span> <span class="o">=</span> <span class="n">V_ref</span><span class="o">.</span><span class="n">get_geometry</span><span class="p">()</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">V_ref</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+        <span class="c">#data = V_ref.get_data()</span>
         <span class="n">projection</span> <span class="o">=</span> <span class="n">V_ref</span><span class="o">.</span><span class="n">get_projection</span><span class="p">()</span>
 
         <span class="c"># Create new attributes with a range of types</span>
@@ -758,7 +760,6 @@
                         <span class="n">D</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">D</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-
             <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
 
         <span class="c"># Create new object from test data</span>
@@ -770,9 +771,13 @@
 
         <span class="n">V_tmp</span> <span class="o">=</span> <span class="n">read_layer</span><span class="p">(</span><span class="n">tmp_filename</span><span class="p">)</span>
 
-        <span class="c">#print V_new.get_data()</span>
-        <span class="c">#print V_tmp.get_data()</span>
+        <span class="c">#print V_new.get_data()[1]</span>
+        <span class="c">#print V_tmp.get_data()[1]</span>
 
+        <span class="k">assert</span> <span class="n">V_tmp</span><span class="o">.</span><span class="n">projection</span> <span class="o">==</span> <span class="n">V_new</span><span class="o">.</span><span class="n">projection</span>
+        <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">V_tmp</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">V_new</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">V_tmp</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="n">V_new</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">assert</span> <span class="n">V_tmp</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span> <span class="o">==</span> <span class="n">V_new</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
         <span class="k">assert</span> <span class="n">V_tmp</span> <span class="o">==</span> <span class="n">V_new</span>
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">V_tmp</span> <span class="o">!=</span> <span class="n">V_new</span>
 </div>
@@ -878,7 +883,8 @@
 <div class="viewcode-block" id="Test_IO.test_centroids_from_polygon_data"><a class="viewcode-back" href="../../../api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_centroids_from_polygon_data">[docs]</a>    <span class="k">def</span> <span class="nf">test_centroids_from_polygon_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Centroid point data can be derived from polygon data</span>
 
-<span class="sd">        Test againts centroid data generated by qgis: named *_centroids.shp</span>
+<span class="sd">        Test against centroid data generated by QGIS: shapefiles with</span>
+<span class="sd">        a _centroids.shp suffix.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">for</span> <span class="n">vectorname</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;kecamatan_jakarta_osm.shp&#39;</span><span class="p">,</span>
@@ -1083,6 +1089,89 @@
 
         <span class="c"># Check override of ==</span>
         <span class="k">assert</span> <span class="n">R1</span> <span class="o">==</span> <span class="n">R2</span>
+</div>
+<div class="viewcode-block" id="Test_IO.test_rasters_created_with_projected_srs"><a class="viewcode-back" href="../../../api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_rasters_created_with_projected_srs">[docs]</a>    <span class="k">def</span> <span class="nf">test_rasters_created_with_projected_srs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rasters can be created from arrays in projected coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Create test data</span>
+        <span class="n">x_ul</span> <span class="o">=</span> <span class="mi">220534</span>  <span class="c"># x value of upper left corner</span>
+        <span class="n">y_ul</span> <span class="o">=</span> <span class="mi">827790</span>   <span class="c"># y_value of upper left corner</span>
+        <span class="n">numx</span> <span class="o">=</span> <span class="mi">8</span>    <span class="c"># Number of xs</span>
+        <span class="n">numy</span> <span class="o">=</span> <span class="mi">5</span>    <span class="c"># Number of ys</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="mi">200</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="o">-</span><span class="mi">200</span>
+
+        <span class="c"># Define array where ys are rows and xs columns</span>
+        <span class="n">A1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">numy</span><span class="p">,</span> <span class="n">numx</span><span class="p">))</span>
+
+        <span class="c"># Establish coordinates for lower left corner</span>
+        <span class="n">y_ll</span> <span class="o">=</span> <span class="n">y_ul</span> <span class="o">-</span> <span class="n">numy</span> <span class="o">*</span> <span class="n">dy</span>
+        <span class="n">x_ll</span> <span class="o">=</span> <span class="n">x_ul</span>
+
+        <span class="c"># Define pixel centers along each direction</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x_ll</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">x_ll</span> <span class="o">+</span> <span class="n">numx</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">numx</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">y_ll</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">y_ll</span> <span class="o">+</span> <span class="n">numy</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">numy</span><span class="p">)</span>
+
+        <span class="c"># Define raster with latitudes going bottom-up (south to north).</span>
+        <span class="c"># Longitudes go left-right (west to east)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numy</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numx</span><span class="p">):</span>
+                <span class="n">A1</span><span class="p">[</span><span class="n">numy</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">linear_function</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="c"># Throw in a nodata element</span>
+        <span class="n">A1</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="c"># Upper left corner</span>
+        <span class="k">assert</span> <span class="n">A1</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">linear_function</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+
+        <span class="c"># Lower left corner</span>
+        <span class="k">assert</span> <span class="n">A1</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">linear_function</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c"># Upper right corner</span>
+        <span class="k">assert</span> <span class="n">A1</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="n">linear_function</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+
+        <span class="c"># Lower right corner</span>
+        <span class="k">assert</span> <span class="n">A1</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="n">linear_function</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c"># Generate raster object and write</span>
+        <span class="n">projection</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;PROJCS[&quot;DGN95 / Indonesia TM-3 zone 48.2&quot;,</span>
+<span class="s">                        GEOGCS[&quot;DGN95&quot;,</span>
+<span class="s">                            DATUM[&quot;Datum_Geodesi_Nasional_1995&quot;,</span>
+<span class="s">                                SPHEROID[&quot;WGS 84&quot;,6378137,298.257223563,</span>
+<span class="s">                                    AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]],</span>
+<span class="s">                                TOWGS84[0,0,0,0,0,0,0],</span>
+<span class="s">                                AUTHORITY[&quot;EPSG&quot;,&quot;6755&quot;]],</span>
+<span class="s">                            PRIMEM[&quot;Greenwich&quot;,0,</span>
+<span class="s">                                AUTHORITY[&quot;EPSG&quot;,&quot;8901&quot;]],</span>
+<span class="s">                            UNIT[&quot;degree&quot;,0.01745329251994328,</span>
+<span class="s">                                AUTHORITY[&quot;EPSG&quot;,&quot;9122&quot;]],</span>
+<span class="s">                            AUTHORITY[&quot;EPSG&quot;,&quot;4755&quot;]],</span>
+<span class="s">                        UNIT[&quot;metre&quot;,1,</span>
+<span class="s">                            AUTHORITY[&quot;EPSG&quot;,&quot;9001&quot;]],</span>
+<span class="s">                        PROJECTION[&quot;Transverse_Mercator&quot;],</span>
+<span class="s">                        PARAMETER[&quot;latitude_of_origin&quot;,0],</span>
+<span class="s">                        PARAMETER[&quot;central_meridian&quot;,106.5],</span>
+<span class="s">                        PARAMETER[&quot;scale_factor&quot;,0.9999],</span>
+<span class="s">                        PARAMETER[&quot;false_easting&quot;,200000],</span>
+<span class="s">                        PARAMETER[&quot;false_northing&quot;,1500000],</span>
+<span class="s">                        AUTHORITY[&quot;EPSG&quot;,&quot;23834&quot;],</span>
+<span class="s">                        AXIS[&quot;X&quot;,EAST],</span>
+<span class="s">                        AXIS[&quot;Y&quot;,NORTH]]&quot;&quot;&quot;</span>
+
+        <span class="n">geotransform</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_ul</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y_ul</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="n">R1</span> <span class="o">=</span> <span class="n">Raster</span><span class="p">(</span><span class="n">A1</span><span class="p">,</span> <span class="n">projection</span><span class="p">,</span> <span class="n">geotransform</span><span class="p">,</span>
+                    <span class="n">keywords</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;testkwd&#39;</span><span class="p">:</span> <span class="s">&#39;testval&#39;</span><span class="p">,</span> <span class="s">&#39;size&#39;</span><span class="p">:</span> <span class="s">&#39;small&#39;</span><span class="p">})</span>
+
+        <span class="c"># Check string representation of raster class</span>
+        <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">R1</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Raster data&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">R1</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">R1</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">R1</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">R1</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">nanallclose</span><span class="p">(</span><span class="n">R1</span><span class="o">.</span><span class="n">get_data</span><span class="p">(),</span> <span class="n">A1</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1.0e-12</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">nanallclose</span><span class="p">(</span><span class="n">R1</span><span class="o">.</span><span class="n">get_geotransform</span><span class="p">(),</span> <span class="n">geotransform</span><span class="p">,</span>
+                           <span class="n">rtol</span><span class="o">=</span><span class="mf">1.0e-12</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="s">&#39;DGN95&#39;</span> <span class="ow">in</span> <span class="n">R1</span><span class="o">.</span><span class="n">get_projection</span><span class="p">()</span>
 </div>
 <div class="viewcode-block" id="Test_IO.test_reading_and_writing_of_real_rasters"><a class="viewcode-back" href="../../../api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_reading_and_writing_of_real_rasters">[docs]</a>    <span class="k">def</span> <span class="nf">test_reading_and_writing_of_real_rasters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Rasters can be read and written correctly in different formats</span>
@@ -1456,6 +1545,9 @@
         <span class="c"># Generate vector layer</span>
         <span class="n">V</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">to_vector_layer</span><span class="p">()</span>
         <span class="n">geometry</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">get_geometry</span><span class="p">()</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Vector geometry should have been a list. I got </span><span class="si">%s</span><span class="s">&#39;</span>
+                <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">geometry</span><span class="p">))[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="n">msg</span>
         <span class="n">attributes</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
 
         <span class="c"># Store it for visual inspection e.g. with QGIS</span>
@@ -1530,45 +1622,56 @@
 <div class="viewcode-block" id="Test_IO.test_get_bounding_box"><a class="viewcode-back" href="../../../api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_get_bounding_box">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Bounding box is correctly extracted from file.</span>
 
-<span class="sd">        # Reference data:</span>
-<span class="sd">        gdalinfo Earthquake_Ground_Shaking_clip.tif</span>
-<span class="sd">        Driver: GTiff/GeoTIFF</span>
-<span class="sd">        Files: Earthquake_Ground_Shaking_clip.tif</span>
-<span class="sd">        Size is 345, 263</span>
-<span class="sd">        Coordinate System is:</span>
-<span class="sd">        GEOGCS[&quot;WGS 84&quot;,</span>
-<span class="sd">            DATUM[&quot;WGS_1984&quot;,</span>
-<span class="sd">                SPHEROID[&quot;WGS 84&quot;,6378137,298.2572235630016,</span>
-<span class="sd">                    AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]],</span>
-<span class="sd">                AUTHORITY[&quot;EPSG&quot;,&quot;6326&quot;]],</span>
-<span class="sd">            PRIMEM[&quot;Greenwich&quot;,0],</span>
-<span class="sd">            UNIT[&quot;degree&quot;,0.0174532925199433],</span>
-<span class="sd">            AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</span>
-<span class="sd">        Origin = (99.364169565217395,-0.004180608365019)</span>
-<span class="sd">        Pixel Size = (0.008339130434783,-0.008361216730038)</span>
-<span class="sd">        Metadata:</span>
-<span class="sd">          AREA_OR_POINT=Point</span>
-<span class="sd">          TIFFTAG_XRESOLUTION=1</span>
-<span class="sd">          TIFFTAG_YRESOLUTION=1</span>
-<span class="sd">          TIFFTAG_RESOLUTIONUNIT=1 (unitless)</span>
-<span class="sd">        Image Structure Metadata:</span>
-<span class="sd">          COMPRESSION=LZW</span>
-<span class="sd">          INTERLEAVE=BAND</span>
-<span class="sd">        Corner Coordinates:</span>
-<span class="sd">        Upper Left  (  99.3641696,  -0.0041806) ( 99d21&#39;51.01&quot;E,  0d 0&#39;15.05&quot;S)</span>
-<span class="sd">        Lower Left  (  99.3641696,  -2.2031806) ( 99d21&#39;51.01&quot;E,  2d12&#39;11.45&quot;S)</span>
-<span class="sd">        Upper Right ( 102.2411696,  -0.0041806) (102d14&#39;28.21&quot;E,  0d 0&#39;15.05&quot;S)</span>
-<span class="sd">        Lower Right ( 102.2411696,  -2.2031806) (102d14&#39;28.21&quot;E,  2d12&#39;11.45&quot;S)</span>
-<span class="sd">        Center      ( 100.8026696,  -1.1036806) (100d48&#39;9.61&quot;E,  1d 6&#39;13.25&quot;S)</span>
-<span class="sd">        Band 1 Block=256x256 Type=Float64, ColorInterp=Gray</span>
+<span class="sd">        Reference data::</span>
+
+<span class="sd">            gdalinfo Earthquake_Ground_Shaking_clip.tif</span>
+<span class="sd">            Driver: GTiff/GeoTIFF</span>
+<span class="sd">            Files: Earthquake_Ground_Shaking_clip.tif</span>
+<span class="sd">            Size is 345, 263</span>
+<span class="sd">            Coordinate System is:</span>
+<span class="sd">            GEOGCS[&quot;WGS 84&quot;,</span>
+<span class="sd">                DATUM[&quot;WGS_1984&quot;,</span>
+<span class="sd">                    SPHEROID[&quot;WGS 84&quot;,6378137,298.2572235630016,</span>
+<span class="sd">                        AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]],</span>
+<span class="sd">                    AUTHORITY[&quot;EPSG&quot;,&quot;6326&quot;]],</span>
+<span class="sd">                PRIMEM[&quot;Greenwich&quot;,0],</span>
+<span class="sd">                UNIT[&quot;degree&quot;,0.0174532925199433],</span>
+<span class="sd">                AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</span>
+<span class="sd">            Origin = (99.364169565217395,-0.004180608365019)</span>
+<span class="sd">            Pixel Size = (0.008339130434783,-0.008361216730038)</span>
+<span class="sd">            Metadata:</span>
+<span class="sd">            AREA_OR_POINT=Point</span>
+<span class="sd">            TIFFTAG_XRESOLUTION=1</span>
+<span class="sd">            TIFFTAG_YRESOLUTION=1</span>
+<span class="sd">            TIFFTAG_RESOLUTIONUNIT=1 (unitless)</span>
+<span class="sd">            Image Structure Metadata:</span>
+<span class="sd">            COMPRESSION=LZW</span>
+<span class="sd">            INTERLEAVE=BAND</span>
+<span class="sd">            Corner Coordinates:</span>
+<span class="sd">            Upper Left  (  99.3641696,  -0.0041806)</span>
+<span class="sd">                        ( 99d21&#39;51.01&quot;E,  0d 0&#39;15.05&quot;S)</span>
+<span class="sd">            Lower Left  (  99.3641696,  -2.2031806)</span>
+<span class="sd">                        ( 99d21&#39;51.01&quot;E,  2d12&#39;11.45&quot;S)</span>
+<span class="sd">            Upper Right ( 102.2411696,  -0.0041806)</span>
+<span class="sd">                        (102d14&#39;28.21&quot;E,  0d 0&#39;15.05&quot;S)</span>
+<span class="sd">            Lower Right ( 102.2411696,  -2.2031806)</span>
+<span class="sd">                        (102d14&#39;28.21&quot;E,  2d12&#39;11.45&quot;S)</span>
+<span class="sd">            Center      ( 100.8026696,  -1.1036806)</span>
+<span class="sd">                        (100d48&#39;9.61&quot;E,  1d 6&#39;13.25&quot;S)</span>
+<span class="sd">            Band 1 Block=256x256 Type=Float64, ColorInterp=Gray</span>
 
 
-<span class="sd">        Note post gdal 1.8 it is</span>
-<span class="sd">        Upper Left  (  99.3600000,   0.0000000) ( 99d21&#39;36.00&quot;E,  0d 0&#39; 0.01&quot;N)</span>
-<span class="sd">        Lower Left  (  99.3600000,  -2.1990000) ( 99d21&#39;36.00&quot;E,  2d11&#39;56.40&quot;S)</span>
-<span class="sd">        Upper Right ( 102.2370000,   0.0000000) (102d14&#39;13.20&quot;E,  0d 0&#39; 0.01&quot;N)</span>
-<span class="sd">        Lower Right ( 102.2370000,  -2.1990000) (102d14&#39;13.20&quot;E,  2d11&#39;56.40&quot;S)</span>
-<span class="sd">        Center      ( 100.7985000,  -1.0995000) (100d47&#39;54.60&quot;E,  1d 5&#39;58.20&quot;S)</span>
+<span class="sd">        Note post gdal 1.8 it is::</span>
+<span class="sd">            Upper Left  (  99.3600000,   0.0000000)</span>
+<span class="sd">                        ( 99d21&#39;36.00&quot;E,  0d 0&#39; 0.01&quot;N)</span>
+<span class="sd">            Lower Left  (  99.3600000,  -2.1990000)</span>
+<span class="sd">                        ( 99d21&#39;36.00&quot;E,  2d11&#39;56.40&quot;S)</span>
+<span class="sd">            Upper Right ( 102.2370000,   0.0000000)</span>
+<span class="sd">                        (102d14&#39;13.20&quot;E,  0d 0&#39; 0.01&quot;N)</span>
+<span class="sd">            Lower Right ( 102.2370000,  -2.1990000)</span>
+<span class="sd">                        (102d14&#39;13.20&quot;E,  2d11&#39;56.40&quot;S)</span>
+<span class="sd">            Center      ( 100.7985000,  -1.0995000)</span>
+<span class="sd">                        (100d47&#39;54.60&quot;E,  1d 5&#39;58.20&quot;S)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Note there are two possible correct values of bbox depending on</span>
@@ -2370,9 +2473,9 @@
         <span class="sd">&quot;&quot;&quot;Test to see if internationalisation is working correctly.</span>
 <span class="sd">        Make sure to include this file when using xgettext to scan for</span>
 <span class="sd">        translatable strings.</span>
-<span class="sd">        .. see:: :doc:`i18n`</span>
+<span class="sd">        .. see:: :doc:`/developer-docs/i18n`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># If you want to modify this code, please get aqcuainted with</span>
+        <span class="c"># If you want to modify this code, please get acquainted with</span>
         <span class="c"># Python&#39;s locale module. In particular:</span>
         <span class="c"># http://docs.python.org/library/locale.html#locale.getdefaultlocale</span>
 
@@ -2381,41 +2484,70 @@
         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;LC_ALL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;C.UTF-8&#39;</span>
 
         <span class="c">#must be after above</span>
-        <span class="n">string1</span> <span class="o">=</span> <span class="s">&#39;Hello!&#39;</span>
-        <span class="n">out1</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="n">string1</span><span class="p">)</span>
+        <span class="n">out1</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Hello!&#39;</span><span class="p">)</span>
         <span class="n">expected1</span> <span class="o">=</span> <span class="s">&#39;Hello!&#39;</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Expected </span><span class="si">%s</span><span class="s">, got </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">expected1</span><span class="p">,</span> <span class="n">out1</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">string1</span> <span class="o">==</span> <span class="n">expected1</span><span class="p">,</span> <span class="n">msg</span>
+        <span class="k">assert</span> <span class="n">out1</span> <span class="o">==</span> <span class="n">expected1</span><span class="p">,</span> <span class="n">msg</span>
 
         <span class="c"># Set the Indonesian locale to test translations.</span>
         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;LANG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;id&#39;</span>
         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;LC_ALL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;id_ID.UTF-8&#39;</span>
 
         <span class="c">#must be after above</span>
-        <span class="n">indoout1</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="n">string1</span><span class="p">)</span>  <span class="c"># translate as &#39;Hi&#39;</span>
+        <span class="n">indoout1</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Hello!&#39;</span><span class="p">)</span>  <span class="c"># translate as &#39;Hi&#39;</span>
         <span class="n">indoexpected1</span> <span class="o">=</span> <span class="s">&#39;Hi!&#39;</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Expected </span><span class="si">%s</span><span class="s">, got </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">indoexpected1</span><span class="p">,</span> <span class="n">indoout1</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">indoout1</span> <span class="o">==</span> <span class="n">indoexpected1</span><span class="p">,</span> <span class="n">msg</span>
 </div>
-<div class="viewcode-block" id="Test_IO.test_multipart_polygon_raises_exception"><a class="viewcode-back" href="../../../api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_multipart_polygon_raises_exception">[docs]</a>    <span class="k">def</span> <span class="nf">test_multipart_polygon_raises_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Multipart polygons raise exception</span>
+<div class="viewcode-block" id="Test_IO.test_multipart_polygon_can_be_read"><a class="viewcode-back" href="../../../api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_multipart_polygon_can_be_read">[docs]</a>    <span class="k">def</span> <span class="nf">test_multipart_polygon_can_be_read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Multipart polygons are be converted to singlepart</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">hazard_filename</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">/boundaries/rw_jakarta.shp&#39;</span> <span class="o">%</span> <span class="n">DATADIR</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">/boundaries/rw_jakarta.shp&#39;</span> <span class="o">%</span> <span class="n">DATADIR</span><span class="p">)</span>
+        <span class="n">L0</span> <span class="o">=</span> <span class="n">read_layer</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">L0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2685</span>
+        <span class="k">assert</span> <span class="n">L0</span><span class="o">.</span><span class="n">is_polygon_data</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">read_layer</span><span class="p">(</span><span class="n">hazard_filename</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">ReadLayerError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Wrong error message: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">e</span>
-            <span class="k">assert</span> <span class="s">&#39;convert multipart&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">msg</span>
-        <span class="c"># I (Sunni) added function for forcing multipolygon to be</span>
-        <span class="c"># single polygon. So it will not raise any exception</span>
-        <span class="c">#======================================================================</span>
-        <span class="c"># else:</span>
-        <span class="c">#    msg = &#39;Multipart polygon should not have raised exception&#39;</span>
-        <span class="c">#    raise Exception(msg)</span>
-        <span class="c">#======================================================================</span>
+        <span class="n">geometry</span> <span class="o">=</span> <span class="n">L0</span><span class="o">.</span><span class="n">get_geometry</span><span class="p">(</span><span class="n">as_geometry_objects</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">attributes</span> <span class="o">=</span> <span class="n">L0</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+        <span class="n">projection</span> <span class="o">=</span> <span class="n">L0</span><span class="o">.</span><span class="n">get_projection</span><span class="p">()</span>
+        <span class="n">keywords</span> <span class="o">=</span> <span class="n">L0</span><span class="o">.</span><span class="n">get_keywords</span><span class="p">()</span>
+
+        <span class="c"># Store temporarily e.g. for inspection with QGIS</span>
+        <span class="n">tmp_filename</span> <span class="o">=</span> <span class="n">unique_filename</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s">&#39;.shp&#39;</span><span class="p">)</span>
+        <span class="n">Vector</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">geometry</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">attributes</span><span class="p">,</span>
+               <span class="n">projection</span><span class="o">=</span><span class="n">projection</span><span class="p">,</span>
+               <span class="n">keywords</span><span class="o">=</span><span class="n">keywords</span><span class="p">)</span><span class="o">.</span><span class="n">write_to_file</span><span class="p">(</span><span class="n">tmp_filename</span><span class="p">)</span>
+
+        <span class="c"># Read again</span>
+        <span class="n">L1</span> <span class="o">=</span> <span class="n">read_layer</span><span class="p">(</span><span class="n">tmp_filename</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">L1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">L0</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">L1</span><span class="o">.</span><span class="n">is_polygon_data</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">L0</span><span class="p">)):</span>
+            <span class="c"># Check geometry</span>
+            <span class="n">g0</span> <span class="o">=</span> <span class="n">L0</span><span class="o">.</span><span class="n">get_geometry</span><span class="p">(</span><span class="n">as_geometry_objects</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">g1</span> <span class="o">=</span> <span class="n">L1</span><span class="o">.</span><span class="n">get_geometry</span><span class="p">(</span><span class="n">as_geometry_objects</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">g0</span><span class="o">.</span><span class="n">outer_ring</span><span class="p">,</span> <span class="n">g1</span><span class="o">.</span><span class="n">outer_ring</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">g0</span><span class="o">.</span><span class="n">inner_rings</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">inner_rings</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">g0</span><span class="o">.</span><span class="n">inner_rings</span><span class="p">)):</span>
+                <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">g0</span><span class="o">.</span><span class="n">inner_rings</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">g1</span><span class="o">.</span><span class="n">inner_rings</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+
+            <span class="c"># Check attributes</span>
+            <span class="n">v0</span> <span class="o">=</span> <span class="n">L0</span><span class="o">.</span><span class="n">get_data</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">v1</span> <span class="o">=</span> <span class="n">L1</span><span class="o">.</span><span class="n">get_data</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">v0</span> <span class="o">==</span> <span class="n">v1</span>
+
+        <span class="c"># Check projection</span>
+        <span class="k">assert</span> <span class="n">L0</span><span class="o">.</span><span class="n">projection</span> <span class="o">==</span> <span class="n">L1</span><span class="o">.</span><span class="n">projection</span>
+
+        <span class="c"># Compare all</span>
+        <span class="k">assert</span> <span class="n">L0</span> <span class="o">==</span> <span class="n">L1</span>
 </div>
+    <span class="n">test_multipart_polygon_can_be_read</span><span class="o">.</span><span class="n">slow</span> <span class="o">=</span> <span class="bp">True</span>
+
 <div class="viewcode-block" id="Test_IO.test_projection_comparisons"><a class="viewcode-back" href="../../../api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_projection_comparisons">[docs]</a>    <span class="k">def</span> <span class="nf">test_projection_comparisons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Projection information can be correctly compared</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2544,9 +2676,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

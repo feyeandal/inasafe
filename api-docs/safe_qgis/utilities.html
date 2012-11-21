@@ -28,12 +28,12 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Package::safe_qgis" href="../safe_qgis.html" />
-    <link rel="next" title="Module: safe_qgis.qgis_interface" href="qgis_interface.html" />
-    <link rel="prev" title="Module: safe_qgis.options_dialog" href="options_dialog.html" /> 
+    <link rel="next" title="Module: safe_qgis.keyword_io" href="keyword_io.html" />
+    <link rel="prev" title="Module: safe_qgis.impact_calculator" href="impact_calculator.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -48,10 +48,10 @@
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="qgis_interface.html" title="Module: safe_qgis.qgis_interface"
+          <a href="keyword_io.html" title="Module: safe_qgis.keyword_io"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="options_dialog.html" title="Module: safe_qgis.options_dialog"
+          <a href="impact_calculator.html" title="Module: safe_qgis.impact_calculator"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -132,7 +132,7 @@ the Free Software Foundation; either version 2 of the License, or
 
 <dl class="function">
 <dt id="safe_qgis.utilities.dpiToMeters">
-<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">dpiToMeters</tt><big>(</big><em>theDpi</em><big>)</big><a class="headerlink" href="#safe_qgis.utilities.dpiToMeters" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">dpiToMeters</tt><big>(</big><em>theDpi</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/utilities.html#dpiToMeters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.utilities.dpiToMeters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert dots per inch (dpi) to dots perMeters.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -171,15 +171,18 @@ it takes the DEFAULTS from safe and modifies them according to qgis</p>
 
 <dl class="function">
 <dt id="safe_qgis.utilities.getExceptionWithStacktrace">
-<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">getExceptionWithStacktrace</tt><big>(</big><em>e</em>, <em>html=False</em>, <em>context=None</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/utilities.html#getExceptionWithStacktrace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.utilities.getExceptionWithStacktrace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert exception into a string and and stack trace</p>
+<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">getExceptionWithStacktrace</tt><big>(</big><em>theException</em>, <em>theHtml=False</em>, <em>theContext=None</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/utilities.html#getExceptionWithStacktrace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.utilities.getExceptionWithStacktrace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert exception into a string containing a stack trace.</p>
 <dl class="docutils">
-<dt>Input</dt>
-<dd>e: Exception object
-html: Optional flat if output is to wrapped as html
-context: Optional context message</dd>
-<dt>Output</dt>
-<dd>Exception with stack trace info suitable for display</dd>
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>theException: Exception object.</li>
+<li>theHtml: Optional flag if output is to be wrapped as theHtml.</li>
+<li>theContext: Optional theContext message.</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd>Exception: with stack trace info suitable for display.</dd>
 </dl>
 </dd></dl>
 
@@ -273,7 +276,7 @@ provided.</p>
 
 <dl class="function">
 <dt id="safe_qgis.utilities.impactLayerAttribution">
-<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">impactLayerAttribution</tt><big>(</big><em>theKeywords</em>, <em>theInaSAFEFlag=False</em><big>)</big><a class="headerlink" href="#safe_qgis.utilities.impactLayerAttribution" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">impactLayerAttribution</tt><big>(</big><em>theKeywords</em>, <em>theInaSAFEFlag=False</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/utilities.html#impactLayerAttribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.utilities.impactLayerAttribution" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a little table for attribution of data sources used in impact.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -516,11 +519,11 @@ the original string.</dd>
           <img class="logo" src="../../_static/icon.png" alt="Logo"/>
         </a></p>
   <h4>Previous topic</h4>
-  <p class="topless"><a href="options_dialog.html"
-                        title="previous chapter">Module:  safe_qgis.options_dialog</a></p>
+  <p class="topless"><a href="impact_calculator.html"
+                        title="previous chapter">Module:  safe_qgis.impact_calculator</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="qgis_interface.html"
-                        title="next chapter">Module:  safe_qgis.qgis_interface</a></p>
+  <p class="topless"><a href="keyword_io.html"
+                        title="next chapter">Module:  safe_qgis.keyword_io</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../_sources/api-docs/safe_qgis/utilities.txt"
@@ -555,10 +558,10 @@ the original string.</dd>
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="qgis_interface.html" title="Module: safe_qgis.qgis_interface"
+          <a href="keyword_io.html" title="Module: safe_qgis.keyword_io"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="options_dialog.html" title="Module: safe_qgis.options_dialog"
+          <a href="impact_calculator.html" title="Module: safe_qgis.impact_calculator"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -571,9 +574,9 @@ the original string.</dd>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

@@ -28,11 +28,11 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../index.html" />
     <link rel="up" title="Package::safe.impact_functions" href="../impact_functions.html" />
-    <link rel="next" title="Package::safe.impact_functions.tephra" href="tephra.html" />
+    <link rel="next" title="Module: safe.impact_functions.styles" href="styles.html" />
     <link rel="prev" title="Module: safe.impact_functions.test_plugins" href="test_plugins.html" /> 
   </head>
   <body>
@@ -48,7 +48,7 @@
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="tephra.html" title="Package::safe.impact_functions.tephra"
+          <a href="styles.html" title="Module: safe.impact_functions.styles"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
           <a href="test_plugins.html" title="Module: safe.impact_functions.test_plugins"
@@ -158,7 +158,7 @@ layer_descriptor: Layer names and meta data (keywords, type, etc)</dd>
 
 <dl class="function">
 <dt id="safe.impact_functions.core.format_int">
-<tt class="descclassname">safe.impact_functions.core.</tt><tt class="descname">format_int</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#safe.impact_functions.core.format_int" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">safe.impact_functions.core.</tt><tt class="descname">format_int</tt><big>(</big><em>x</em><big>)</big><a class="reference internal" href="../../../_modules/safe/impact_functions/core.html#format_int"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.impact_functions.core.format_int" title="Permalink to this definition">¶</a></dt>
 <dd><p>Format integer with separator between thousands</p>
 <dl class="docutils">
 <dt>From <a class="reference external" href="http://stackoverflow.com/questions/5513615/">http://stackoverflow.com/questions/5513615/</a></dt>
@@ -199,10 +199,9 @@ Currently not using locale coz broken</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="safe.impact_functions.core.get_dict_doc_func">
-<tt class="descclassname">safe.impact_functions.core.</tt><tt class="descname">get_dict_doc_func</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="../../../_modules/safe/impact_functions/core.html#get_dict_doc_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.impact_functions.core.get_dict_doc_func" title="Permalink to this definition">¶</a></dt>
-<dd><p>Collect all doc string of func and return a beatiuful format of them
-in a dictionary format.</p>
+<dt id="safe.impact_functions.core.get_documentation">
+<tt class="descclassname">safe.impact_functions.core.</tt><tt class="descname">get_documentation</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="../../../_modules/safe/impact_functions/core.html#get_documentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.impact_functions.core.get_documentation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect documentaion of a impact function and return it as a dictionary</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><ul class="first last simple">
@@ -213,13 +212,13 @@ in a dictionary format.</p>
 <dd><ul class="first last">
 <li><dl class="first docutils">
 <dt>Dictionary contains:</dt>
-<dd><p class="first last">synopsis : string (first line)
-author : string (identified by :author)
+<dd><p class="first last">author : string (identified by :author)
+synopsis : string (first line)
 rating : integer (identified by :rating)
 param_req : list of param (identified by :param requires)
-detail : detail description (identified by :detail)
-citation : list of citation in string (identified by :citation)
-limitation : string (identified by :limitation)</p>
+detail : detail description (function properties)
+citation : list of citation in string (function properties)
+limitation : string (function properties)</p>
 </dd>
 </dl>
 </li>
@@ -354,6 +353,14 @@ table.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="safe.impact_functions.core.is_function_enabled">
+<tt class="descclassname">safe.impact_functions.core.</tt><tt class="descname">is_function_enabled</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="../../../_modules/safe/impact_functions/core.html#is_function_enabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.impact_functions.core.is_function_enabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether a function is enabled or not
+:param func:
+:return: False is disabled param is True</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="safe.impact_functions.core.parse_single_requirement">
 <tt class="descclassname">safe.impact_functions.core.</tt><tt class="descname">parse_single_requirement</tt><big>(</big><em>requirement</em><big>)</big><a class="reference internal" href="../../../_modules/safe/impact_functions/core.html#parse_single_requirement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.impact_functions.core.parse_single_requirement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse single requirement from impact function&#8217;s doc to category,
@@ -420,8 +427,8 @@ False: if it has requirements and none of them are met.</dd>
   <p class="topless"><a href="test_plugins.html"
                         title="previous chapter">Module:  safe.impact_functions.test_plugins</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="tephra.html"
-                        title="next chapter">Package::safe.impact_functions.tephra</a></p>
+  <p class="topless"><a href="styles.html"
+                        title="next chapter">Module:  safe.impact_functions.styles</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../../_sources/api-docs/safe/impact_functions/core.txt"
@@ -456,7 +463,7 @@ False: if it has requirements and none of them are met.</dd>
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="tephra.html" title="Package::safe.impact_functions.tephra"
+          <a href="styles.html" title="Module: safe.impact_functions.styles"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
           <a href="test_plugins.html" title="Module: safe.impact_functions.test_plugins"
@@ -473,9 +480,9 @@ False: if it has requirements and none of them are met.</dd>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" /> 
@@ -69,10 +69,12 @@
 
 <span class="kn">from</span> <span class="nn">safe.storage.projection</span> <span class="kn">import</span> <span class="n">Projection</span>
 <span class="kn">from</span> <span class="nn">safe.storage.projection</span> <span class="kn">import</span> <span class="n">DEFAULT_PROJECTION</span>
+<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">extract_layers</span>
 <span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="n">unique_filename</span><span class="p">,</span> <span class="n">verify</span>
 <span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">REQUIRED_KEYWORDS</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">socket</span> <span class="kn">import</span> <span class="n">gethostname</span>
+<span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="n">ugettext</span> <span class="k">as</span> <span class="n">tr</span>
 <span class="kn">import</span> <span class="nn">getpass</span>
 
 <span class="c"># The LOGGER is intialised in utilities.py by init</span>
@@ -109,23 +111,50 @@
     <span class="c"># Get an instance of the passed impact_fcn</span>
     <span class="n">impact_function</span> <span class="o">=</span> <span class="n">impact_fcn</span><span class="p">()</span>
 
-    <span class="c"># start time</span>
+    <span class="c"># Start time</span>
     <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
     <span class="c"># Pass input layers to plugin</span>
     <span class="n">F</span> <span class="o">=</span> <span class="n">impact_function</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
 
-    <span class="c"># end time</span>
+    <span class="c"># End time</span>
     <span class="n">end_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-    <span class="c"># elapsed time</span>
+
+    <span class="c"># Elapsed time</span>
     <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
-    <span class="n">elapsed_time_sec</span> <span class="o">=</span> <span class="n">elapsed_time</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
-    <span class="c"># get current time stamp</span>
-    <span class="c"># need to change : to _ because : is forbidden in keywords</span>
+    <span class="c"># Don&#39;s use this - see https://github.com/AIFDR/inasafe/issues/394</span>
+    <span class="c"># elapsed_time_sec = elapsed_time.total_seconds()</span>
+    <span class="n">elapsed_time_sec</span> <span class="o">=</span> <span class="n">elapsed_time</span><span class="o">.</span><span class="n">seconds</span> <span class="o">+</span> <span class="p">(</span><span class="n">elapsed_time</span><span class="o">.</span><span class="n">days</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">)</span>
+
+    <span class="c"># Eet current time stamp</span>
+    <span class="c"># Need to change : to _ because : is forbidden in keywords</span>
     <span class="n">time_stamp</span> <span class="o">=</span> <span class="n">end_time</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)</span>
-    <span class="c"># get user</span>
+
+    <span class="c"># Get user</span>
     <span class="n">user</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span>
-    <span class="c"># get host</span>
+
+    <span class="c"># Get host</span>
     <span class="n">host_name</span> <span class="o">=</span> <span class="n">gethostname</span><span class="p">()</span>
+
+    <span class="c"># Get input layer sources</span>
+    <span class="c"># NOTE: We assume here that there is only one of each</span>
+    <span class="c">#       If there are more only the first one is used</span>
+    <span class="k">for</span> <span class="n">cat</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;hazard&#39;</span><span class="p">,</span> <span class="s">&#39;exposure&#39;</span><span class="p">]:</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">extract_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="s">&#39;category&#39;</span><span class="p">,</span> <span class="n">cat</span><span class="p">)</span>
+        <span class="n">keywords</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_keywords</span><span class="p">()</span>
+        <span class="n">not_specified</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Not specified&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;title&#39;</span> <span class="ow">in</span> <span class="n">keywords</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">keywords</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">not_specified</span>
+
+        <span class="k">if</span> <span class="s">&#39;source&#39;</span> <span class="ow">in</span> <span class="n">keywords</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">keywords</span><span class="p">[</span><span class="s">&#39;source&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">not_specified</span>
+
+        <span class="n">F</span><span class="o">.</span><span class="n">keywords</span><span class="p">[</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">_title&#39;</span> <span class="o">%</span> <span class="n">cat</span><span class="p">]</span> <span class="o">=</span> <span class="n">title</span>
+        <span class="n">F</span><span class="o">.</span><span class="n">keywords</span><span class="p">[</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">_source&#39;</span> <span class="o">%</span> <span class="n">cat</span><span class="p">]</span> <span class="o">=</span> <span class="n">source</span>
 
     <span class="n">F</span><span class="o">.</span><span class="n">keywords</span><span class="p">[</span><span class="s">&#39;elapsed_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elapsed_time_sec</span>
     <span class="n">F</span><span class="o">.</span><span class="n">keywords</span><span class="p">[</span><span class="s">&#39;time_stamp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_stamp</span><span class="p">[:</span><span class="mi">19</span><span class="p">]</span>  <span class="c"># remove decimal part</span>
@@ -377,9 +406,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../../index.html" />
     <link rel="up" title="Module code" href="../../../index.html" /> 
@@ -63,6 +63,7 @@
 <span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">FunctionProvider</span>
 <span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_hazard_layer</span><span class="p">,</span> <span class="n">get_exposure_layer</span>
 <span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_question</span>
+<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">format_int</span>
 <span class="kn">from</span> <span class="nn">safe.storage.raster</span> <span class="kn">import</span> <span class="n">Raster</span>
 <span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ugettext</span> <span class="k">as</span> <span class="n">tr</span><span class="p">,</span>
                                    <span class="n">get_defaults</span><span class="p">)</span>
@@ -152,15 +153,11 @@
                       <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
                       <span class="n">calculate_displaced_people</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                       <span class="n">postprocessors</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;Gender&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">},</span>
-                              <span class="s">&#39;Age&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-                                      <span class="s">&#39;params&#39;</span><span class="p">:</span> <span class="p">{</span>
-                                      <span class="s">&#39;youth_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;YOUTH_RATIO&#39;</span><span class="p">],</span>
-                                      <span class="s">&#39;adult_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ADULT_RATIO&#39;</span><span class="p">],</span>
-                                      <span class="s">&#39;elder_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ELDER_RATIO&#39;</span><span class="p">]</span>
-                                      <span class="p">}</span>
-                              <span class="p">}</span>
-                      <span class="p">}</span>
-                      <span class="p">)</span>
+                          <span class="s">&#39;Age&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                              <span class="s">&#39;params&#39;</span><span class="p">:</span>
+                                  <span class="p">{</span><span class="s">&#39;youth_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;YOUTH_RATIO&#39;</span><span class="p">],</span>
+                                   <span class="s">&#39;adult_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ADULT_RATIO&#39;</span><span class="p">],</span>
+                                   <span class="s">&#39;elder_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ELDER_RATIO&#39;</span><span class="p">]}}})</span>
 
 <div class="viewcode-block" id="ITBFatalityFunction.run"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/earthquake/itb_earthquake_fatality_model.html#safe.impact_functions.earthquake.itb_earthquake_fatality_model.ITBFatalityFunction.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Indonesian Earthquake Fatality Model</span>
@@ -255,57 +252,62 @@
         <span class="n">table_body</span> <span class="o">=</span> <span class="p">[</span><span class="n">question</span><span class="p">]</span>
 
         <span class="c"># Add total fatality estimate</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">fatalities</span><span class="p">))</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="c">#s = str(int(fatalities)).rjust(10)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">format_int</span><span class="p">(</span><span class="n">fatalities</span><span class="p">)</span>
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Number of fatalities&#39;</span><span class="p">),</span> <span class="n">s</span><span class="p">],</span>
                                    <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;calculate_displaced_people&#39;</span><span class="p">]:</span>
             <span class="c"># Add total estimate of people displaced</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">displaced</span><span class="p">))</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+            <span class="c">#s = str(int(displaced)).rjust(10)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">format_int</span><span class="p">(</span><span class="n">displaced</span><span class="p">)</span>
             <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Number of people displaced&#39;</span><span class="p">),</span> <span class="n">s</span><span class="p">],</span>
                                        <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">displaced</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="c"># Add estimate of total population in area</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">total</span><span class="p">))</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="c">#s = str(int(total)).rjust(10)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">format_int</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">total</span><span class="p">))</span>
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Total number of people&#39;</span><span class="p">),</span> <span class="n">s</span><span class="p">],</span>
                                    <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
 
         <span class="c"># Calculate estimated needs based on BNPB Perka 7/2008 minimum bantuan</span>
-        <span class="n">rice</span> <span class="o">=</span> <span class="n">displaced</span> <span class="o">*</span> <span class="mf">2.8</span>
-        <span class="n">drinking_water</span> <span class="o">=</span> <span class="n">displaced</span> <span class="o">*</span> <span class="mf">17.5</span>
-        <span class="n">water</span> <span class="o">=</span> <span class="n">displaced</span> <span class="o">*</span> <span class="mi">67</span>
-        <span class="n">family_kits</span> <span class="o">=</span> <span class="n">displaced</span> <span class="o">/</span> <span class="mi">5</span>
-        <span class="n">toilets</span> <span class="o">=</span> <span class="n">displaced</span> <span class="o">/</span> <span class="mi">20</span>
+        <span class="c"># FIXME: Refactor and share</span>
+        <span class="n">rice</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">displaced</span> <span class="o">*</span> <span class="mf">2.8</span><span class="p">)</span>
+        <span class="n">drinking_water</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">displaced</span> <span class="o">*</span> <span class="mf">17.5</span><span class="p">)</span>
+        <span class="n">water</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">displaced</span> <span class="o">*</span> <span class="mi">67</span><span class="p">)</span>
+        <span class="n">family_kits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">displaced</span> <span class="o">/</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">toilets</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">displaced</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span>
 
         <span class="c"># Generate impact report for the pdf map</span>
         <span class="n">table_body</span> <span class="o">=</span> <span class="p">[</span><span class="n">question</span><span class="p">,</span>
                       <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Fatalities&#39;</span><span class="p">),</span>
-                                <span class="s">&#39;</span><span class="si">%i</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fatalities</span><span class="p">],</span>
+                                <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">format_int</span><span class="p">(</span><span class="n">fatalities</span><span class="p">)],</span>
                                <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
                       <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;People displaced&#39;</span><span class="p">),</span>
-                                <span class="s">&#39;</span><span class="si">%i</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">displaced</span><span class="p">],</span>
+                                <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">format_int</span><span class="p">(</span><span class="n">displaced</span><span class="p">)],</span>
                                <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
                       <span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Map shows density estimate of &#39;</span>
                                   <span class="s">&#39;displaced population&#39;</span><span class="p">)),</span>
                       <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Needs per week&#39;</span><span class="p">),</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Total&#39;</span><span class="p">)],</span>
                                <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-                      <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Rice [kg]&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">rice</span><span class="p">)],</span>
-                      <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Drinking Water [l]&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">drinking_water</span><span class="p">)],</span>
-                      <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Clean Water [l]&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">water</span><span class="p">)],</span>
-                      <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Family Kits&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">family_kits</span><span class="p">)],</span>
-                      <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Toilets&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">toilets</span><span class="p">)]]</span>
+                      <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Rice [kg]&#39;</span><span class="p">),</span> <span class="n">format_int</span><span class="p">(</span><span class="n">rice</span><span class="p">)],</span>
+                      <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Drinking Water [l]&#39;</span><span class="p">),</span> <span class="n">format_int</span><span class="p">(</span><span class="n">drinking_water</span><span class="p">)],</span>
+                      <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Clean Water [l]&#39;</span><span class="p">),</span> <span class="n">format_int</span><span class="p">(</span><span class="n">water</span><span class="p">)],</span>
+                      <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Family Kits&#39;</span><span class="p">),</span> <span class="n">format_int</span><span class="p">(</span><span class="n">family_kits</span><span class="p">)],</span>
+                      <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Toilets&#39;</span><span class="p">),</span> <span class="n">format_int</span><span class="p">(</span><span class="n">toilets</span><span class="p">)]]</span>
         <span class="n">impact_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">table_body</span><span class="p">)</span><span class="o">.</span><span class="n">toNewlineFreeString</span><span class="p">()</span>
 
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Action Checklist:&#39;</span><span class="p">),</span> <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">fatalities</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Are there enough victim identification &#39;</span>
-                                 <span class="s">&#39;units available for </span><span class="si">%i</span><span class="s"> people?&#39;</span><span class="p">)</span> <span class="o">%</span>
-                                 <span class="n">fatalities</span><span class="p">)</span>
+                                 <span class="s">&#39;units available for </span><span class="si">%s</span><span class="s"> people?&#39;</span><span class="p">)</span> <span class="o">%</span>
+                                 <span class="n">format_int</span><span class="p">(</span><span class="n">fatalities</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">displaced</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Are there enough shelters and relief items &#39;</span>
-                                 <span class="s">&#39;available for </span><span class="si">%i</span><span class="s"> people?&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">displaced</span><span class="p">)</span>
+                                 <span class="s">&#39;available for </span><span class="si">%s</span><span class="s"> people?&#39;</span><span class="p">)</span>
+                              <span class="o">%</span> <span class="n">format_int</span><span class="p">(</span><span class="n">displaced</span><span class="p">))</span>
             <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;If yes, where are they located and &#39;</span>
                                           <span class="s">&#39;how will we distribute them?&#39;</span><span class="p">)))</span>
             <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;If no, where can we obtain &#39;</span>
@@ -415,9 +417,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

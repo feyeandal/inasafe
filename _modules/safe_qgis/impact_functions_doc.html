@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -74,7 +74,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;ismailsunni@yahoo.co.id&#39;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.5.1&#39;</span>
 <span class="n">__revision__</span> <span class="o">=</span> <span class="s">&#39;$Format:%H$&#39;</span>
 <span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;10/09/2012&#39;</span>
 <span class="n">__copyright__</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Copyright 2012, Australia Indonesia Facility for &#39;</span>
@@ -83,9 +82,12 @@
 
 <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtWebKit</span><span class="p">,)</span>
 <span class="kn">from</span> <span class="nn">impact_functions_doc_base</span> <span class="kn">import</span> <span class="n">Ui_ImpactFunctionsDocBase</span>
+<span class="c"># TODO: use safe_qgis.safe_interface here rather</span>
 <span class="kn">from</span> <span class="nn">safe.impact_functions</span> <span class="kn">import</span> <span class="n">core</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.help</span> <span class="kn">import</span> <span class="n">Help</span>
+<span class="c"># TODO: and here</span>
 <span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_unique_values</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.help</span> <span class="kn">import</span> <span class="n">Help</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">get_version</span>
 <span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">htmlFooter</span><span class="p">,</span> <span class="n">htmlHeader</span>
 
 
@@ -112,8 +114,9 @@
         <span class="c"># Set up the user interface from Designer.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span>
-                            <span class="s">&#39;InaSAFE </span><span class="si">%s</span><span class="s"> Impact Functions Doc&#39;</span> <span class="o">%</span> <span class="n">__version__</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">no_filter</span> <span class="o">=</span> <span class="s">&#39;No Filter&#39;</span>
+                            <span class="s">&#39;InaSAFE %1 Impact Functions Browser&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
+                             <span class="n">get_version</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;No Filter&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">dict_filter</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">dict_filter</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="p">[],</span>
                            <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="p">[],</span>
@@ -300,9 +303,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

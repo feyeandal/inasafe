@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -76,18 +76,18 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;tim@linfiniti.com&#39;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.5.1&#39;</span>
 <span class="n">__revision__</span> <span class="o">=</span> <span class="s">&#39;$Format:%H$&#39;</span>
 <span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;21/02/2011&#39;</span>
 <span class="n">__copyright__</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Copyright 2012, Australia Indonesia Facility for &#39;</span>
                  <span class="s">&#39;Disaster Reduction&#39;</span><span class="p">)</span>
 
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 <span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="kn">import</span> <span class="n">pyqtSignature</span>
 
 <span class="kn">from</span> <span class="nn">third_party.odict</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">safe.common.exceptions</span> <span class="kn">import</span> <span class="n">InaSAFEError</span>
 
+<span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">InaSAFEError</span><span class="p">,</span> <span class="n">get_version</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.keywords_dialog_base</span> <span class="kn">import</span> <span class="n">Ui_KeywordsDialogBase</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.keyword_io</span> <span class="kn">import</span> <span class="n">KeywordIO</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.help</span> <span class="kn">import</span> <span class="n">Help</span>
@@ -99,11 +99,7 @@
 <span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">InvalidParameterException</span><span class="p">,</span>
                                   <span class="n">HashNotFoundException</span><span class="p">)</span>
 
-
-<span class="c"># Don&#39;t remove this even if it is flagged as unused by your ide</span>
-<span class="c"># it is needed for qrc:/ url resolution. See Qt Resources docs.</span>
-
-<span class="c">#see if we can import pydev - see development docs for details</span>
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;InaSAFE&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="KeywordsDialog"><a class="viewcode-back" href="../../api-docs/safe_qgis/keywords_dialog.html#safe_qgis.keywords_dialog.KeywordsDialog">[docs]</a><span class="k">class</span> <span class="nc">KeywordsDialog</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="p">,</span> <span class="n">Ui_KeywordsDialogBase</span><span class="p">):</span>
@@ -131,7 +127,7 @@
         <span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span>
-                            <span class="s">&#39;InaSAFE </span><span class="si">%s</span><span class="s"> Keywords Editor&#39;</span> <span class="o">%</span> <span class="n">__version__</span><span class="p">))</span>
+            <span class="s">&#39;InaSAFE %1 Keywords Editor&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span><span class="n">get_version</span><span class="p">()))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keywordIO</span> <span class="o">=</span> <span class="n">KeywordIO</span><span class="p">()</span>
         <span class="c"># note the keys should remain untranslated as we need to write</span>
         <span class="c"># english to the keywords file. The keys will be written as user data</span>
@@ -140,23 +136,23 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">standardExposureList</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s">&#39;population&#39;</span><span class="p">,</span>
                                       <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;population&#39;</span><span class="p">)),</span>
                                      <span class="p">(</span><span class="s">&#39;structure&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;structure&#39;</span><span class="p">)),</span>
-                                     <span class="p">(</span><span class="s">&#39;roads&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;roads&#39;</span><span class="p">)),</span>
+                                     <span class="p">(</span><span class="s">&#39;road&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;road&#39;</span><span class="p">)),</span>
                                      <span class="p">(</span><span class="s">&#39;Not Set&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Not Set&#39;</span><span class="p">))])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">standardHazardList</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s">&#39;earthquake [MMI]&#39;</span><span class="p">,</span>
                                     <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;earthquake [MMI]&#39;</span><span class="p">)),</span>
-                                     <span class="p">(</span><span class="s">&#39;tsunami [m]&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;tsunami [m]&#39;</span><span class="p">)),</span>
-                                     <span class="p">(</span><span class="s">&#39;tsunami [wet/dry]&#39;</span><span class="p">,</span>
-                                      <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;tsunami [wet/dry]&#39;</span><span class="p">)),</span>
-                                     <span class="p">(</span><span class="s">&#39;tsunami [feet]&#39;</span><span class="p">,</span>
-                                      <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;tsunami [feet]&#39;</span><span class="p">)),</span>
-                                     <span class="p">(</span><span class="s">&#39;flood [m]&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;flood [m]&#39;</span><span class="p">)),</span>
-                                     <span class="p">(</span><span class="s">&#39;flood [wet/dry]&#39;</span><span class="p">,</span>
-                                      <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;flood [wet/dry]&#39;</span><span class="p">)),</span>
-                                     <span class="p">(</span><span class="s">&#39;flood [feet]&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;flood [feet]&#39;</span><span class="p">)),</span>
-                                     <span class="p">(</span><span class="s">&#39;tephra [kg2/m2]&#39;</span><span class="p">,</span>
-                                      <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;tephra [kg2/m2]&#39;</span><span class="p">)),</span>
-                                      <span class="p">(</span><span class="s">&#39;volcano&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;volcano&#39;</span><span class="p">)),</span>
-                                     <span class="p">(</span><span class="s">&#39;Not Set&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Not Set&#39;</span><span class="p">))])</span>
+                                   <span class="p">(</span><span class="s">&#39;tsunami [m]&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;tsunami [m]&#39;</span><span class="p">)),</span>
+                                   <span class="p">(</span><span class="s">&#39;tsunami [wet/dry]&#39;</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;tsunami [wet/dry]&#39;</span><span class="p">)),</span>
+                                   <span class="p">(</span><span class="s">&#39;tsunami [feet]&#39;</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;tsunami [feet]&#39;</span><span class="p">)),</span>
+                                   <span class="p">(</span><span class="s">&#39;flood [m]&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;flood [m]&#39;</span><span class="p">)),</span>
+                                   <span class="p">(</span><span class="s">&#39;flood [wet/dry]&#39;</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;flood [wet/dry]&#39;</span><span class="p">)),</span>
+                                   <span class="p">(</span><span class="s">&#39;flood [feet]&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;flood [feet]&#39;</span><span class="p">)),</span>
+                                   <span class="p">(</span><span class="s">&#39;tephra [kg2/m2]&#39;</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;tephra [kg2/m2]&#39;</span><span class="p">)),</span>
+                                   <span class="p">(</span><span class="s">&#39;volcano&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;volcano&#39;</span><span class="p">)),</span>
+                                   <span class="p">(</span><span class="s">&#39;Not Set&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Not Set&#39;</span><span class="p">))])</span>
         <span class="c"># Save reference to the QGIS interface and parent</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iface</span> <span class="o">=</span> <span class="n">iface</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
@@ -192,9 +188,9 @@
 
         <span class="c">#add a reload from keywords button</span>
         <span class="n">myButton</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buttonBox</span><span class="o">.</span><span class="n">addButton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Reload&#39;</span><span class="p">),</span>
-            <span class="n">QtGui</span><span class="o">.</span><span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">ActionRole</span><span class="p">)</span>
+                                            <span class="n">QtGui</span><span class="o">.</span><span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">ActionRole</span><span class="p">)</span>
         <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">myButton</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">SIGNAL</span><span class="p">(</span><span class="s">&#39;clicked()&#39;</span><span class="p">),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">loadStateFromKeywords</span><span class="p">)</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">loadStateFromKeywords</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">setLayer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theLayer</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="n">theLayer</span>
@@ -207,6 +203,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">helpDialog</span> <span class="o">=</span> <span class="n">Help</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iface</span><span class="o">.</span><span class="n">mainWindow</span><span class="p">(),</span> <span class="s">&#39;keywords&#39;</span><span class="p">)</span>
 </div>
     <span class="k">def</span> <span class="nf">togglePostprocessingWidgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;togglePostprocessingWidgets&#39;</span><span class="p">)</span>
         <span class="n">isPostprocessingOn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">radPostprocessing</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cboSubcategory</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="ow">not</span> <span class="n">isPostprocessingOn</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lblSubcategory</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="ow">not</span> <span class="n">isPostprocessingOn</span><span class="p">)</span>
@@ -223,8 +220,8 @@
             <span class="n">currentKeyword</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getValueForKey</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;AGGR_ATTR_KEY&#39;</span><span class="p">])</span>
             <span class="n">fields</span><span class="p">,</span> <span class="n">attributePosition</span> <span class="o">=</span> <span class="n">getLayerAttributeNames</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">,</span>
-                <span class="p">[</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QVariant</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QVariant</span><span class="o">.</span><span class="n">String</span><span class="p">],</span>
-                <span class="n">currentKeyword</span><span class="p">)</span>
+                               <span class="p">[</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QVariant</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QVariant</span><span class="o">.</span><span class="n">String</span><span class="p">],</span>
+                               <span class="n">currentKeyword</span><span class="p">)</span>
             <span class="n">theBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">attributePosition</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">theBox</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -243,8 +240,8 @@
             <span class="n">currentKeyword</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getValueForKey</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;FEM_RATIO_ATTR_KEY&#39;</span><span class="p">])</span>
             <span class="n">fields</span><span class="p">,</span> <span class="n">attributePosition</span> <span class="o">=</span> <span class="n">getLayerAttributeNames</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">,</span>
-                <span class="p">[</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QVariant</span><span class="o">.</span><span class="n">Double</span><span class="p">],</span>
-                <span class="n">currentKeyword</span><span class="p">)</span>
+                                               <span class="p">[</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QVariant</span><span class="o">.</span><span class="n">Double</span><span class="p">],</span>
+                                               <span class="n">currentKeyword</span><span class="p">)</span>
             <span class="n">fields</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Use default&#39;</span><span class="p">))</span>
             <span class="n">fields</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Don</span><span class="se">\&#39;</span><span class="s">t use&#39;</span><span class="p">))</span>
             <span class="n">theBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
@@ -281,7 +278,7 @@
     <span class="k">def</span> <span class="nf">on_cboAggregationAttribute_currentIndexChanged</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theIndex</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">del</span> <span class="n">theIndex</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">addListEntry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;AGGR_ATTR_KEY&#39;</span><span class="p">],</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cboAggregationAttribute</span><span class="o">.</span><span class="n">currentText</span><span class="p">())</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">cboAggregationAttribute</span><span class="o">.</span><span class="n">currentText</span><span class="p">())</span>
 
     <span class="c"># prevents actions being handled twice</span>
     <span class="nd">@pyqtSignature</span><span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">)</span>
@@ -294,7 +291,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;FEM_RATIO_KEY&#39;</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">currentDefault</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">addListEntry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;FEM_RATIO_KEY&#39;</span><span class="p">],</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">dsbFemaleRatioDefault</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">dsbFemaleRatioDefault</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dsbFemaleRatioDefault</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">removeItemByKey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;FEM_RATIO_KEY&#39;</span><span class="p">])</span>
@@ -307,7 +304,7 @@
         <span class="n">theBox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsbFemaleRatioDefault</span>
         <span class="k">if</span> <span class="n">theBox</span><span class="o">.</span><span class="n">isEnabled</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">addListEntry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;FEM_RATIO_KEY&#39;</span><span class="p">],</span>
-                <span class="n">theBox</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+                              <span class="n">theBox</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
 
     <span class="c"># prevents actions being handled twice</span>
     <span class="nd">@pyqtSignature</span><span class="p">(</span><span class="s">&#39;bool&#39;</span><span class="p">)</span>
@@ -332,7 +329,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pbnAdvanced</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Show advanced editor&#39;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grpAdvanced</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="n">theFlag</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">adjustSize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resizeDialog</span><span class="p">()</span>
 
     <span class="c"># prevents actions being handled twice</span>
     <span class="nd">@pyqtSignature</span><span class="p">(</span><span class="s">&#39;bool&#39;</span><span class="p">)</span>
@@ -402,7 +399,7 @@
 <span class="sd">           no exceptions explicitly raised.&quot;&quot;&quot;</span>
         <span class="k">del</span> <span class="n">theIndex</span>
         <span class="n">myItem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cboSubcategory</span><span class="o">.</span><span class="n">itemData</span><span class="p">(</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">cboSubcategory</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">())</span><span class="o">.</span><span class="n">toString</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cboSubcategory</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">())</span><span class="o">.</span><span class="n">toString</span><span class="p">()</span>
         <span class="n">myText</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">myItem</span><span class="p">)</span>
         <span class="c"># I found that myText is &#39;Not Set&#39; for every language</span>
         <span class="k">if</span> <span class="n">myText</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Not Set&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">myText</span> <span class="o">==</span> <span class="s">&#39;Not Set&#39;</span><span class="p">:</span>
@@ -427,7 +424,7 @@
         <span class="k">if</span> <span class="s">&#39;exposure&#39;</span> <span class="o">==</span> <span class="n">myCategory</span><span class="p">:</span>
             <span class="n">myDataType</span> <span class="o">=</span> <span class="n">myTokens</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;[&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;]&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">addListEntry</span><span class="p">(</span><span class="s">&#39;datatype&#39;</span><span class="p">,</span> <span class="n">myDataType</span><span class="p">)</span>
-    <span class="c"># prevents actions being handled twice</span>
+        <span class="c"># prevents actions being handled twice</span>
 </div>
 <div class="viewcode-block" id="KeywordsDialog.setSubcategoryList"><a class="viewcode-back" href="../../api-docs/safe_qgis/keywords_dialog.html#safe_qgis.keywords_dialog.KeywordsDialog.setSubcategoryList">[docs]</a>    <span class="k">def</span> <span class="nf">setSubcategoryList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theEntries</span><span class="p">,</span> <span class="n">theSelectedItem</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Helper to populate the subcategory list based on category context.</span>
@@ -460,7 +457,7 @@
         <span class="n">mySelectedIndex</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">myKey</span><span class="p">,</span> <span class="n">myValue</span> <span class="ow">in</span> <span class="n">theEntries</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">myValue</span> <span class="o">==</span> <span class="n">theSelectedItem</span> <span class="ow">or</span>
-               <span class="n">myKey</span> <span class="o">==</span> <span class="n">theSelectedItem</span><span class="p">):</span>
+                <span class="n">myKey</span> <span class="o">==</span> <span class="n">theSelectedItem</span><span class="p">):</span>
                 <span class="n">mySelectedIndex</span> <span class="o">=</span> <span class="n">myIndex</span>
             <span class="n">myIndex</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cboSubcategory</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">myValue</span><span class="p">,</span> <span class="n">myKey</span><span class="p">)</span>
@@ -479,7 +476,7 @@
 <span class="sd">        Raises:</span>
 <span class="sd">           no exceptions explicitly raised.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">lePredefinedValue</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">isEmpty</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cboKeyword</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span><span class="o">.</span><span class="n">isEmpty</span><span class="p">()):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cboKeyword</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span><span class="o">.</span><span class="n">isEmpty</span><span class="p">()):</span>
             <span class="n">myCurrentKey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cboKeyword</span><span class="o">.</span><span class="n">currentText</span><span class="p">())</span>
             <span class="n">myCurrentValue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lePredefinedValue</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">addListEntry</span><span class="p">(</span><span class="n">myCurrentKey</span><span class="p">,</span> <span class="n">myCurrentValue</span><span class="p">)</span>
@@ -607,7 +604,7 @@
         <span class="k">if</span> <span class="n">myCategory</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;hazard&#39;</span><span class="p">,</span> <span class="s">&#39;exposure&#39;</span><span class="p">,</span> <span class="s">&#39;postprocessing&#39;</span><span class="p">]:</span>
             <span class="c"># .. todo:: report an error to the user</span>
             <span class="k">return</span> <span class="bp">False</span>
-        <span class="c"># Special case when category changes, we start on a new slate!</span>
+            <span class="c"># Special case when category changes, we start on a new slate!</span>
 
         <span class="k">if</span> <span class="n">myCategory</span> <span class="o">==</span> <span class="s">&#39;hazard&#39;</span><span class="p">:</span>
             <span class="c"># only cause a toggle if we actually changed the category</span>
@@ -794,7 +791,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">radExposure</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">mySubcategory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">myType</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">setSubcategoryList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">standardExposureList</span><span class="p">,</span>
-                                     <span class="n">mySubcategory</span> <span class="o">+</span> <span class="s">&#39; [&#39;</span> <span class="o">+</span> <span class="n">myType</span> <span class="o">+</span> <span class="s">&#39;]&#39;</span><span class="p">)</span>
+                                        <span class="n">mySubcategory</span> <span class="o">+</span> <span class="s">&#39; [&#39;</span> <span class="o">+</span> <span class="n">myType</span> <span class="o">+</span> <span class="s">&#39;]&#39;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">mySubcategory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">setSubcategoryList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">standardExposureList</span><span class="p">,</span>
                                         <span class="n">mySubcategory</span><span class="p">)</span>
@@ -804,16 +801,22 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">radHazard</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">mySubcategory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">myUnits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">setSubcategoryList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">standardHazardList</span><span class="p">,</span>
-                                     <span class="n">mySubcategory</span> <span class="o">+</span> <span class="s">&#39; [&#39;</span> <span class="o">+</span> <span class="n">myUnits</span> <span class="o">+</span> <span class="s">&#39;]&#39;</span><span class="p">)</span>
+                                        <span class="n">mySubcategory</span> <span class="o">+</span> <span class="s">&#39; [&#39;</span> <span class="o">+</span> <span class="n">myUnits</span> <span class="o">+</span> <span class="s">&#39;]&#39;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">mySubcategory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">setSubcategoryList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">standardHazardList</span><span class="p">,</span>
                                         <span class="n">mySubcategory</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">setSubcategoryList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">standardHazardList</span><span class="p">,</span>
                                         <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Not Set&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">resizeDialog</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">resizeDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">QtCore</span><span class="o">.</span><span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;adjust ing dialog size&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">adjustSize</span><span class="p">()</span>
 
-    <span class="c"># prevents actions being handled twice</span></div>
+    <span class="c"># prevents actions being handled twice</span>
     <span class="nd">@pyqtSignature</span><span class="p">(</span><span class="s">&#39;QString&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="KeywordsDialog.on_leTitle_textEdited"><a class="viewcode-back" href="../../api-docs/safe_qgis/keywords_dialog.html#safe_qgis.keywords_dialog.KeywordsDialog.on_leTitle_textEdited">[docs]</a>    <span class="k">def</span> <span class="nf">on_leTitle_textEdited</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theText</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update the keywords list whenver the user changes the title.</span>
@@ -836,7 +839,7 @@
 <span class="sd">           dict - a dictionary of keyword reflecting the state of the dialog.</span>
 <span class="sd">        Raises:</span>
 <span class="sd">           no exceptions explicitly raised.&quot;&quot;&quot;</span>
-                <span class="c">#make sure title is listed</span>
+        <span class="c">#make sure title is listed</span>
         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leTitle</span><span class="o">.</span><span class="n">text</span><span class="p">())</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">addListEntry</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leTitle</span><span class="o">.</span><span class="n">text</span><span class="p">()))</span>
 
@@ -868,8 +871,8 @@
                                          <span class="n">theKeywords</span><span class="o">=</span><span class="n">myKeywords</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">InaSAFEError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">QtGui</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;InaSAFE&#39;</span><span class="p">),</span>
-            <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;An error was encountered when saving the keywords:</span><span class="se">\n</span><span class="s">&#39;</span>
-                      <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">getExceptionWithStacktrace</span><span class="p">(</span><span class="n">e</span><span class="p">))))))</span>
+              <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;An error was encountered when saving the keywords:</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">getExceptionWithStacktrace</span><span class="p">(</span><span class="n">e</span><span class="p">))))))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dock</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dock</span><span class="o">.</span><span class="n">getLayers</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">done</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="o">.</span><span class="n">Accepted</span><span class="p">)</span>
@@ -963,9 +966,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

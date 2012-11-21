@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -79,7 +79,7 @@
 <span class="kn">from</span> <span class="nn">safe_qgis.utilities_test</span> <span class="kn">import</span> <span class="p">(</span><span class="n">getQgisTestApp</span><span class="p">,</span> <span class="n">loadLayer</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.keyword_io</span> <span class="kn">import</span> <span class="n">KeywordIO</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="n">HashNotFoundException</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.test_keywords_dialog</span> <span class="kn">import</span> <span class="n">copyMakePadangLayer</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.test_keywords_dialog</span> <span class="kn">import</span> <span class="n">makePadangLayerClone</span>
 
 <span class="n">QGISAPP</span><span class="p">,</span> <span class="n">CANVAS</span><span class="p">,</span> <span class="n">IFACE</span><span class="p">,</span> <span class="n">PARENT</span> <span class="o">=</span> <span class="n">getQgisTestApp</span><span class="p">()</span>
 
@@ -113,6 +113,7 @@
                                        <span class="s">&#39;datatype&#39;</span><span class="p">:</span> <span class="s">&#39;itb&#39;</span><span class="p">,</span>
                                        <span class="s">&#39;subcategory&#39;</span><span class="p">:</span> <span class="s">&#39;structure&#39;</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expectedRasterKeywords</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;category&#39;</span><span class="p">:</span> <span class="s">&#39;hazard&#39;</span><span class="p">,</span>
+                                       <span class="s">&#39;source&#39;</span><span class="p">:</span> <span class="s">&#39;USGS&#39;</span><span class="p">,</span>
                                        <span class="s">&#39;subcategory&#39;</span><span class="p">:</span> <span class="s">&#39;earthquake&#39;</span><span class="p">,</span>
                                        <span class="s">&#39;unit&#39;</span><span class="p">:</span> <span class="s">&#39;MMI&#39;</span><span class="p">,</span>
                                        <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;An earthquake in Padang &#39;</span>
@@ -188,7 +189,7 @@
         <span class="n">myKeywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywordIO</span><span class="o">.</span><span class="n">readKeywords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fileRasterLayer</span><span class="p">)</span>
         <span class="n">myExpectedKeywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expectedRasterKeywords</span>
         <span class="n">mySource</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileRasterLayer</span><span class="o">.</span><span class="n">source</span><span class="p">()</span>
-        <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Got: </span><span class="si">%s</span><span class="se">\n\n</span><span class="s">Expected </span><span class="si">%s</span><span class="se">\n\n</span><span class="s">Source: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Got:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">Expected:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">Source:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">myKeywords</span><span class="p">,</span> <span class="n">myExpectedKeywords</span><span class="p">,</span> <span class="n">mySource</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">myKeywords</span> <span class="o">==</span> <span class="n">myExpectedKeywords</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
@@ -203,20 +204,27 @@
         <span class="k">assert</span> <span class="n">myKeywords</span> <span class="o">==</span> <span class="n">myExpectedKeywords</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="KeywordIOTest.test_appendKeywords"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_keyword_io.html#safe_qgis.test_keyword_io.KeywordIOTest.test_appendKeywords">[docs]</a>    <span class="k">def</span> <span class="nf">test_appendKeywords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Can we append file keywords with the generic readKeywords</span>
-<span class="sd">        method &quot;&quot;&quot;</span>
-        <span class="n">myLayer</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">copyMakePadangLayer</span><span class="p">()</span>
-        <span class="n">myAddKeywords</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;category&#39;</span><span class="p">:</span> <span class="s">&#39;exposure&#39;</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">:</span> <span class="s">&#39;TEST&#39;</span><span class="p">}</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">keywordIO</span><span class="o">.</span><span class="n">appendKeywords</span><span class="p">(</span><span class="n">myLayer</span><span class="p">,</span> <span class="n">myAddKeywords</span><span class="p">)</span>
-        <span class="n">myExpectedKeywords</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;category&#39;</span><span class="p">:</span> <span class="s">&#39;exposure&#39;</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">:</span> <span class="s">&#39;TEST&#39;</span><span class="p">,</span>
-                              <span class="s">&#39;subcategory&#39;</span><span class="p">:</span> <span class="s">&#39;earthquake&#39;</span><span class="p">,</span> <span class="s">&#39;unit&#39;</span><span class="p">:</span> <span class="s">&#39;MMI&#39;</span><span class="p">,</span>
-                              <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;An earthquake in Padang like in 2009&#39;</span><span class="p">}</span>
+        <span class="sd">&quot;&quot;&quot;Can we append file keywords with the generic readKeywords method.&quot;&quot;&quot;</span>
+        <span class="n">myLayer</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">makePadangLayerClone</span><span class="p">()</span>
+        <span class="n">myNewKeywords</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;category&#39;</span><span class="p">:</span> <span class="s">&#39;exposure&#39;</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">:</span> <span class="s">&#39;TEST&#39;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keywordIO</span><span class="o">.</span><span class="n">appendKeywords</span><span class="p">(</span><span class="n">myLayer</span><span class="p">,</span> <span class="n">myNewKeywords</span><span class="p">)</span>
         <span class="n">myKeywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywordIO</span><span class="o">.</span><span class="n">readKeywords</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
 
-        <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Got: </span><span class="si">%s</span><span class="se">\n\n</span><span class="s">Expected </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">myKeywords</span><span class="p">,</span> <span class="n">myExpectedKeywords</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">myKeywords</span> <span class="o">==</span> <span class="n">myExpectedKeywords</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">for</span> <span class="n">myKey</span><span class="p">,</span> <span class="n">myValue</span> <span class="ow">in</span> <span class="n">myNewKeywords</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Layer keywords misses appended key: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="s">&#39;Layer keywords:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="s">&#39;Appended keywords:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span>
+                        <span class="p">(</span><span class="n">myKey</span><span class="p">,</span>
+                         <span class="n">myKeywords</span><span class="p">,</span>
+                         <span class="n">myNewKeywords</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">myKey</span> <span class="ow">in</span> <span class="n">myKeywords</span><span class="p">,</span> <span class="n">myMessage</span>
+            <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Layer keywords misses appended value: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+                         <span class="s">&#39;Layer keywords:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+                         <span class="s">&#39;Appended keywords:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="n">myValue</span><span class="p">,</span>
+                          <span class="n">myKeywords</span><span class="p">,</span>
+                          <span class="n">myNewKeywords</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">myKeywords</span><span class="p">[</span><span class="n">myKey</span><span class="p">]</span> <span class="o">==</span> <span class="n">myValue</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="KeywordIOTest.test_readDBKeywords"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_keyword_io.html#safe_qgis.test_keyword_io.KeywordIOTest.test_readDBKeywords">[docs]</a>    <span class="k">def</span> <span class="nf">test_readDBKeywords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Can we read sqlite keywords with the generic readKeywords method</span>
@@ -302,9 +310,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -73,7 +73,6 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;tim@linfiniti.com&#39;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.5.1&#39;</span>
 <span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;12/10/2012&#39;</span>
 <span class="n">__copyright__</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Copyright 2012, Australia Indonesia Facility for &#39;</span>
                  <span class="s">&#39;Disaster Reduction&#39;</span><span class="p">)</span>
@@ -90,7 +89,7 @@
                        <span class="n">QgsMapLayerRegistry</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">unique_filename</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.utilities_test</span> <span class="kn">import</span> <span class="p">(</span><span class="n">getQgisTestApp</span><span class="p">,</span>
-                                      <span class="n">assertHashesForFile</span><span class="p">,</span>
+                                      <span class="n">checkImages</span><span class="p">,</span>
                                       <span class="n">loadLayer</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.map</span> <span class="kn">import</span> <span class="n">MapLegend</span>
 
@@ -119,18 +118,20 @@
         <span class="n">myLegend</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="s">&#39;PNG&#39;</span><span class="p">)</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">myPath</span><span class="p">)</span>
         <span class="c"># As we have discovered, different versions of Qt and</span>
-        <span class="c"># OS platforms cause different output, so hashes are a list</span>
+        <span class="c"># OS platforms cause different output, so myControlImages is a list</span>
         <span class="c"># of &#39;known good&#39; renders.</span>
-        <span class="n">myExpectedHashes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span>  <span class="c"># win</span>
-                            <span class="s">&#39;d0c3071c4babe7db4f9762b311d61184&#39;</span><span class="p">,</span>  <span class="c"># ub12.04xiner</span>
-                            <span class="s">&#39;b94cfd8a10d709ff28466ada425f24c8&#39;</span><span class="p">,</span>  <span class="c"># ub11.04-64</span>
-                            <span class="s">&#39;00dc58aa50867de9b617ccfab0d13f21&#39;</span><span class="p">,</span>  <span class="c"># ub12.04</span>
-                            <span class="s">&#39;e65853e217a4c9b0c2f303dd2aadb373&#39;</span><span class="p">,</span>  <span class="c"># ub12.04 xvfb</span>
-                            <span class="s">&#39;e4273364b33a943e1108f519dbe8e06c&#39;</span><span class="p">,</span>  <span class="c"># ub12.04-64</span>
-                            <span class="s">&#39;91177a81bee4400be4e85789e3be1e91&#39;</span><span class="p">,</span>  <span class="c"># binary read</span>
-                            <span class="s">&#39;57da6f81b4a55507e1bed0b73423244b&#39;</span><span class="p">,</span>  <span class="c"># wVistaSP2-32</span>
-                            <span class="s">&#39;&#39;</span><span class="p">]</span>
-        <span class="n">assertHashesForFile</span><span class="p">(</span><span class="n">myExpectedHashes</span><span class="p">,</span> <span class="n">myPath</span><span class="p">)</span>
+        <span class="n">myControlImages</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;getLegend.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getLegend-variantWindosVistaSP2-32.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getClassToLegend-variantUB12.04-64.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getClassToLegend-variantUB11.04-64.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getLegend-variantJenkins.png&#39;</span><span class="p">]</span>
+        <span class="n">myTolerance</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># to allow for version number changes in disclaimer</span>
+        <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span> <span class="o">=</span> <span class="n">checkImages</span><span class="p">(</span><span class="n">myControlImages</span><span class="p">,</span>
+                                        <span class="n">myPath</span><span class="p">,</span>
+                                        <span class="n">myTolerance</span><span class="p">)</span>
+        <span class="n">myMessage</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">We want these images to match, if they do already &#39;</span>
+            <span class="s">&#39;copy the test image generated to create a new control image.&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;test_getLegend done&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="MapLegendTest.test_getVectorLegend"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_map_legend.html#safe_qgis.test_map_legend.MapLegendTest.test_getVectorLegend">[docs]</a>    <span class="k">def</span> <span class="nf">test_getVectorLegend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -144,20 +145,20 @@
         <span class="n">myImage</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="s">&#39;PNG&#39;</span><span class="p">)</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">myPath</span><span class="p">)</span>
         <span class="c"># As we have discovered, different versions of Qt and</span>
-        <span class="c"># OS platforms cause different output, so hashes are a list</span>
+        <span class="c"># OS platforms cause different output, so myControlImages is a list</span>
         <span class="c"># of &#39;known good&#39; renders.</span>
-        <span class="c"># Results currently identical to getLegend as image is same</span>
-        <span class="n">myExpectedHashes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span>  <span class="c"># win</span>
-                            <span class="s">&#39;d0c3071c4babe7db4f9762b311d61184&#39;</span><span class="p">,</span>  <span class="c"># ub12.04 xinr</span>
-                            <span class="s">&#39;b94cfd8a10d709ff28466ada425f24c8&#39;</span><span class="p">,</span>  <span class="c"># ub11.04-64</span>
-                            <span class="s">&#39;00dc58aa50867de9b617ccfab0d13f21&#39;</span><span class="p">,</span>  <span class="c"># ub12.04</span>
-                            <span class="s">&#39;e65853e217a4c9b0c2f303dd2aadb373&#39;</span><span class="p">,</span>  <span class="c"># ub12.04 xvfb</span>
-                            <span class="s">&#39;e4273364b33a943e1108f519dbe8e06c&#39;</span><span class="p">,</span>  <span class="c"># ub12.04-64</span>
-                            <span class="c"># ub11.04-64 laptop</span>
-                            <span class="s">&#39;91177a81bee4400be4e85789e3be1e91&#39;</span><span class="p">,</span>  <span class="c"># Binary Read</span>
-                            <span class="s">&#39;57da6f81b4a55507e1bed0b73423244b&#39;</span><span class="p">,</span>  <span class="c"># wVistaSP2-32</span>
-                            <span class="s">&#39;&#39;</span><span class="p">]</span>
-        <span class="n">assertHashesForFile</span><span class="p">(</span><span class="n">myExpectedHashes</span><span class="p">,</span> <span class="n">myPath</span><span class="p">)</span>
+        <span class="n">myControlImages</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;getVectorLegend.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getVectorLegend-variantWindosVistaSP2-32.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getVectorLegend-variantUB12.04-64.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getVectorLegend-variantUB11.04-64.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getVectorLegend-variantJenkins.png&#39;</span><span class="p">]</span>
+        <span class="n">myTolerance</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># to allow for version number changes in disclaimer</span>
+        <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span> <span class="o">=</span> <span class="n">checkImages</span><span class="p">(</span><span class="n">myControlImages</span><span class="p">,</span>
+                                    <span class="n">myPath</span><span class="p">,</span>
+                                    <span class="n">myTolerance</span><span class="p">)</span>
+        <span class="n">myMessage</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">We want these images to match, if they do already &#39;</span>
+                <span class="s">&#39;copy the test image generated to create a new control image.&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="MapLegendTest.test_getRasterLegend"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_map_legend.html#safe_qgis.test_map_legend.MapLegendTest.test_getRasterLegend">[docs]</a>    <span class="k">def</span> <span class="nf">test_getRasterLegend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Getting a legend for a raster layer works.&quot;&quot;&quot;</span>
@@ -170,20 +171,20 @@
         <span class="n">myImage</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="s">&#39;PNG&#39;</span><span class="p">)</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">myPath</span><span class="p">)</span>
         <span class="c"># As we have discovered, different versions of Qt and</span>
-        <span class="c"># OS platforms cause different output, so hashes are a list</span>
+        <span class="c"># OS platforms cause different output, so myControlImages is a list</span>
         <span class="c"># of &#39;known good&#39; renders.</span>
-        <span class="n">myExpectedHashes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span>  <span class="c"># win</span>
-                            <span class="s">&#39;9ead6ce0ac789adc65a6f00bd2d1f709&#39;</span><span class="p">,</span>  <span class="c"># ub12.04xiner</span>
-                            <span class="s">&#39;84bc3d518e3a0504f8dc36dfd620394e&#39;</span><span class="p">,</span>  <span class="c"># ub11.04-64</span>
-                            <span class="s">&#39;b68ccc328de852f0c66b8abe43eab3da&#39;</span><span class="p">,</span>  <span class="c"># ub12.04</span>
-                            <span class="s">&#39;cd5fb96f6c5926085d251400dd3b4928&#39;</span><span class="p">,</span>  <span class="c"># ub12.04 xvfb</span>
-                            <span class="s">&#39;a654d0dcb6b6d14b0a7a62cd979c16b9&#39;</span><span class="p">,</span>  <span class="c"># ub12.04-64</span>
-                            <span class="c"># ub11.04-64 laptop</span>
-                            <span class="s">&#39;9692ba8dbf909b8fe3ed27a8f4924b78&#39;</span><span class="p">,</span>  <span class="c"># binary read</span>
-                            <span class="s">&#39;5f4ef033bb1d6f36af4c08db55ca63be&#39;</span><span class="p">,</span>  <span class="c"># wVistaSP2-32</span>
-                            <span class="s">&#39;&#39;</span><span class="p">,</span>
-                            <span class="p">]</span>
-        <span class="n">assertHashesForFile</span><span class="p">(</span><span class="n">myExpectedHashes</span><span class="p">,</span> <span class="n">myPath</span><span class="p">)</span>
+        <span class="n">myControlImages</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;getRasterLegend.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getRasterLegend-variantWindosVistaSP2-32.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getRasterLegend-variantUB12.04-64.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getRasterLegend-variantUB11.04-64.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getRasterLegend-variantJenkins.png&#39;</span><span class="p">]</span>
+        <span class="n">myTolerance</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># to allow for version number changes in disclaimer</span>
+        <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span> <span class="o">=</span> <span class="n">checkImages</span><span class="p">(</span><span class="n">myControlImages</span><span class="p">,</span>
+                                        <span class="n">myPath</span><span class="p">,</span>
+                                        <span class="n">myTolerance</span><span class="p">)</span>
+        <span class="n">myMessage</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">We want these images to match, if they do already &#39;</span>
+                <span class="s">&#39;copy the test image generated to create a new control image.&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="MapLegendTest.test_addSymbolToLegend"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_map_legend.html#safe_qgis.test_map_legend.MapLegendTest.test_addSymbolToLegend">[docs]</a>    <span class="k">def</span> <span class="nf">test_addSymbolToLegend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Test we can add a symbol to the legend.&quot;&quot;&quot;</span>
@@ -201,11 +202,21 @@
                                  <span class="nb">dir</span><span class="o">=</span><span class="n">temp_dir</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">))</span>
         <span class="n">myMapLegend</span><span class="o">.</span><span class="n">getLegend</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="s">&#39;PNG&#39;</span><span class="p">)</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">myPath</span><span class="p">)</span>
-        <span class="n">myExpectedHashes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;850ed7ad9e8f992e96c5449701ba5434&#39;</span><span class="p">,</span>  <span class="c"># ub 12.04-64</span>
-                            <span class="s">&#39;3d4d9f196fb2fe1e18d54a8d6ab4a349&#39;</span><span class="p">,</span>
-                            <span class="s">&#39;e8ef2222f90fc2f95dc86f416de2579e&#39;</span><span class="p">,</span>  <span class="c"># ub 11.04-64</span>
-                            <span class="s">&#39;&#39;</span><span class="p">]</span>
-        <span class="n">assertHashesForFile</span><span class="p">(</span><span class="n">myExpectedHashes</span><span class="p">,</span> <span class="n">myPath</span><span class="p">)</span>
+        <span class="c"># As we have discovered, different versions of Qt and</span>
+        <span class="c"># OS platforms cause different output, so myControlImages is a list</span>
+        <span class="c"># of &#39;known good&#39; renders.</span>
+        <span class="n">myControlImages</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;addSymbolToLegend.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;addSymbolToLegend-variantWindosVistaSP2-32.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;addSymbolToLegend-variantUB12.04-64.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;addSymbolToLegend-variantUB11.04-64.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;addSymbolToLegend-variantJenkins.png&#39;</span><span class="p">]</span>
+        <span class="n">myTolerance</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># to allow for version number changes in disclaimer</span>
+        <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span> <span class="o">=</span> <span class="n">checkImages</span><span class="p">(</span><span class="n">myControlImages</span><span class="p">,</span>
+                                        <span class="n">myPath</span><span class="p">,</span>
+                                        <span class="n">myTolerance</span><span class="p">)</span>
+        <span class="n">myMessage</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">We want these images to match, if they do already &#39;</span>
+                <span class="s">&#39;copy the test image generated to create a new control image.&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="MapLegendTest.test_addClassToLegend"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_map_legend.html#safe_qgis.test_map_legend.MapLegendTest.test_addClassToLegend">[docs]</a>    <span class="k">def</span> <span class="nf">test_addClassToLegend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Test we can add a class to the map legend.&quot;&quot;&quot;</span>
@@ -228,21 +239,20 @@
         <span class="n">myMapLegend</span><span class="o">.</span><span class="n">getLegend</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="s">&#39;PNG&#39;</span><span class="p">)</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">myPath</span><span class="p">)</span>
         <span class="c"># As we have discovered, different versions of Qt and</span>
-        <span class="c"># OS platforms cause different output, so hashes are a list</span>
+        <span class="c"># OS platforms cause different output, so myControlImages is a list</span>
         <span class="c"># of &#39;known good&#39; renders.</span>
-        <span class="n">myExpectedHashes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span>  <span class="c"># win</span>
-                            <span class="s">&#39;67c0f45792318298664dd02cc0ac94c3&#39;</span><span class="p">,</span>  <span class="c"># ub12.04xiner</span>
-                            <span class="s">&#39;53e0ba1144e071ad41756595d29bf444&#39;</span><span class="p">,</span>  <span class="c"># ub12.04</span>
-                            <span class="s">&#39;0681c3587305074bc9272f456fb4dd09&#39;</span><span class="p">,</span>  <span class="c"># ub12.04 xvfb</span>
-                            <span class="s">&#39;a37443d70604bdc8c279576b424a158c&#39;</span><span class="p">,</span>  <span class="c"># ub12.04-64</span>
-                            <span class="c"># ub11.04-64 laptop</span>
-                            <span class="s">&#39;944cee3eb9d916816b60ef41e8069683&#39;</span><span class="p">,</span>  <span class="c"># binary read</span>
-                            <span class="s">&#39;de3ceb6547ffc6c557d031c0b7ee9e75&#39;</span><span class="p">,</span>  <span class="c"># wVistaSP2-32</span>
-                            <span class="s">&#39;91177a81bee4400be4e85789e3be1e91&#39;</span><span class="p">,</span>  <span class="c"># ub12.04-64</span>
-                            <span class="s">&#39;e65853e217a4c9b0c2f303dd2aadb373&#39;</span><span class="p">,</span>  <span class="c"># ub12.04 xvfb</span>
-                            <span class="s">&#39;b94cfd8a10d709ff28466ada425f24c8&#39;</span><span class="p">,</span>  <span class="c"># ub11.04-64</span>
-                            <span class="p">]</span>
-        <span class="n">assertHashesForFile</span><span class="p">(</span><span class="n">myExpectedHashes</span><span class="p">,</span> <span class="n">myPath</span><span class="p">)</span>
+        <span class="n">myControlImages</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;getClassToLegend.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getClassToLegend-variantWindosVistaSP2-32.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getClassToLegend-variantUB12.04-64.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getClassToLegend-variantUB11.04-64.png&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;getClassToLegend-variantJenkins.png&#39;</span><span class="p">]</span>
+        <span class="n">myTolerance</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># to allow for version number changes in disclaimer</span>
+        <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span> <span class="o">=</span> <span class="n">checkImages</span><span class="p">(</span><span class="n">myControlImages</span><span class="p">,</span>
+                                        <span class="n">myPath</span><span class="p">,</span>
+                                        <span class="n">myTolerance</span><span class="p">)</span>
+        <span class="n">myMessage</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">We want these images to match, if they do already &#39;</span>
+                <span class="s">&#39;copy the test image generated to create a new control image.&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">myFlag</span><span class="p">,</span> <span class="n">myMessage</span>
 </div></div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">suite</span> <span class="o">=</span> <span class="n">unittest</span><span class="o">.</span><span class="n">makeSuite</span><span class="p">(</span><span class="n">MapLegendTest</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">)</span>
@@ -296,9 +306,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

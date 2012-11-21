@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" /> 
@@ -73,7 +73,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Ole Nielsen &lt;ole.moller.nielsen@gmail.com&gt;&#39;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.5.1&#39;</span>
 <span class="n">__revision__</span> <span class="o">=</span> <span class="s">&#39;$Format:%H$&#39;</span>
 <span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;01/11/2010&#39;</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL&quot;</span>
@@ -100,15 +99,15 @@
 <span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">write_keywords</span>
 <span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">get_geometry_type</span>
 <span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">is_sequence</span>
-<span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">array2wkt</span><span class="p">,</span> <span class="n">array2ring</span>
+<span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">array2line</span>
 <span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">calculate_polygon_centroid</span>
 <span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">points_along_line</span>
 <span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">geometrytype2string</span>
-<span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">get_ringdata</span>
+<span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">get_ringdata</span><span class="p">,</span> <span class="n">get_polygondata</span>
 <span class="kn">from</span> <span class="nn">utilities</span> <span class="kn">import</span> <span class="n">rings_equal</span>
 
 <span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;InaSAFE&#39;</span><span class="p">)</span>
-<span class="n">_pseudo_inf</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">999999999999999999999999</span><span class="p">)</span>
+<span class="n">_pseudo_inf</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">99999999</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Vector"><a class="viewcode-back" href="../../../api-docs/safe/storage/vector.html#safe.storage.vector.Vector">[docs]</a><span class="k">class</span> <span class="nc">Vector</span><span class="p">(</span><span class="n">Layer</span><span class="p">):</span>
@@ -213,11 +212,15 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">geometry_type</span> <span class="o">=</span> <span class="n">get_geometry_type</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">geometry_type</span><span class="p">)</span>
 
-                <span class="c"># Convert to objects if input is a list of simple arrays</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_polygon_data</span><span class="p">:</span>
+                    <span class="c"># Convert to objects if input is a list of simple arrays</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="p">[</span><span class="n">Polygon</span><span class="p">(</span><span class="n">outer_ring</span><span class="o">=</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">geometry</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+                    <span class="c"># Convert to list if input is an array</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
 
             <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="c"># Generate default attribute as OGR will do that anyway</span>
@@ -513,68 +516,26 @@
                     <span class="n">ring</span> <span class="o">=</span> <span class="n">get_ringdata</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
                     <span class="n">geometry</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ring</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_polygon_data</span><span class="p">:</span>
-                    <span class="c"># Get outer ring, then inner rings</span>
-                    <span class="c"># http://osgeo-org.1560.n6.nabble.com/</span>
-                    <span class="c"># gdal-dev-Polygon-topology-td3745761.html</span>
-                    <span class="n">number_of_rings</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">GetGeometryCount</span><span class="p">()</span>
-
-                    <span class="c"># Get outer ring</span>
-                    <span class="n">outer_ring</span> <span class="o">=</span> <span class="n">get_ringdata</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">GetGeometryRef</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-
-                    <span class="c"># Get inner rings if any</span>
-                    <span class="n">inner_rings</span> <span class="o">=</span> <span class="p">[]</span>
-                    <span class="k">if</span> <span class="n">number_of_rings</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">number_of_rings</span><span class="p">):</span>
-                            <span class="n">inner_ring</span> <span class="o">=</span> <span class="n">get_ringdata</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">GetGeometryRef</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-                            <span class="n">inner_rings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inner_ring</span><span class="p">)</span>
-
-                    <span class="c"># Append Polygon instance to geometry list</span>
-                    <span class="n">geometry</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Polygon</span><span class="p">(</span><span class="n">outer_ring</span><span class="o">=</span><span class="n">outer_ring</span><span class="p">,</span>
-                                            <span class="n">inner_rings</span><span class="o">=</span><span class="n">inner_rings</span><span class="p">))</span>
-
+                    <span class="n">polygon</span> <span class="o">=</span> <span class="n">get_polygondata</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+                    <span class="n">geometry</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_multi_polygon_data</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">G</span> <span class="o">=</span> <span class="n">ogr</span><span class="o">.</span><span class="n">ForceToPolygon</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
-                        <span class="c"># FIXME: reuse the code for polygon above</span>
-                        <span class="n">ring</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">GetGeometryRef</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                        <span class="n">M</span> <span class="o">=</span> <span class="n">ring</span><span class="o">.</span><span class="n">GetPointCount</span><span class="p">()</span>
-                        <span class="n">coordinates</span> <span class="o">=</span> <span class="p">[]</span>
-                        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
-                            <span class="n">coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ring</span><span class="o">.</span><span class="n">GetX</span><span class="p">(</span><span class="n">j</span><span class="p">),</span> <span class="n">ring</span><span class="o">.</span><span class="n">GetY</span><span class="p">(</span><span class="n">j</span><span class="p">)))</span>
-
-                        <span class="c"># Record entire polygon ring as an Mx2 numpy array</span>
-                        <span class="n">geometry</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span>
-                                                    <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;d&#39;</span><span class="p">,</span>
-                                                    <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
-<span class="c">#                    msg = (&#39;Got geometry type Multipolygon (%s) for filename &#39;</span>
-<span class="c">#                            &#39;%s which is not yet supported. Only point, line &#39;</span>
-<span class="c">#                           &#39;and polygon geometries are supported. However, &#39;</span>
-<span class="c">#                           &#39;you can use QGIS functionality to convert &#39;</span>
-<span class="c">#                           &#39;multipart vector data to singlepart (Vector -&gt; &#39;</span>
-<span class="c">#                           &#39;Geometry Tools -&gt; Multipart to Singleparts and &#39;</span>
-<span class="c">#                           &#39;use the resulting dataset.&#39;</span>
-<span class="c">#                           % (ogr.wkbMultiPolygon, filename))</span>
                     <span class="k">except</span><span class="p">:</span>
-                        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Got geometry type multipolygon (</span><span class="si">%s</span><span class="s">) when read &#39;</span>
-                               <span class="s">&#39;</span><span class="si">%s</span><span class="s"> and failed to ForceToPolygon&#39;</span><span class="p">)</span>
+                        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Got geometry type Multipolygon (</span><span class="si">%s</span><span class="s">) for &#39;</span>
+                               <span class="s">&#39;filename </span><span class="si">%s</span><span class="s"> and could not convert it to &#39;</span>
+                               <span class="s">&#39;singlepart. However, you can use QGIS &#39;</span>
+                               <span class="s">&#39;functionality to convert multipart vector &#39;</span>
+                               <span class="s">&#39;data to singlepart (Vector -&gt; Geometry Tools &#39;</span>
+                               <span class="s">&#39;-&gt; Multipart to Singleparts and use the &#39;</span>
+                               <span class="s">&#39;resulting dataset.&#39;</span>
+                               <span class="o">%</span> <span class="p">(</span><span class="n">ogr</span><span class="o">.</span><span class="n">wkbMultiPolygon</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
                         <span class="k">raise</span> <span class="n">ReadLayerError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-
-                <span class="c">#    # FIXME: Unpact multiple polygons to simple polygons</span>
-                <span class="c">#    # For hints on how to unpack see</span>
-<span class="c">#http://osgeo-org.1803224.n2.nabble.com/</span>
-<span class="c">#gdal-dev-Shapefile-Multipolygon-with-interior-rings-td5391090.html</span>
-<span class="c">#http://osdir.com/ml/gdal-development-gis-osgeo/2010-12/msg00107.html</span>
-
-                <span class="c">#    ring = G.GetGeometryRef(0)</span>
-                <span class="c">#    M = ring.GetPointCount()</span>
-                <span class="c">#    coordinates = []</span>
-                <span class="c">#    for j in range(M):</span>
-                <span class="c">#        coordinates.append((ring.GetX(j), ring.GetY(j)))</span>
-
-                <span class="c">#    # Record entire polygon ring as an Mx2 numpy array</span>
-                <span class="c">#    geometry.append(numpy.array(coordinates,</span>
-                <span class="c">#                                dtype=&#39;d&#39;,</span>
-                <span class="c">#                                copy=False))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c"># Read polygon data as single part</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">geometry_type</span> <span class="o">=</span> <span class="n">ogr</span><span class="o">.</span><span class="n">wkbPolygon</span>
+                        <span class="n">polygon</span> <span class="o">=</span> <span class="n">get_polygondata</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+                        <span class="n">geometry</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Only point, line and polygon geometries are &#39;</span>
                            <span class="s">&#39;supported. &#39;</span>
@@ -750,24 +711,21 @@
                 <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
                 <span class="n">geom</span><span class="o">.</span><span class="n">SetPoint_2D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_line_data</span><span class="p">:</span>
-                <span class="c"># FIXME (Ole): Change this to use array2ring instead!</span>
-                <span class="c">#geom = ogr.Geometry(ogr.wkbLineString)</span>
-                <span class="c">#linear_ring = array2ring(geometry[i])</span>
-                <span class="c">#geom.AddGeometry(linear_ring)</span>
-
-                <span class="n">wkt</span> <span class="o">=</span> <span class="n">array2wkt</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">geom_type</span><span class="o">=</span><span class="s">&#39;LINESTRING&#39;</span><span class="p">)</span>
-                <span class="n">geom</span> <span class="o">=</span> <span class="n">ogr</span><span class="o">.</span><span class="n">CreateGeometryFromWkt</span><span class="p">(</span><span class="n">wkt</span><span class="p">)</span>
+                <span class="n">geom</span> <span class="o">=</span> <span class="n">array2line</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                  <span class="n">geometry_type</span><span class="o">=</span><span class="n">ogr</span><span class="o">.</span><span class="n">wkbLineString</span><span class="p">)</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_polygon_data</span><span class="p">:</span>
                 <span class="c"># Create polygon geometry</span>
                 <span class="n">geom</span> <span class="o">=</span> <span class="n">ogr</span><span class="o">.</span><span class="n">Geometry</span><span class="p">(</span><span class="n">ogr</span><span class="o">.</span><span class="n">wkbPolygon</span><span class="p">)</span>
 
                 <span class="c"># Add outer ring</span>
-                <span class="n">linear_ring</span> <span class="o">=</span> <span class="n">array2ring</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">outer_ring</span><span class="p">)</span>
+                <span class="n">linear_ring</span> <span class="o">=</span> <span class="n">array2line</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">outer_ring</span><span class="p">,</span>
+                                         <span class="n">geometry_type</span><span class="o">=</span><span class="n">ogr</span><span class="o">.</span><span class="n">wkbLinearRing</span><span class="p">)</span>
                 <span class="n">geom</span><span class="o">.</span><span class="n">AddGeometry</span><span class="p">(</span><span class="n">linear_ring</span><span class="p">)</span>
 
                 <span class="c"># Add inner rings if any</span>
                 <span class="k">for</span> <span class="n">A</span> <span class="ow">in</span> <span class="n">geometry</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">inner_rings</span><span class="p">:</span>
-                    <span class="n">geom</span><span class="o">.</span><span class="n">AddGeometry</span><span class="p">(</span><span class="n">array2ring</span><span class="p">(</span><span class="n">A</span><span class="p">))</span>
+                    <span class="n">geom</span><span class="o">.</span><span class="n">AddGeometry</span><span class="p">(</span><span class="n">array2line</span><span class="p">(</span><span class="n">A</span><span class="p">,</span>
+                                     <span class="n">geometry_type</span><span class="o">=</span><span class="n">ogr</span><span class="o">.</span><span class="n">wkbLinearRing</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Geometry type </span><span class="si">%s</span><span class="s"> not implemented&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry_type</span>
                 <span class="k">raise</span> <span class="n">WriteLayerError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
@@ -1132,9 +1090,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

@@ -30,7 +30,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="_static/cloud.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="index.html" /> 
   </head>
@@ -277,6 +277,10 @@
   <dt><a href="api-docs/safe/common/geodesy.html#safe.common.geodesy.Point.bearing_to">bearing_to() (safe.common.geodesy.Point method)</a>
   </dt>
 
+      
+  <dt><a href="api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.bind">bind() (safe_qgis.function_options_dialog.FunctionOptionsDialog method)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
@@ -293,6 +297,14 @@
 
       
   <dt><a href="api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.buildForm">buildForm() (safe_qgis.function_options_dialog.FunctionOptionsDialog method)</a>
+  </dt>
+
+      
+  <dt><a href="api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.buildPostProcessorForm">buildPostProcessorForm() (safe_qgis.function_options_dialog.FunctionOptionsDialog method)</a>
+  </dt>
+
+      
+  <dt><a href="api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.buildWidget">buildWidget() (safe_qgis.function_options_dialog.FunctionOptionsDialog method)</a>
   </dt>
 
   </dl></td>
@@ -826,7 +838,7 @@
 
       </dl></dd>
       
-  <dt><a href="api-docs/safe/impact_functions/core.html#safe.impact_functions.core.get_dict_doc_func">get_dict_doc_func() (in module safe.impact_functions.core)</a>
+  <dt><a href="api-docs/safe/impact_functions/core.html#safe.impact_functions.core.get_documentation">get_documentation() (in module safe.impact_functions.core)</a>
   </dt>
 
       
@@ -924,6 +936,12 @@
   </dt>
 
       
+  <dt><a href="api-docs/safe/postprocessors/postprocessor_factory.html#safe.postprocessors.postprocessor_factory.get_postprocessor_human_name">get_postprocessor_human_name() (in module safe.postprocessors.postprocessor_factory)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
   <dt><a href="api-docs/safe/storage/layer.html#safe.storage.layer.Layer.get_projection">get_projection() (safe.storage.layer.Layer method)</a>
   </dt>
 
@@ -933,8 +951,6 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api-docs/safe/impact_functions/core.html#safe.impact_functions.core.get_question">get_question() (in module safe.impact_functions.core)</a>
   </dt>
@@ -1245,12 +1261,12 @@
   <dt><a href="api-docs/safe/engine/interpolation.html#safe.engine.interpolation.interpolate_polygon_raster">interpolate_polygon_raster() (in module safe.engine.interpolation)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api-docs/safe/engine/interpolation.html#safe.engine.interpolation.interpolate_polygon_vector">interpolate_polygon_vector() (in module safe.engine.interpolation)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api-docs/safe/common/interpolation2d.html#safe.common.interpolation2d.interpolate_raster">interpolate_raster() (in module safe.common.interpolation2d)</a>
   </dt>
@@ -1285,6 +1301,10 @@
 
       
   <dt><a href="api-docs/safe_qgis/exceptions.html#safe_qgis.exceptions.InvalidProjectionException">InvalidProjectionException</a>
+  </dt>
+
+      
+  <dt><a href="api-docs/safe/impact_functions/core.html#safe.impact_functions.core.is_function_enabled">is_function_enabled() (in module safe.impact_functions.core)</a>
   </dt>
 
       
@@ -1669,6 +1689,10 @@
 
       
   <dt><a href="api-docs/safe/impact_functions/core.html#safe.impact_functions.core.parse_single_requirement">parse_single_requirement() (in module safe.impact_functions.core)</a>
+  </dt>
+
+      
+  <dt><a href="api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.parseInput">parseInput() (safe_qgis.function_options_dialog.FunctionOptionsDialog method)</a>
   </dt>
 
       
@@ -2810,6 +2834,10 @@
   </dt>
 
       
+  <dt><a href="api-docs/safe/engine/interpolation.html#safe.engine.interpolation.tag_polygons_by_grid">tag_polygons_by_grid() (in module safe.engine.interpolation)</a>
+  </dt>
+
+      
   <dt><a href="api-docs/safe/common/test_tables.html#safe.common.test_tables.TablesTest.tearDown">tearDown() (safe.common.test_tables.TablesTest method)</a>
   </dt>
 
@@ -3074,6 +3102,10 @@
   </dt>
 
       
+  <dt><a href="api-docs/safe/impact_functions/test_plugin_core.html#safe.impact_functions.test_plugin_core.Test_plugin_core.test_get_documentation">test_get_documentation() (safe.impact_functions.test_plugin_core.Test_plugin_core method)</a>
+  </dt>
+
+      
   <dt><a href="api-docs/safe/impact_functions/test_plugins.html#safe.impact_functions.test_plugins.Test_plugins.test_get_plugin_list">test_get_plugin_list() (safe.impact_functions.test_plugins.Test_plugins method)</a>
   </dt>
 
@@ -3237,12 +3269,12 @@
   <dt><a href="api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_keywords_with_colon">test_keywords_with_colon() (safe.storage.test_io.Test_IO method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_layer_API">test_layer_API() (safe.storage.test_io.Test_IO method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_layerChanged">test_layerChanged() (safe_qgis.test_dock.DockTest method)</a>
   </dt>
@@ -3402,6 +3434,10 @@
   </dt>
 
       
+  <dt><a href="api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.test_rasters_created_with_projected_srs">test_rasters_created_with_projected_srs() (safe.storage.test_io.Test_IO method)</a>
+  </dt>
+
+      
   <dt><a href="api-docs/safe_qgis_tests/test_keyword_io.html#safe_qgis.test_keyword_io.KeywordIOTest.test_readDBKeywords">test_readDBKeywords() (safe_qgis.test_keyword_io.KeywordIOTest method)</a>
   </dt>
 
@@ -3474,7 +3510,15 @@
   </dt>
 
       
+  <dt><a href="api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runCategorisedHazardPopulationImpactFunction">test_runCategorisedHazardPopulationImpactFunction() (safe_qgis.test_dock.DockTest method)</a>
+  </dt>
+
+      
   <dt><a href="api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runCategorizedHazardBuildingImpact">test_runCategorizedHazardBuildingImpact() (safe_qgis.test_dock.DockTest method)</a>
+  </dt>
+
+      
+  <dt><a href="api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runEarthquakeBuildingImpactFunction">test_runEarthquakeBuildingImpactFunction() (safe_qgis.test_dock.DockTest method)</a>
   </dt>
 
       
@@ -3503,6 +3547,10 @@
 
       
   <dt><a href="api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runTsunamiBuildingImpactFunction">test_runTsunamiBuildingImpactFunction() (safe_qgis.test_dock.DockTest method)</a>
+  </dt>
+
+      
+  <dt><a href="api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runVolcanoBuildingImpact">test_runVolcanoBuildingImpact() (safe_qgis.test_dock.DockTest method)</a>
   </dt>
 
       
@@ -3619,6 +3667,10 @@
 
       
   <dt><a href="api-docs/safe_qgis/exceptions.html#safe_qgis.exceptions.TestNotImplementedException">TestNotImplementedException</a>
+  </dt>
+
+      
+  <dt><a href="api-docs/safe_qgis_tests/test_qgis_environment.html#safe_qgis.test_qgis_environment.QGISTest.testProjInterpretation">testProjInterpretation() (safe_qgis.test_qgis_environment.QGISTest method)</a>
   </dt>
 
       
@@ -3842,6 +3894,10 @@
   </dt>
 
       
+  <dt><a href="api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.Xtest_printMap">Xtest_printMap() (safe_qgis.test_dock.DockTest method)</a>
+  </dt>
+
+      
   <dt><a href="api-docs/safe/storage/test_io.html#safe.storage.test_io.Test_IO.Xtest_reading_and_writing_of_multiband_rasters">Xtest_reading_and_writing_of_multiband_rasters() (safe.storage.test_io.Test_IO method)</a>
   </dt>
 
@@ -3952,9 +4008,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

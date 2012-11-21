@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../../index.html" />
     <link rel="up" title="Module code" href="../../../index.html" /> 
@@ -74,7 +74,7 @@
 
 
 <div class="viewcode-block" id="EarthquakeBuildingImpactFunction"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/earthquake/earthquake_building_impact.html#safe.impact_functions.earthquake.earthquake_building_impact.EarthquakeBuildingImpactFunction">[docs]</a><span class="k">class</span> <span class="nc">EarthquakeBuildingImpactFunction</span><span class="p">(</span><span class="n">FunctionProvider</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Inundation impact on building data</span>
+    <span class="sd">&quot;&quot;&quot;Earthquake impact on building data</span>
 
 <span class="sd">    :param requires category==&#39;hazard&#39; and \</span>
 <span class="sd">                    subcategory==&#39;earthquake&#39;</span>
@@ -221,9 +221,9 @@
                           <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Hazard Level&#39;</span><span class="p">),</span>
                                     <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Buildings Affected&#39;</span><span class="p">)],</span>
                                     <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-                          <span class="n">TableRow</span><span class="p">([</span><span class="n">class_1</span><span class="p">,</span> <span class="n">lo</span><span class="p">]),</span>
-                          <span class="n">TableRow</span><span class="p">([</span><span class="n">class_2</span><span class="p">,</span> <span class="n">me</span><span class="p">]),</span>
-                          <span class="n">TableRow</span><span class="p">([</span><span class="n">class_3</span><span class="p">,</span> <span class="n">hi</span><span class="p">])]</span>
+                          <span class="n">TableRow</span><span class="p">([</span><span class="n">class_1</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">lo</span><span class="p">)]),</span>
+                          <span class="n">TableRow</span><span class="p">([</span><span class="n">class_2</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">me</span><span class="p">)]),</span>
+                          <span class="n">TableRow</span><span class="p">([</span><span class="n">class_3</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">hi</span><span class="p">)])]</span>
 
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Notes&#39;</span><span class="p">),</span> <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;High hazard is defined as shake levels greater &#39;</span>
@@ -313,9 +313,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>

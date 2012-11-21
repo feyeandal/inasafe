@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../_static/toggle_sections.js"></script>
+    <script type="text/javascript" src="../../../_static/cloud.js"></script>
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" /> 
@@ -70,6 +70,8 @@
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">ast</span> <span class="kn">import</span> <span class="n">literal_eval</span>
 <span class="kn">from</span> <span class="nn">osgeo</span> <span class="kn">import</span> <span class="n">ogr</span>
+
+<span class="kn">from</span> <span class="nn">geometry</span> <span class="kn">import</span> <span class="n">Polygon</span>
 
 <span class="kn">from</span> <span class="nn">safe.common.numerics</span> <span class="kn">import</span> <span class="n">ensure_numeric</span>
 <span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="n">verify</span>
@@ -404,6 +406,10 @@
 <span class="sd">        (top left x, w-e pixel resolution, rotation,</span>
 <span class="sd">        top left y, rotation, n-s pixel resolution).</span>
 <span class="sd">        See e.g. http://www.gdal.org/gdal_tutorial.html</span>
+
+<span class="sd">    Note</span>
+<span class="sd">       This assumes that the spatial reference uses geographic coordinaties,</span>
+<span class="sd">       so will not work for projected coordinate systems.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Supplied geotransform must be a tuple with &#39;</span>
@@ -777,15 +783,17 @@
         <span class="k">return</span> <span class="bp">True</span>
 
 </div>
-<div class="viewcode-block" id="array2ring"><a class="viewcode-back" href="../../../api-docs/safe/storage/utilities.html#safe.storage.utilities.array2ring">[docs]</a><span class="k">def</span> <span class="nf">array2ring</span><span class="p">(</span><span class="n">A</span><span class="p">):</span>
+<div class="viewcode-block" id="array2line"><a class="viewcode-back" href="../../../api-docs/safe/storage/utilities.html#safe.storage.utilities.array2line">[docs]</a><span class="k">def</span> <span class="nf">array2line</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">geometry_type</span><span class="o">=</span><span class="n">ogr</span><span class="o">.</span><span class="n">wkbLinearRing</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convert coordinates to linear_ring</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        * A: Nx2 Array of coordinates representing either a polygon or a line.</span>
 <span class="sd">             A can be either a numpy array or a list of coordinates.</span>
+<span class="sd">        * geometry_type: A valid OGR geometry type. Default: ogr.wkbLinearRing</span>
+<span class="sd">             Other options include ogr.wkbLineString</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        * ring: OGR linear_ring</span>
+<span class="sd">        * ring: OGR line geometry</span>
 
 <span class="sd">    Note:</span>
 <span class="sd">    Based on http://www.packtpub.com/article/working-geospatial-data-python</span>
@@ -807,11 +815,11 @@
 
     <span class="n">N</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># Number of vertices</span>
 
-    <span class="n">linearRing</span> <span class="o">=</span> <span class="n">ogr</span><span class="o">.</span><span class="n">Geometry</span><span class="p">(</span><span class="n">ogr</span><span class="o">.</span><span class="n">wkbLinearRing</span><span class="p">)</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="n">ogr</span><span class="o">.</span><span class="n">Geometry</span><span class="p">(</span><span class="n">geometry_type</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
-        <span class="n">linearRing</span><span class="o">.</span><span class="n">AddPoint</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">AddPoint</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
 
-    <span class="k">return</span> <span class="n">linearRing</span>
+    <span class="k">return</span> <span class="n">line</span>
 
 </div>
 <div class="viewcode-block" id="rings_equal"><a class="viewcode-back" href="../../../api-docs/safe/storage/utilities.html#safe.storage.utilities.rings_equal">[docs]</a><span class="k">def</span> <span class="nf">rings_equal</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1.0e-6</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1.0e-8</span><span class="p">):</span>
@@ -824,7 +832,7 @@
 <span class="sd">        * True if x == y or x&#39; == y (up to the specified tolerance)</span>
 
 <span class="sd">        where x&#39; is x reversed in the first dimension. This corresponds to</span>
-<span class="sd">        linear rings being seen as equal irrespective of whether ther are</span>
+<span class="sd">        linear rings being seen as equal irrespective of whether they are</span>
 <span class="sd">        organised in clock wise or counter clock wise order</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -844,7 +852,8 @@
         <span class="k">return</span> <span class="bp">False</span>
 
 
-<span class="c"># FIXME (Ole): We can retire this messy function now</span></div>
+<span class="c"># FIXME (Ole): We can retire this messy function now</span>
+<span class="c">#              Positive: Delete it :-)</span></div>
 <div class="viewcode-block" id="array2wkt"><a class="viewcode-back" href="../../../api-docs/safe/storage/utilities.html#safe.storage.utilities.array2wkt">[docs]</a><span class="k">def</span> <span class="nf">array2wkt</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">geom_type</span><span class="o">=</span><span class="s">&#39;POLYGON&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convert coordinates to wkt format</span>
 
@@ -1114,7 +1123,34 @@
         <span class="n">A</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ring</span><span class="o">.</span><span class="n">GetX</span><span class="p">(</span><span class="n">j</span><span class="p">),</span> <span class="n">ring</span><span class="o">.</span><span class="n">GetY</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
 
     <span class="c"># Return ring as an Nx2 numpy array</span>
-    <span class="k">return</span> <span class="n">A</span></div>
+    <span class="k">return</span> <span class="n">A</span>
+
+</div>
+<div class="viewcode-block" id="get_polygondata"><a class="viewcode-back" href="../../../api-docs/safe/storage/utilities.html#safe.storage.utilities.get_polygondata">[docs]</a><span class="k">def</span> <span class="nf">get_polygondata</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extract polygon data from OGR geometry</span>
+
+<span class="sd">    :param G: OGR polygon geometry</span>
+<span class="sd">    :return: List of InaSAFE polygon instances</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Get outer ring, then inner rings</span>
+    <span class="c"># http://osgeo-org.1560.n6.nabble.com/</span>
+    <span class="c"># gdal-dev-Polygon-topology-td3745761.html</span>
+    <span class="n">number_of_rings</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">GetGeometryCount</span><span class="p">()</span>
+
+    <span class="c"># Get outer ring</span>
+    <span class="n">outer_ring</span> <span class="o">=</span> <span class="n">get_ringdata</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">GetGeometryRef</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+    <span class="c"># Get inner rings if any</span>
+    <span class="n">inner_rings</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">number_of_rings</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">number_of_rings</span><span class="p">):</span>
+            <span class="n">inner_ring</span> <span class="o">=</span> <span class="n">get_ringdata</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">GetGeometryRef</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+            <span class="n">inner_rings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inner_ring</span><span class="p">)</span>
+
+    <span class="c"># Return Polygon instance</span>
+    <span class="k">return</span> <span class="n">Polygon</span><span class="p">(</span><span class="n">outer_ring</span><span class="o">=</span><span class="n">outer_ring</span><span class="p">,</span>
+                   <span class="n">inner_rings</span><span class="o">=</span><span class="n">inner_rings</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -1163,9 +1199,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Oct 30, 2012.
+      Last updated on Nov 21, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.3 -->
+    <!-- cloud_sptheme 1.4 -->
   </body>
 </html>
