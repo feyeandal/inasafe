@@ -112,7 +112,7 @@ plugins will be returned in the list.</p>
 </div>
 </dd>
 <dt>Raises:</dt>
-<dd>NoFunctionsFoundException if no functions are found.</dd>
+<dd>NoFunctionsFoundError if no functions are found.</dd>
 </dl>
 </dd></dl>
 
@@ -268,8 +268,8 @@ be fetched.</dd>
 <p>Raises:</p>
 <blockquote>
 <div><ul class="simple">
-<li>StyleInfoNotFoundException if the style is not found.</li>
-<li>InvalidParameterException if the paramers are not correct.</li>
+<li>StyleInfoNotFoundError if the style is not found.</li>
+<li>InvalidParameterError if the paramers are not correct.</li>
 </ul>
 </div></blockquote>
 </dd></dl>
@@ -314,7 +314,7 @@ takes a inasafe file object as parameter.</p>
 the keyword argument is specified, otherwise the
 complete keywords dictionary is returned.</dd>
 <dt>Raises:</dt>
-<dd>KeywordNotFoundException if the keyword is not recognised.</dd>
+<dd>KeywordNotFoundError if the keyword is not recognised.</dd>
 </dl>
 </dd></dl>
 
@@ -341,7 +341,7 @@ complete keywords dictionary is returned.</dd>
 <dt>Returns:</dt>
 <dd>A string containing the retrieved value for the keyword.</dd>
 <dt>Raises:</dt>
-<dd>KeywordNotFoundException if the keyword is not recognised.</dd>
+<dd>KeywordNotFoundError if the keyword is not recognised.</dd>
 </dl>
 </dd></dl>
 
@@ -483,7 +483,7 @@ stripped off and the basename + .keywords will be used as the file.</li>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 21, 2012.
+      Last updated on Nov 29, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.4 -->

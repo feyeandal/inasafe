@@ -81,10 +81,15 @@
 
 <span class="kn">import</span> <span class="nn">ast</span>
 <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
-<span class="kn">from</span> <span class="nn">function_options_dialog_base</span> <span class="kn">import</span> <span class="p">(</span>
-            <span class="n">Ui_FunctionOptionsDialogBase</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">PyQt4.QtGui</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QGroupBox</span><span class="p">,</span> <span class="n">QLineEdit</span><span class="p">,</span> <span class="n">QDialog</span><span class="p">,</span>
+    <span class="n">QLabel</span><span class="p">,</span> <span class="n">QCheckBox</span><span class="p">,</span> <span class="n">QFormLayout</span><span class="p">,</span> <span class="n">QWidget</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">function_options_dialog_base</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Ui_FunctionOptionsDialogBase</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">safe_interface</span> <span class="kn">import</span> <span class="n">safeTr</span>
+<span class="kn">from</span> <span class="nn">safe.postprocessors.postprocessor_factory</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_postprocessor_human_name</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="n">_fromUtf8</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QString</span><span class="o">.</span><span class="n">fromUtf8</span>
@@ -95,7 +100,7 @@
 <span class="c"># FIXME (Tim and Ole): Change to ConfigurationDialog throughout</span>
 <span class="c">#                      Maybe also change filename and Base name accordingly.</span>
 <div class="viewcode-block" id="FunctionOptionsDialog"><a class="viewcode-back" href="../../api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog">[docs]</a><span class="k">class</span> <span class="nc">FunctionOptionsDialog</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="p">,</span>
-                <span class="n">Ui_FunctionOptionsDialogBase</span><span class="p">):</span>
+                            <span class="n">Ui_FunctionOptionsDialogBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;ConfigurableImpactFunctions Dialog for InaSAFE.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theParent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -113,103 +118,205 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theParent</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Impact function configuration&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;InaSAFE impact function configuration&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tabWidget</span><span class="o">.</span><span class="n">tabBar</span><span class="p">()</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
 
-<div class="viewcode-block" id="FunctionOptionsDialog.buildForm"><a class="viewcode-back" href="../../api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.buildForm">[docs]</a>    <span class="k">def</span> <span class="nf">buildForm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theFunction</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="FunctionOptionsDialog.bind"><a class="viewcode-back" href="../../api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.bind">[docs]</a>    <span class="k">def</span> <span class="nf">bind</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theObject</span><span class="p">,</span> <span class="n">theProperty</span><span class="p">,</span> <span class="n">theType</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a function that return the QWidget property</span>
+<span class="sd">        of object and convert the value to type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">           * theObject - QWidget instance</span>
+<span class="sd">           * theProperty - the name of property inside QWidget instance</span>
+<span class="sd">           * theType - a function to convert the property value</span>
+<span class="sd">        Returns:</span>
+<span class="sd">           a function that return the property value of theObject</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">theType</span><span class="p">(</span><span class="n">theObject</span><span class="o">.</span><span class="n">property</span><span class="p">(</span><span class="n">theProperty</span><span class="p">)</span><span class="o">.</span><span class="n">toPyObject</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="FunctionOptionsDialog.buildForm"><a class="viewcode-back" href="../../api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.buildForm">[docs]</a>    <span class="k">def</span> <span class="nf">buildForm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theParams</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;we build a form from impact functions parameter</span>
 
 <span class="sd">        .. note:: see http://tinyurl.com/pyqt-differences</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">           theFunction - theFunction to be modified</span>
-<span class="sd">           params - parameters to be edited</span>
+<span class="sd">           * params - parameters to be edited</span>
 <span class="sd">        Returns:</span>
 <span class="sd">           not applicable</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">theFunction</span> <span class="o">=</span> <span class="n">theFunction</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">formItemCounters</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keys</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_addFormItem</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">myKey</span><span class="p">,</span> <span class="n">myValue</span> <span class="ow">in</span> <span class="n">theParams</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">myKey</span> <span class="o">==</span> <span class="s">&#39;postprocessors&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buildPostProcessorForm</span><span class="p">(</span><span class="n">myValue</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">myKey</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildWidget</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">configLayout</span><span class="p">,</span>
+                    <span class="n">myKey</span><span class="p">,</span>
+                    <span class="n">myValue</span><span class="p">)</span>
 </div>
-    <span class="k">def</span> <span class="nf">_addFormItem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theParameterKey</span><span class="p">,</span> <span class="n">theParameterValue</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a new form element dynamically from a key value pair.</span>
+<div class="viewcode-block" id="FunctionOptionsDialog.buildPostProcessorForm"><a class="viewcode-back" href="../../api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.buildPostProcessorForm">[docs]</a>    <span class="k">def</span> <span class="nf">buildPostProcessorForm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theParams</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build Post Processor Tab</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            * theParameterKey: str Mandatory string referencing the key in the</span>
+<span class="sd">           * theParams - dictionary containing element of form</span>
+<span class="sd">        Returns:</span>
+<span class="sd">           not applicable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># create postprocessors tab</span>
+        <span class="n">myTab</span> <span class="o">=</span> <span class="n">QWidget</span><span class="p">()</span>
+        <span class="n">myFormLayout</span> <span class="o">=</span> <span class="n">QFormLayout</span><span class="p">(</span><span class="n">myTab</span><span class="p">)</span>
+        <span class="n">myFormLayout</span><span class="o">.</span><span class="n">setLabelAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignLeft</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tabWidget</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">myTab</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Postprocessors&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tabWidget</span><span class="o">.</span><span class="n">tabBar</span><span class="p">()</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># create element for the tab</span>
+        <span class="n">myValues</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">myLabel</span><span class="p">,</span> <span class="n">myOptions</span> <span class="ow">in</span> <span class="n">theParams</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">myInputValues</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="c"># NOTE (gigih) : &#39;params&#39; is assumed as dictionary</span>
+            <span class="k">if</span> <span class="s">&#39;params&#39;</span> <span class="ow">in</span> <span class="n">myOptions</span><span class="p">:</span>
+                <span class="n">myGroupBox</span> <span class="o">=</span> <span class="n">QGroupBox</span><span class="p">()</span>
+                <span class="n">myGroupBox</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">myGroupBox</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="n">get_postprocessor_human_name</span><span class="p">(</span><span class="n">myLabel</span><span class="p">))</span>
+
+                <span class="c"># NOTE (gigih): is &#39;on&#39; always exist??</span>
+                <span class="n">myGroupBox</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="n">myOptions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;on&#39;</span><span class="p">))</span>
+                <span class="n">myInputValues</span><span class="p">[</span><span class="s">&#39;on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">myGroupBox</span><span class="p">,</span> <span class="s">&#39;checked&#39;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+
+                <span class="n">myLayout</span> <span class="o">=</span> <span class="n">QFormLayout</span><span class="p">(</span><span class="n">myGroupBox</span><span class="p">)</span>
+                <span class="n">myGroupBox</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">myLayout</span><span class="p">)</span>
+
+                <span class="c"># create widget element from &#39;params&#39;</span>
+                <span class="n">myInputValues</span><span class="p">[</span><span class="s">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">myKey</span><span class="p">,</span> <span class="n">myValue</span> <span class="ow">in</span> <span class="n">myOptions</span><span class="p">[</span><span class="s">&#39;params&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">myHumanName</span> <span class="o">=</span> <span class="n">get_postprocessor_human_name</span><span class="p">(</span><span class="n">myKey</span><span class="p">)</span>
+                    <span class="n">myInputValues</span><span class="p">[</span><span class="s">&#39;params&#39;</span><span class="p">][</span><span class="n">myKey</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildWidget</span><span class="p">(</span>
+                        <span class="n">myLayout</span><span class="p">,</span> <span class="n">myHumanName</span><span class="p">,</span> <span class="n">myValue</span><span class="p">)</span>
+
+                <span class="n">myFormLayout</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">myGroupBox</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="s">&#39;on&#39;</span> <span class="ow">in</span> <span class="n">myOptions</span><span class="p">:</span>
+                <span class="n">myCheckBox</span> <span class="o">=</span> <span class="n">QCheckBox</span><span class="p">()</span>
+                <span class="n">myCheckBox</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">get_postprocessor_human_name</span><span class="p">(</span><span class="n">myLabel</span><span class="p">))</span>
+                <span class="n">myCheckBox</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="n">myOptions</span><span class="p">[</span><span class="s">&#39;on&#39;</span><span class="p">])</span>
+
+                <span class="n">myInputValues</span><span class="p">[</span><span class="s">&#39;on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">myCheckBox</span><span class="p">,</span> <span class="s">&#39;checked&#39;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+                <span class="n">myFormLayout</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">myCheckBox</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;This case is not handled for now&#39;</span><span class="p">)</span>
+
+            <span class="n">myValues</span><span class="p">[</span><span class="n">myLabel</span><span class="p">]</span> <span class="o">=</span> <span class="n">myInputValues</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="s">&#39;postprocessors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">myValues</span>
+</div>
+<div class="viewcode-block" id="FunctionOptionsDialog.buildWidget"><a class="viewcode-back" href="../../api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.buildWidget">[docs]</a>    <span class="k">def</span> <span class="nf">buildWidget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theFormLayout</span><span class="p">,</span> <span class="n">theName</span><span class="p">,</span> <span class="n">theValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new form element dynamically based from theValue type.</span>
+<span class="sd">        The element will be inserted to theFormLayout.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * theFormLayout: QFormLayout Mandatory a layout instance</span>
+<span class="sd">            * theName: str Mandatory string referencing the key in the</span>
 <span class="sd">                function configurable parameters dictionary.</span>
-<span class="sd">            * theParameterValue: object Mandatory representing the value</span>
+<span class="sd">            * theValue: object Mandatory representing the value</span>
 <span class="sd">                referenced by the key.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            None</span>
+<span class="sd">            a function that return the value of widget</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">myLabel</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QLabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formLayoutWidget</span><span class="p">)</span>
-        <span class="n">myLabel</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="n">_fromUtf8</span><span class="p">(</span><span class="n">theParameterKey</span> <span class="o">+</span> <span class="s">&quot;Label&quot;</span><span class="p">))</span>
-        <span class="n">myKey</span> <span class="o">=</span> <span class="n">theParameterKey</span>
-        <span class="n">myKey</span> <span class="o">=</span> <span class="n">myKey</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">)</span>
-        <span class="n">myKey</span> <span class="o">=</span> <span class="n">myKey</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
-        <span class="n">myLabel</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">safeTr</span><span class="p">(</span><span class="n">myKey</span><span class="p">))</span>
-        <span class="n">myLabel</span><span class="o">.</span><span class="n">setToolTip</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">theParameterValue</span><span class="p">)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">editableImpactFunctionsFormLayout</span><span class="o">.</span><span class="n">setWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formItemCounters</span><span class="p">,</span>
-                                        <span class="n">QtGui</span><span class="o">.</span><span class="n">QFormLayout</span><span class="o">.</span><span class="n">LabelRole</span><span class="p">,</span> <span class="n">myLabel</span><span class="p">)</span>
-        <span class="n">myLineEdit</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QLineEdit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formLayoutWidget</span><span class="p">)</span>
-        <span class="n">myLineEdit</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">theParameterValue</span><span class="p">))</span>
-        <span class="n">myLineEdit</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="n">_fromUtf8</span><span class="p">(</span><span class="n">theParameterKey</span> <span class="o">+</span> <span class="s">&#39;LineEdit&#39;</span><span class="p">))</span>
-        <span class="n">myLineEdit</span><span class="o">.</span><span class="n">setCursorPosition</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">editableImpactFunctionsFormLayout</span><span class="o">.</span><span class="n">setWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formItemCounters</span><span class="p">,</span>
-                                        <span class="n">QtGui</span><span class="o">.</span><span class="n">QFormLayout</span><span class="o">.</span><span class="n">FieldRole</span><span class="p">,</span>
-                                        <span class="n">myLineEdit</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">formItemCounters</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c"># create label</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theName</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">myLabel</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">()</span>
+            <span class="n">myLabel</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="n">_fromUtf8</span><span class="p">(</span><span class="n">theName</span> <span class="o">+</span> <span class="s">&quot;Label&quot;</span><span class="p">))</span>
+            <span class="n">myLabelText</span> <span class="o">=</span> <span class="n">theName</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
+            <span class="n">myLabel</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">safeTr</span><span class="p">(</span><span class="n">myLabelText</span><span class="p">))</span>
+            <span class="n">myLabel</span><span class="o">.</span><span class="n">setToolTip</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">theValue</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">myLabel</span> <span class="o">=</span> <span class="n">theName</span>
 
+        <span class="c"># create widget based on the type of theValue variable</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theValue</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">myWidget</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+            <span class="n">myValue</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">theValue</span><span class="p">])</span>
+            <span class="c"># NOTE: we assume that all element in list have same type</span>
+            <span class="n">myType</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">theValue</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">myFunc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">myType</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theValue</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">myWidget</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+            <span class="n">myValue</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">theValue</span><span class="p">)</span>
+            <span class="n">myFunc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">myWidget</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+            <span class="n">myValue</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">theValue</span><span class="p">)</span>
+            <span class="n">myFunc</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">theValue</span><span class="p">)</span>
+
+        <span class="n">myWidget</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">myValue</span><span class="p">)</span>
+        <span class="n">theFormLayout</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">myLabel</span><span class="p">,</span> <span class="n">myWidget</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">myWidget</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="n">myFunc</span><span class="p">)</span>
+</div>
     <span class="k">def</span> <span class="nf">setDialogInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theFunctionID</span><span class="p">):</span>
+
         <span class="n">myText</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
         <span class="n">impactFunctionName</span> <span class="o">=</span> <span class="n">theFunctionID</span>
         <span class="n">myText</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Parameters for impact function &quot;%1&quot; that can be &#39;</span>
                           <span class="s">&#39;modified are:&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span><span class="n">impactFunctionName</span><span class="p">)</span>
-        <span class="n">myLabel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">impFuncConfLabel</span>
+        <span class="n">myLabel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lblFunctionDescription</span>
         <span class="n">myLabel</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">myText</span><span class="p">)</span>
 
+<div class="viewcode-block" id="FunctionOptionsDialog.parseInput"><a class="viewcode-back" href="../../api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.parseInput">[docs]</a>    <span class="k">def</span> <span class="nf">parseInput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theInput</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse the input value of widget.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            * theInput: dictionary that holds all value of element</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a dictionary that can be consumed for impact functions.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            * ValueError - occurs when some input cannot be converted</span>
+<span class="sd">                           to suitable type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">myResult</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">myName</span><span class="p">,</span> <span class="n">myValue</span> <span class="ow">in</span> <span class="n">theInput</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">myValue</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">):</span>
+                <span class="n">myResult</span><span class="p">[</span><span class="n">myName</span><span class="p">]</span> <span class="o">=</span> <span class="n">myValue</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">myValue</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">myResult</span><span class="p">[</span><span class="n">myName</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parseInput</span><span class="p">(</span><span class="n">myValue</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">myResult</span><span class="p">[</span><span class="n">myName</span><span class="p">]</span> <span class="o">=</span> <span class="n">myValue</span>
+
+        <span class="k">return</span> <span class="n">myResult</span>
+</div>
 <div class="viewcode-block" id="FunctionOptionsDialog.accept"><a class="viewcode-back" href="../../api-docs/safe_qgis/function_options_dialog.html#safe_qgis.function_options_dialog.FunctionOptionsDialog.accept">[docs]</a>    <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Override the default accept function</span>
 
 <span class="sd">        .. note:: see http://tinyurl.com/pyqt-differences</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">           theFunction - theFunction to be modified</span>
-<span class="sd">           params - parameters to be edited</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">           not applicable</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">noError</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">myFunction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theFunction</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">lineEdit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLineEdit</span><span class="p">,</span>
-                                          <span class="n">_fromUtf8</span><span class="p">(</span><span class="n">key</span> <span class="o">+</span> <span class="s">&quot;LineEdit&quot;</span><span class="p">))</span>
-                <span class="n">lineEditText</span> <span class="o">=</span> <span class="n">lineEdit</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
-                <span class="n">convText</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">lineEditText</span><span class="p">)</span>
-                <span class="n">myFunction</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">convText</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span>
-                <span class="n">text</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;Unexpected error: SyntaxError. &quot;</span> <span class="o">+</span>
-                        <span class="s">&quot;Please make sure you input the data correctly.&quot;</span><span class="p">)</span>
-                <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">impFuncConfErrLabel</span>
-                <span class="n">label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-                <span class="n">noError</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                <span class="n">text</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;Unexpected error: ValueError&quot;</span> <span class="o">+</span>
-                <span class="s">&quot;. Please consult Python language reference for correct &quot;</span> <span class="o">+</span>
-                <span class="s">&quot;format of data type.&quot;</span><span class="p">)</span>
-                <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">impFuncConfErrLabel</span>
-                <span class="n">label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-                <span class="n">noError</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">noError</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parseInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">done</span><span class="p">(</span><span class="n">QDialog</span><span class="o">.</span><span class="n">Accepted</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">SyntaxError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">myEx</span><span class="p">:</span>
+            <span class="n">myText</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&quot;Unexpected error: </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="n">myEx</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lblErrorMessage</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">myText</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span></div>
 </pre></div>
 
           </div>
@@ -258,7 +365,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 21, 2012.
+      Last updated on Nov 29, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.4 -->

@@ -77,13 +77,6 @@ issue tracker is open to everyone, though you will first need to register a
 (free) account on GitHub to use it. You can find the GitHub self-registration
 page <a class="reference external" href="https://github.com/signup/free">here</a>.</p>
 </div>
-<div class="section" id="why-can-t-i-find-the-plugin-in-the-qgis-repositories">
-<h2>Why can&#8217;t I find the plugin in the QGIS repositories?<a class="headerlink" href="#why-can-t-i-find-the-plugin-in-the-qgis-repositories" title="Permalink to this headline">¶</a></h2>
-<p>We do plan to publish the plugin at
-<a class="reference external" href="http://plugins.qgis.org/">plugins.qgis.org</a> so that it can be effortlessly
-installed from within QGIS, we are just no ready to do that yet. In the mean
-time please use the manual installation procedure to install InaSAFE in QGIS.</p>
-</div>
 <div class="section" id="do-i-need-to-pay-to-use-project-name">
 <h2>Do I need to pay to use InaSAFE?<a class="headerlink" href="#do-i-need-to-pay-to-use-project-name" title="Permalink to this headline">¶</a></h2>
 <p>No, the software is completely Free and Open Source.</p>
@@ -182,6 +175,22 @@ vcodec=wmv2 -of lavf -o yogya_analysis.wmv</pre>
 <div class="highlight-python"><pre>gdal_rasterize -a &lt;attribute_name&gt; -l &lt;source&gt;.shp &lt;destination&gt;.tif</pre>
 </div>
 </div>
+<div class="section" id="why-does-the-plugin-not-show-up-in-my-qgis-plugin-manager">
+<h2>Why does the plugin not show up in my QGIS Plugin Manager?<a class="headerlink" href="#why-does-the-plugin-not-show-up-in-my-qgis-plugin-manager" title="Permalink to this headline">¶</a></h2>
+<p>One common issue is that if you upgraded from QGIS 1.7.x to 1.8 you may not
+get the new plugin repo added to your repo list. To fix this you can do:</p>
+<ul class="simple">
+<li>open QGIS</li>
+<li>Go Plugins -&gt; Fetch Python Plugins</li>
+<li>click &#8216;Repositories&#8217; tab</li>
+<li>click add</li>
+<li><em class="guilabel">Name</em>: Official QGIS Repository</li>
+<li><em class="guilabel">Url</em>: <a class="reference external" href="http://plugins.qgis.org/plugins/plugins.xml">http://plugins.qgis.org/plugins/plugins.xml</a></li>
+<li>Save it and the plugin repo list should update. If it doesn&#8217;t,
+close and open QGIS to force an update.</li>
+<li>In the python plugin manager main tab now you should find InaSAFE available</li>
+</ul>
+</div>
 </div>
 
 
@@ -197,7 +206,6 @@ vcodec=wmv2 -of lavf -o yogya_analysis.wmv</pre>
   <ul>
 <li><a class="reference internal" href="#">Frequently Asked Questions</a><ul>
 <li><a class="reference internal" href="#i-found-a-bug-how-should-i-report-it">I found a bug, how should I report it?</a></li>
-<li><a class="reference internal" href="#why-can-t-i-find-the-plugin-in-the-qgis-repositories">Why can&#8217;t I find the plugin in the QGIS repositories?</a></li>
 <li><a class="reference internal" href="#do-i-need-to-pay-to-use-project-name">Do I need to pay to use InaSAFE?</a></li>
 <li><a class="reference internal" href="#what-license-is-project-name-published-under">What license is InaSAFE published under?</a></li>
 <li><a class="reference internal" href="#how-is-the-project-funded">How is the project funded?</a></li>
@@ -207,6 +215,7 @@ vcodec=wmv2 -of lavf -o yogya_analysis.wmv</pre>
 <li><a class="reference internal" href="#how-do-i-get-open-street-map-building-data-into-project-name">How do I get Open Street Map building data into InaSAFE?</a></li>
 <li><a class="reference internal" href="#how-do-i-take-screen-capture-e-g-for-use-in-a-presentation">How do I take screen capture e.g. for use in a presentation?</a></li>
 <li><a class="reference internal" href="#how-do-i-convert-a-vector-hazard-layer-to-a-raster-layer">How do I convert a vector hazard layer to a raster layer?</a></li>
+<li><a class="reference internal" href="#why-does-the-plugin-not-show-up-in-my-qgis-plugin-manager">Why does the plugin not show up in my QGIS Plugin Manager?</a></li>
 </ul>
 </li>
 </ul>
@@ -266,7 +275,7 @@ vcodec=wmv2 -of lavf -o yogya_analysis.wmv</pre>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 21, 2012.
+      Last updated on Nov 29, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.4 -->
