@@ -7,7 +7,7 @@ export QGIS_PREFIX_PATH=/usr/local/qgis-master/
 export PYTHONPATH=/usr/local/qgis-master/share/qgis/python/:`pwd`
 export LD_LIBRARY_PATH=/usr/local/qgis-master/lib
 export INASAFE_WORK_DIR=/home/web/quake
-export INASAFE_POPULATION_PATH=/var/lib/jenkins/jobs/InaSAFE-Realtime/exposure/population.tif
+export INASAFE_POPULATION_PATH=/var/lib/jenkins/jobs/InaSAFE-QGIS2/exposure/population.tif
 export INASAFE_LOCALE=id
 xvfb-run -a --server-args="-screen 0, 1024x768x24" python realtime/make_map.py
 
