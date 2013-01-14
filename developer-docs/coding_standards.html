@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../_static/cloud.js"></script>
+    <script type="text/javascript" src="../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../index.html" />
     <link rel="up" title="InaSAFE developer documentation" href="index.html" />
@@ -209,6 +209,12 @@ functions and class methods:</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">keywordDbPath</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">thePath</span><span class="p">)</span>
 </pre></div>
 </div>
+<ul class="simple">
+<li>If you use a few lines of code in more than one place, refactor them into
+their own function.</li>
+<li>If you use a literal string or expression in more than one place, refactor
+it into a function or variable.</li>
+</ul>
 <p>Various other sphinx markup elements may be used in the docstrings too.
 For more information see also:
 <a class="reference external" href="http://thomas-cokelaer.info/tutorials/sphinx/docstring_python.html">http://thomas-cokelaer.info/tutorials/sphinx/docstring_python.html</a></p>
@@ -247,6 +253,8 @@ widgets that are not visible.</li>
 <li>Try to avoid technical terms and rather use a laymans equivalent e.g. use
 the word &#8216;Transparency&#8217; rather than &#8216;Alpha Channel&#8217; (contrived example),
 &#8216;Text&#8217; instead of &#8216;String&#8217; and so on.</li>
+<li>Use consistent iconography. If you need an icon or icon elements, please
+contact Robert Szczepanek on the mailing list for assistance.</li>
 <li>Place long lists of widgets into scroll boxes. No dialog should exceed 580
 pixels in height and 1000 pixels in width.</li>
 <li>Separate advanced options from basic ones. Novice users should be able to
@@ -347,9 +355,9 @@ suffixed to the button text.</li>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Dec 19, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -84,6 +84,7 @@
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
 
 <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 <span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="kn">import</span> <span class="n">QCoreApplication</span>
@@ -106,6 +107,11 @@
 <span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="n">StyleError</span><span class="p">,</span> <span class="n">MethodUnavailableError</span>
 
 <span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">DEFAULTS</span><span class="p">,</span> <span class="n">safeTr</span><span class="p">,</span> <span class="n">get_version</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s">&#39;..&#39;</span><span class="p">,</span> <span class="s">&#39;third_party&#39;</span><span class="p">)))</span>
+<span class="kn">from</span> <span class="nn">raven.handlers.logging</span> <span class="kn">import</span> <span class="n">SentryHandler</span>
+<span class="kn">from</span> <span class="nn">raven</span> <span class="kn">import</span> <span class="n">Client</span>
 
 <span class="c">#do not remove this even if it is marked as unused by your IDE</span>
 <span class="c">#resources are used by htmlfooter and header the comment will mark it unused</span>
@@ -256,16 +262,79 @@
 <span class="sd">        list: RangeList</span>
 <span class="sd">        list: TransparencyList</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">myNewStyles</span> <span class="o">=</span> <span class="n">_addMinMaxToStyle</span><span class="p">(</span><span class="n">theStyle</span><span class="p">[</span><span class="s">&#39;style_classes&#39;</span><span class="p">])</span>
     <span class="c"># test if QGIS 1.8.0 or older</span>
     <span class="c"># see issue #259</span>
     <span class="k">if</span> <span class="n">qgisVersion</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">10800</span><span class="p">:</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Rendering raster using &lt;= 1.8 styling&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_setLegacyRasterStyle</span><span class="p">(</span><span class="n">theQgsRasterLayer</span><span class="p">,</span> <span class="n">theStyle</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_setLegacyRasterStyle</span><span class="p">(</span><span class="n">theQgsRasterLayer</span><span class="p">,</span> <span class="n">myNewStyles</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Rendering raster using 2+ styling&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_setNewRasterStyle</span><span class="p">(</span><span class="n">theQgsRasterLayer</span><span class="p">,</span> <span class="n">theStyle</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_setNewRasterStyle</span><span class="p">(</span><span class="n">theQgsRasterLayer</span><span class="p">,</span> <span class="n">myNewStyles</span><span class="p">)</span>
 
 </div>
+<span class="k">def</span> <span class="nf">_addMinMaxToStyle</span><span class="p">(</span><span class="n">theStyle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add a min and max to each style class in a style dictionary.</span>
+
+<span class="sd">    When InaSAFE provides style classes they are specific values, not ranges.</span>
+<span class="sd">    However QGIS wants to work in ranges, so this helper will address that by</span>
+<span class="sd">    updating the dictionary to include a min max value for each class.</span>
+
+<span class="sd">    It is assumed that we will start for 0 as the min for the first class</span>
+<span class="sd">    and the quantity of each class shall constitute the max. For all other</span>
+<span class="sd">    classes , min shall constitute the smalles increment to a float that can</span>
+<span class="sd">    meaningfully be made by python (as determined by numpy.nextafter()).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        style: list - A list of dictionaries of the form as in the example</span>
+<span class="sd">            below.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A new dictionary list with min max attributes added to each</span>
+<span class="sd">            entry.</span>
+
+<span class="sd">    Example input:</span>
+
+<span class="sd">        style_classes = [dict(colour=&#39;#38A800&#39;, quantity=2, transparency=0),</span>
+<span class="sd">                         dict(colour=&#39;#38A800&#39;, quantity=5, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#79C900&#39;, quantity=10, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#CEED00&#39;, quantity=20, transparency=50),</span>
+<span class="sd">                         dict(colour=&#39;#FFCC00&#39;, quantity=50, transparency=34),</span>
+<span class="sd">                         dict(colour=&#39;#FF6600&#39;, quantity=100, transparency=77),</span>
+<span class="sd">                         dict(colour=&#39;#FF0000&#39;, quantity=200, transparency=24),</span>
+<span class="sd">                         dict(colour=&#39;#7A0000&#39;, quantity=300, transparency=22)]</span>
+
+<span class="sd">    Example output:</span>
+
+<span class="sd">        style_classes = [dict(colour=&#39;#38A800&#39;, quantity=2, transparency=0,</span>
+<span class="sd">                              min=0, max=2),</span>
+<span class="sd">                         dict(colour=&#39;#38A800&#39;, quantity=5, transparency=50,</span>
+<span class="sd">                              min=2.0000000000002, max=5),</span>
+<span class="sd">                         ),</span>
+<span class="sd">                         dict(colour=&#39;#79C900&#39;, quantity=10, transparency=50,</span>
+<span class="sd">                              min=5.0000000000002, max=10),),</span>
+<span class="sd">                         dict(colour=&#39;#CEED00&#39;, quantity=20, transparency=50,</span>
+<span class="sd">                              min=5.0000000000002, max=20),),</span>
+<span class="sd">                         dict(colour=&#39;#FFCC00&#39;, quantity=50, transparency=34,</span>
+<span class="sd">                              min=20.0000000000002, max=50),),</span>
+<span class="sd">                         dict(colour=&#39;#FF6600&#39;, quantity=100, transparency=77,</span>
+<span class="sd">                              min=50.0000000000002, max=100),),</span>
+<span class="sd">                         dict(colour=&#39;#FF0000&#39;, quantity=200, transparency=24,</span>
+<span class="sd">                              min=100.0000000000002, max=200),),</span>
+<span class="sd">                         dict(colour=&#39;#7A0000&#39;, quantity=300, transparency=22,</span>
+<span class="sd">                              min=200.0000000000002, max=300),)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">myNewStyles</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">myLastMax</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">myClass</span> <span class="ow">in</span> <span class="n">theStyle</span><span class="p">:</span>
+        <span class="n">myQuantity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">myClass</span><span class="p">[</span><span class="s">&#39;quantity&#39;</span><span class="p">])</span>
+        <span class="n">myClass</span><span class="p">[</span><span class="s">&#39;min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">myLastMax</span>
+        <span class="n">myClass</span><span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">myQuantity</span>
+        <span class="n">myLastMax</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nextafter</span><span class="p">(</span><span class="n">myQuantity</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">float_info</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
+        <span class="n">myNewStyles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">myClass</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">myNewStyles</span>
+
+
 <span class="k">def</span> <span class="nf">_setLegacyRasterStyle</span><span class="p">(</span><span class="n">theQgsRasterLayer</span><span class="p">,</span> <span class="n">theStyle</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Set QGIS raster style based on InaSAFE style dictionary for QGIS &lt; 2.0.</span>
 
@@ -274,7 +343,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        * theQgsRasterLayer: QgsRasterLayer.</span>
-<span class="sd">        * style: dict - Dictionary of the form as in the example below.</span>
+<span class="sd">        * style: List - of the form as in the example below.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        * list: RangeList</span>
@@ -298,12 +367,11 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">theQgsRasterLayer</span><span class="o">.</span><span class="n">setDrawingStyle</span><span class="p">(</span><span class="n">QgsRasterLayer</span><span class="o">.</span><span class="n">PalettedColor</span><span class="p">)</span>
-    <span class="n">myClasses</span> <span class="o">=</span> <span class="n">theStyle</span><span class="p">[</span><span class="s">&#39;style_classes&#39;</span><span class="p">]</span>
-    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">myClasses</span><span class="p">)</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">theStyle</span><span class="p">)</span>
     <span class="n">myRangeList</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">myTransparencyList</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">myLastValue</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">myClass</span> <span class="ow">in</span> <span class="n">myClasses</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">myClass</span> <span class="ow">in</span> <span class="n">theStyle</span><span class="p">:</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Evaluating class:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myClass</span><span class="p">)</span>
         <span class="n">myMax</span> <span class="o">=</span> <span class="n">myClass</span><span class="p">[</span><span class="s">&#39;quantity&#39;</span><span class="p">]</span>
         <span class="n">myColour</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="n">myClass</span><span class="p">[</span><span class="s">&#39;colour&#39;</span><span class="p">])</span>
@@ -352,7 +420,7 @@
         <span class="n">QgsRasterLayer</span><span class="o">.</span><span class="n">ColorRampShader</span><span class="p">)</span>
     <span class="n">myFunction</span> <span class="o">=</span> <span class="n">theQgsRasterLayer</span><span class="o">.</span><span class="n">rasterShader</span><span class="p">()</span><span class="o">.</span><span class="n">rasterShaderFunction</span><span class="p">()</span>
     <span class="c"># Discrete will shade any cell between maxima of this break</span>
-    <span class="c"># and mamima of previous break to the colour of this break</span>
+    <span class="c"># and minima of previous break to the colour of this break</span>
     <span class="n">myFunction</span><span class="o">.</span><span class="n">setColorRampType</span><span class="p">(</span><span class="n">QgsColorRampShader</span><span class="o">.</span><span class="n">DISCRETE</span><span class="p">)</span>
     <span class="n">myFunction</span><span class="o">.</span><span class="n">setColorRampItemList</span><span class="p">(</span><span class="n">myRangeList</span><span class="p">)</span>
 
@@ -364,7 +432,7 @@
     <span class="k">return</span> <span class="n">myRangeList</span><span class="p">,</span> <span class="n">myTransparencyList</span>
 
 
-<span class="k">def</span> <span class="nf">_setNewRasterStyle</span><span class="p">(</span><span class="n">theQgsRasterLayer</span><span class="p">,</span> <span class="n">theStyle</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_setNewRasterStyle</span><span class="p">(</span><span class="n">theQgsRasterLayer</span><span class="p">,</span> <span class="n">theClasses</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Set QGIS raster style based on InaSAFE style dictionary for QGIS &gt;= 2.0.</span>
 
 <span class="sd">    This function will set both the colour map and the transparency</span>
@@ -372,7 +440,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        * theQgsRasterLayer: QgsRasterLayer</span>
-<span class="sd">        * style: Dictionary of the form as in the example below.</span>
+<span class="sd">        * theClasses: List of the form as in the example below.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        * list: RangeList</span>
@@ -401,16 +469,25 @@
     <span class="c"># pylint: enable=W0621</span>
     <span class="c"># pylint: enable=W0404</span>
 
-    <span class="n">myClasses</span> <span class="o">=</span> <span class="n">theStyle</span><span class="p">[</span><span class="s">&#39;style_classes&#39;</span><span class="p">]</span>
     <span class="n">myRampItemList</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">myTransparencyList</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">myLastValue</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">myClass</span> <span class="ow">in</span> <span class="n">myClasses</span><span class="p">:</span>
-        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Evaluating class:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myClass</span><span class="p">)</span>
-        <span class="n">myMax</span> <span class="o">=</span> <span class="n">myClass</span><span class="p">[</span><span class="s">&#39;quantity&#39;</span><span class="p">]</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">theClasses</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">myClass</span> <span class="ow">in</span> <span class="n">theClasses</span><span class="p">:</span>
 
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Evaluating class:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myClass</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s">&#39;quantity&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">myClass</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Class has no quantity attribute&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">myMax</span> <span class="o">=</span> <span class="n">myClass</span><span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">myMax</span><span class="p">):</span>
-            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Skipping class.&#39;</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Skipping class - max is nan.&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">myMin</span> <span class="o">=</span> <span class="n">myClass</span><span class="p">[</span><span class="s">&#39;min&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">myMin</span><span class="p">):</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Skipping class - min is nan.&#39;</span><span class="p">)</span>
             <span class="k">continue</span>
 
         <span class="n">myColour</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="n">myClass</span><span class="p">[</span><span class="s">&#39;colour&#39;</span><span class="p">])</span>
@@ -419,6 +496,7 @@
             <span class="n">myLabel</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QString</span><span class="p">(</span><span class="n">myClass</span><span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">])</span>
         <span class="n">myRampItem</span> <span class="o">=</span> <span class="n">QgsColorRampShader</span><span class="o">.</span><span class="n">ColorRampItem</span><span class="p">(</span><span class="n">myMax</span><span class="p">,</span> <span class="n">myColour</span><span class="p">,</span> <span class="n">myLabel</span><span class="p">)</span>
         <span class="n">myRampItemList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">myRampItem</span><span class="p">)</span>
+
         <span class="c"># Create opacity entries for this range</span>
         <span class="n">myTransparencyPercent</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="s">&#39;transparency&#39;</span> <span class="ow">in</span> <span class="n">myClass</span><span class="p">:</span>
@@ -427,11 +505,12 @@
             <span class="c"># Check if range extrema are integers so we know if we can</span>
             <span class="c"># use them to calculate a value range</span>
             <span class="n">myPixel</span> <span class="o">=</span> <span class="n">QgsRasterTransparency</span><span class="o">.</span><span class="n">TransparentSingleValuePixel</span><span class="p">()</span>
-            <span class="n">myPixel</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="n">myLastValue</span>
+            <span class="n">myPixel</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="n">myMin</span>
+            <span class="c"># We want it just a leeetle bit smaller than max</span>
+            <span class="c"># so that ranges are discrete</span>
             <span class="n">myPixel</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="n">myMax</span>
             <span class="n">myPixel</span><span class="o">.</span><span class="n">percentTransparent</span> <span class="o">=</span> <span class="n">myTransparencyPercent</span>
             <span class="n">myTransparencyList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">myPixel</span><span class="p">)</span>
-            <span class="n">myLastValue</span> <span class="o">=</span> <span class="n">myMax</span>
 
     <span class="n">myBand</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c"># gdal counts bands from base 1</span>
     <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Setting colour ramp list&#39;</span><span class="p">)</span>
@@ -448,12 +527,19 @@
         <span class="n">myRasterShader</span><span class="p">)</span>
     <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Assigning renderer to raster layer&#39;</span><span class="p">)</span>
     <span class="n">theQgsRasterLayer</span><span class="o">.</span><span class="n">setRenderer</span><span class="p">(</span><span class="n">myRenderer</span><span class="p">)</span>
+
     <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Setting raster transparency list&#39;</span><span class="p">)</span>
-    <span class="c">#if len(myTransparencyList) &gt; 0:</span>
-    <span class="c">#    myRasterTransparency = QgsRasterTransparency()</span>
-    <span class="c">#    myRasterTransparency.setTransparentSingleValuePixelList(</span>
-    <span class="c">#        myTransparencyList)</span>
-    <span class="c">#    myRenderer.setRasterTransparency(myRasterTransparency)</span>
+
+    <span class="n">myRenderer</span> <span class="o">=</span> <span class="n">theQgsRasterLayer</span><span class="o">.</span><span class="n">renderer</span><span class="p">()</span>
+    <span class="n">myTransparency</span> <span class="o">=</span> <span class="n">QgsRasterTransparency</span><span class="p">()</span>
+    <span class="n">myTransparency</span><span class="o">.</span><span class="n">setTransparentSingleValuePixelList</span><span class="p">(</span><span class="n">myTransparencyList</span><span class="p">)</span>
+    <span class="n">myRenderer</span><span class="o">.</span><span class="n">setRasterTransparency</span><span class="p">(</span><span class="n">myTransparency</span><span class="p">)</span>
+    <span class="c"># For interest you can also view the list like this:</span>
+    <span class="c">#pix = t.transparentSingleValuePixelList()</span>
+    <span class="c">#for px in pix:</span>
+    <span class="c">#    print &#39;Min: %s Max %s Percent %s&#39; % (</span>
+    <span class="c">#       px.min, px.max, px.percentTransparent)</span>
+
     <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Saving style as default&#39;</span><span class="p">)</span>
     <span class="n">theQgsRasterLayer</span><span class="o">.</span><span class="n">saveDefaultStyle</span><span class="p">()</span>
     <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Setting raster style done!&#39;</span><span class="p">)</span>
@@ -671,10 +757,15 @@
     <span class="k">return</span> <span class="bp">True</span>
 
 </div>
-<div class="viewcode-block" id="setupLogger"><a class="viewcode-back" href="../../api-docs/safe_qgis/utilities.html#safe_qgis.utilities.setupLogger">[docs]</a><span class="k">def</span> <span class="nf">setupLogger</span><span class="p">():</span>
+<div class="viewcode-block" id="setupLogger"><a class="viewcode-back" href="../../api-docs/safe_qgis/utilities.html#safe_qgis.utilities.setupLogger">[docs]</a><span class="k">def</span> <span class="nf">setupLogger</span><span class="p">(</span><span class="n">theLogFile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">theSentryUrl</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Run once when the module is loaded and enable logging</span>
 
-<span class="sd">    Args: None</span>
+<span class="sd">    Args:</span>
+<span class="sd">        * theLogFile: str - optional full path to a file to write logs to.</span>
+<span class="sd">        * theSentryUrl: str - optional url to sentry api for remote logging.</span>
+<span class="sd">            Defaults to http://c64a83978732474ea751d432ab943a6b</span>
+<span class="sd">                :d9d8e08786174227b9dcd8a4c3f6e9da@sentry.linfiniti.com/5</span>
+<span class="sd">            which is the sentry project for InaSAFE desktop.</span>
 
 <span class="sd">    Returns: None</span>
 
@@ -721,13 +812,16 @@
     <span class="c"># user&#39;s temporary working directory.</span>
     <span class="n">myTempDir</span> <span class="o">=</span> <span class="n">temp_dir</span><span class="p">(</span><span class="s">&#39;logs&#39;</span><span class="p">)</span>
     <span class="n">myFilename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">myTempDir</span><span class="p">,</span> <span class="s">&#39;inasafe.log&#39;</span><span class="p">)</span>
-    <span class="n">myFileHandler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">myFilename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">theLogFile</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">myFileHandler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">myFilename</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">myFileHandler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">theLogFile</span><span class="p">)</span>
     <span class="n">myFileHandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">myDefaultHanderLevel</span><span class="p">)</span>
     <span class="c"># create console handler with a higher log level</span>
     <span class="n">myConsoleHandler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
-    <span class="n">myConsoleHandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+    <span class="n">myConsoleHandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 
-    <span class="n">myQgisHandler</span> <span class="o">=</span> <span class="n">QgsLogHandler</span><span class="p">()</span>
+    <span class="n">myQGISHandler</span> <span class="o">=</span> <span class="n">QgsLogHandler</span><span class="p">()</span>
 
     <span class="c"># TODO: User opt in before we enable email based logging.</span>
     <span class="c"># Email handler for errors</span>
@@ -746,44 +840,49 @@
     <span class="c"># Sentry handler - this is optional hence the localised import</span>
     <span class="c"># It will only log if pip install raven. If raven is available</span>
     <span class="c"># logging messages will be sent to http://sentry.linfiniti.com</span>
-    <span class="c"># We will log exceptions only there. Only if you have the env var</span>
-    <span class="c"># &#39;INSAFE_SENTRY=1&#39; present (value can be anything) will this be enabled.</span>
-    <span class="k">if</span> <span class="s">&#39;INASAFE_SENTRY&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c">#pylint: disable=F0401</span>
-            <span class="kn">from</span> <span class="nn">raven.handlers.logging</span> <span class="kn">import</span> <span class="n">SentryHandler</span>
-            <span class="kn">from</span> <span class="nn">raven</span> <span class="kn">import</span> <span class="n">Client</span>
-            <span class="c">#pylint: enable=F0401</span>
-            <span class="n">myClient</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="s">&#39;http://5aee75e47c6740af842b3ef138d3ad33:16160af&#39;</span>
-                              <span class="s">&#39;d794847b98a34e1fde0ed5a8d@sentry.linfiniti.com/&#39;</span>
-                              <span class="s">&#39;4&#39;</span><span class="p">)</span>
-            <span class="n">mySentryHandler</span> <span class="o">=</span> <span class="n">SentryHandler</span><span class="p">(</span><span class="n">myClient</span><span class="p">)</span>
-            <span class="n">mySentryHandler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">myFormatter</span><span class="p">)</span>
-            <span class="n">mySentryHandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">addLoggingHanderOnce</span><span class="p">(</span><span class="n">myLogger</span><span class="p">,</span> <span class="n">mySentryHandler</span><span class="p">):</span>
-                <span class="n">myLogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Sentry logging enabled&#39;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="n">myLogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Sentry logging disabled&#39;</span><span class="p">)</span>
-
+    <span class="c"># We will log exceptions only there. You need to either:</span>
+    <span class="c">#  * Set env var &#39;INSAFE_SENTRY=1&#39; present (value can be anything)</span>
+    <span class="c">#  * Enable the &#39;help improve InaSAFE by submitting errors to a remove</span>
+    <span class="c">#    server&#39; option in InaSAFE options dialog</span>
+    <span class="c"># before this will be enabled.</span>
+    <span class="n">mySettings</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QSettings</span><span class="p">()</span>
+    <span class="n">myFlag</span> <span class="o">=</span> <span class="n">mySettings</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s">&#39;inasafe/useSentry&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">toBool</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s">&#39;INASAFE_SENTRY&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span> <span class="ow">or</span> <span class="n">myFlag</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">theSentryUrl</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">myClient</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span>
+                <span class="s">&#39;http://c64a83978732474ea751d432ab943a6b&#39;</span>
+                <span class="s">&#39;:d9d8e08786174227b9dcd8a4c3f6e9da@sentry.linfiniti.com/5&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">myClient</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="n">theSentryUrl</span><span class="p">)</span>
+        <span class="n">mySentryHandler</span> <span class="o">=</span> <span class="n">SentryHandler</span><span class="p">(</span><span class="n">myClient</span><span class="p">)</span>
+        <span class="n">mySentryHandler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">myFormatter</span><span class="p">)</span>
+        <span class="n">mySentryHandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">addLoggingHanderOnce</span><span class="p">(</span><span class="n">myLogger</span><span class="p">,</span> <span class="n">mySentryHandler</span><span class="p">):</span>
+            <span class="n">myLogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Sentry logging enabled&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">myLogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Sentry logging disabled&#39;</span><span class="p">)</span>
     <span class="c">#Set formatters</span>
     <span class="n">myFileHandler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">myFormatter</span><span class="p">)</span>
     <span class="n">myConsoleHandler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">myFormatter</span><span class="p">)</span>
     <span class="c">#myEmailHandler.setFormatter(myFormatter)</span>
-    <span class="n">myQgisHandler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">myFormatter</span><span class="p">)</span>
+    <span class="n">myQGISHandler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">myFormatter</span><span class="p">)</span>
 
     <span class="c"># add the handlers to the logger</span>
     <span class="n">addLoggingHanderOnce</span><span class="p">(</span><span class="n">myLogger</span><span class="p">,</span> <span class="n">myFileHandler</span><span class="p">)</span>
     <span class="n">addLoggingHanderOnce</span><span class="p">(</span><span class="n">myLogger</span><span class="p">,</span> <span class="n">myConsoleHandler</span><span class="p">)</span>
     <span class="c">#addLoggingHanderOnce(myLogger, myEmailHandler)</span>
-    <span class="n">addLoggingHanderOnce</span><span class="p">(</span><span class="n">myLogger</span><span class="p">,</span> <span class="n">myQgisHandler</span><span class="p">)</span>
+    <span class="n">addLoggingHanderOnce</span><span class="p">(</span><span class="n">myLogger</span><span class="p">,</span> <span class="n">myQGISHandler</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="isLayerPolygonal"><a class="viewcode-back" href="../../api-docs/safe_qgis/utilities.html#safe_qgis.utilities.isLayerPolygonal">[docs]</a><span class="k">def</span> <span class="nf">isLayerPolygonal</span><span class="p">(</span><span class="n">theLayer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;tell if a qgis theLayer is vectorial and d its geometries polygons</span>
+    <span class="sd">&quot;&quot;&quot;Tell if a QGIS layer is vector and its geometries are polygons.</span>
+
 <span class="sd">   Args:</span>
 <span class="sd">       the theLayer</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        bool - true if the theLayer contains polygons</span>
+
 <span class="sd">    Raises:</span>
 <span class="sd">       None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1158,9 +1257,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

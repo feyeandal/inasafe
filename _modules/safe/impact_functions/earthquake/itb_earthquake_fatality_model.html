@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../../index.html" />
     <link rel="up" title="Module code" href="../../../index.html" /> 
@@ -69,6 +69,7 @@
                                    <span class="n">get_defaults</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe.common.tables</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">TableRow</span>
 <span class="kn">from</span> <span class="nn">safe.common.exceptions</span> <span class="kn">import</span> <span class="n">InaSAFEError</span>
+<span class="kn">from</span> <span class="nn">third_party.odict</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span>
 
@@ -145,20 +146,35 @@
 
     <span class="n">title</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Die or be displaced&#39;</span><span class="p">)</span>
     <span class="n">defaults</span> <span class="o">=</span> <span class="n">get_defaults</span><span class="p">()</span>
-    <span class="n">parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.62275231</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">8.03314466</span><span class="p">,</span>  <span class="c"># Model coefficients</span>
-                      <span class="c"># Rates of people displaced for each MMI level</span>
-                      <span class="n">displacement_rate</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                                         <span class="mi">7</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">8</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">9</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
-                      <span class="c"># Threshold below which layer should be transparent</span>
-                      <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
-                      <span class="n">calculate_displaced_people</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                      <span class="n">postprocessors</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;Gender&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">},</span>
-                          <span class="s">&#39;Age&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-                              <span class="s">&#39;params&#39;</span><span class="p">:</span>
-                                  <span class="p">{</span><span class="s">&#39;youth_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;YOUTH_RATIO&#39;</span><span class="p">],</span>
-                                   <span class="s">&#39;adult_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ADULT_RATIO&#39;</span><span class="p">],</span>
-                                   <span class="s">&#39;elder_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ELDER_RATIO&#39;</span><span class="p">]}}})</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+        <span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="mf">0.62275231</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="mf">8.03314466</span><span class="p">),</span>  <span class="c"># Model coefficients</span>
+        <span class="c"># Rates of people displaced for each MMI level</span>
+        <span class="p">(</span><span class="s">&#39;displacement_rate&#39;</span><span class="p">,</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                               <span class="mi">7</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">8</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">9</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}),</span>
+        <span class="p">(</span><span class="s">&#39;mmi_range&#39;</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;step&#39;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+        <span class="c"># Threshold below which layer should be transparent</span>
+        <span class="p">(</span><span class="s">&#39;tolerance&#39;</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;calculate_displaced_people&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;postprocessors&#39;</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">([</span>
+            <span class="p">(</span><span class="s">&#39;Gender&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}),</span>
+            <span class="p">(</span><span class="s">&#39;Age&#39;</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s">&#39;on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="s">&#39;params&#39;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">([</span>
+                      <span class="p">(</span><span class="s">&#39;youth_ratio&#39;</span><span class="p">,</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;YOUTH_RATIO&#39;</span><span class="p">]),</span>
+                      <span class="p">(</span><span class="s">&#39;adult_ratio&#39;</span><span class="p">,</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ADULT_RATIO&#39;</span><span class="p">]),</span>
+                      <span class="p">(</span><span class="s">&#39;elder_ratio&#39;</span><span class="p">,</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ELDER_RATIO&#39;</span><span class="p">])])})]))])</span>
 
+<div class="viewcode-block" id="ITBFatalityFunction.fatality_rate"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/earthquake/itb_earthquake_fatality_model.html#safe.impact_functions.earthquake.itb_earthquake_fatality_model.ITBFatalityFunction.fatality_rate">[docs]</a>    <span class="k">def</span> <span class="nf">fatality_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mmi</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ITB method to compute fatality rate</span>
+<span class="sd">        :param x: model coefficient.</span>
+<span class="sd">        :param y: model coefficient.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;y&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">x</span> <span class="o">*</span> <span class="n">mmi</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span>
+</div>
 <div class="viewcode-block" id="ITBFatalityFunction.run"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/earthquake/itb_earthquake_fatality_model.html#safe.impact_functions.earthquake.itb_earthquake_fatality_model.ITBFatalityFunction.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Indonesian Earthquake Fatality Model</span>
 
@@ -168,10 +184,6 @@
 <span class="sd">              P: Raster layer of population density</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c"># Establish model coefficients</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">]</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;y&#39;</span><span class="p">]</span>
 
         <span class="c"># Define percentages of people being displaced at each mmi level</span>
         <span class="n">displacement_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;displacement_rate&#39;</span><span class="p">]</span>
@@ -193,7 +205,8 @@
 
         <span class="c"># Calculate population affected by each MMI level</span>
         <span class="c"># FIXME (Ole): this range is 2-9. Should 10 be included?</span>
-        <span class="n">mmi_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+        <span class="n">mmi_range</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;mmi_range&#39;</span><span class="p">]</span>
         <span class="n">number_of_exposed</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">number_of_displaced</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">number_of_fatalities</span> <span class="o">=</span> <span class="p">{}</span>
@@ -204,13 +217,15 @@
         <span class="k">for</span> <span class="n">mmi</span> <span class="ow">in</span> <span class="n">mmi_range</span><span class="p">:</span>
 
             <span class="c"># Identify cells where MMI is in class i</span>
-            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">H</span> <span class="o">&gt;</span> <span class="n">mmi</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">H</span> <span class="o">&lt;=</span> <span class="n">mmi</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">H</span> <span class="o">&gt;</span> <span class="n">mmi</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;step&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span>
+                        <span class="n">H</span> <span class="o">&lt;=</span> <span class="n">mmi</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;step&#39;</span><span class="p">])</span>
 
             <span class="c"># Count population affected by this shake level</span>
             <span class="n">I</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
             <span class="c"># Calculate expected number of fatalities per level</span>
-            <span class="n">fatality_rate</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">x</span> <span class="o">*</span> <span class="n">mmi</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">fatality_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fatality_rate</span><span class="p">(</span><span class="n">mmi</span><span class="p">)</span>
+
             <span class="n">F</span> <span class="o">=</span> <span class="n">fatality_rate</span> <span class="o">*</span> <span class="n">I</span>
 
             <span class="c"># Calculate expected number of displaced people per level</span>
@@ -362,6 +377,9 @@
                    <span class="n">keywords</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;impact_summary&#39;</span><span class="p">:</span> <span class="n">impact_summary</span><span class="p">,</span>
                              <span class="s">&#39;total_population&#39;</span><span class="p">:</span> <span class="n">total</span><span class="p">,</span>
                              <span class="s">&#39;total_fatalities&#39;</span><span class="p">:</span> <span class="n">fatalities</span><span class="p">,</span>
+                             <span class="s">&#39;fatalites_per_mmi&#39;</span><span class="p">:</span> <span class="n">number_of_fatalities</span><span class="p">,</span>
+                             <span class="s">&#39;exposed_per_mmi&#39;</span><span class="p">:</span> <span class="n">number_of_exposed</span><span class="p">,</span>
+                             <span class="s">&#39;displaced_per_mmi&#39;</span><span class="p">:</span> <span class="n">number_of_displaced</span><span class="p">,</span>
                              <span class="s">&#39;impact_table&#39;</span><span class="p">:</span> <span class="n">impact_table</span><span class="p">,</span>
                              <span class="s">&#39;map_title&#39;</span><span class="p">:</span> <span class="n">map_title</span><span class="p">},</span>
                    <span class="n">name</span><span class="o">=</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Estimated displaced population&#39;</span><span class="p">),</span>
@@ -417,9 +435,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

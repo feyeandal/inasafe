@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -96,8 +96,8 @@
                                  <span class="n">getLayerAttributeNames</span><span class="p">,</span>
                                  <span class="n">getDefaults</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">InvalidParameterException</span><span class="p">,</span>
-                                  <span class="n">HashNotFoundException</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">InvalidParameterError</span><span class="p">,</span>
+                                  <span class="n">HashNotFoundError</span><span class="p">)</span>
 
 <span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;InaSAFE&#39;</span><span class="p">)</span>
 
@@ -538,7 +538,7 @@
         <span class="sd">&quot;&quot;&quot;Add an item to the keywords list given its key/value.</span>
 
 <span class="sd">        The key and value must both be valid, non empty strings</span>
-<span class="sd">        or an InvalidKVPException will be raised.</span>
+<span class="sd">        or an InvalidKVPError will be raised.</span>
 
 <span class="sd">        If an entry with the same key exists, it&#39;s value will be</span>
 <span class="sd">        replaced with theValue.</span>
@@ -742,7 +742,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="c"># Now read the layer with sub layer if needed</span>
             <span class="n">myKeywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywordIO</span><span class="o">.</span><span class="n">readKeywords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">)</span>
-        <span class="k">except</span> <span class="p">(</span><span class="n">InvalidParameterException</span><span class="p">,</span> <span class="n">HashNotFoundException</span><span class="p">):</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">InvalidParameterError</span><span class="p">,</span> <span class="n">HashNotFoundError</span><span class="p">):</span>
             <span class="k">pass</span>
 
         <span class="n">myLayerName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
@@ -966,9 +966,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

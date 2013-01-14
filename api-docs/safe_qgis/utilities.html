@@ -28,12 +28,12 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Package::safe_qgis" href="../safe_qgis.html" />
-    <link rel="next" title="Module: safe_qgis.keyword_io" href="keyword_io.html" />
-    <link rel="prev" title="Module: safe_qgis.impact_calculator" href="impact_calculator.html" /> 
+    <link rel="next" title="Module: safe_qgis.impact_functions_doc_base" href="impact_functions_doc_base.html" />
+    <link rel="prev" title="Module: safe_qgis.help" href="help.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -48,10 +48,10 @@
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="keyword_io.html" title="Module: safe_qgis.keyword_io"
+          <a href="impact_functions_doc_base.html" title="Module: safe_qgis.impact_functions_doc_base"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="impact_calculator.html" title="Module: safe_qgis.impact_calculator"
+          <a href="help.html" title="Module: safe_qgis.help"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -306,15 +306,18 @@ present, None is returned.</dd>
 <dl class="function">
 <dt id="safe_qgis.utilities.isLayerPolygonal">
 <tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">isLayerPolygonal</tt><big>(</big><em>theLayer</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/utilities.html#isLayerPolygonal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.utilities.isLayerPolygonal" title="Permalink to this definition">¶</a></dt>
-<dd><p>tell if a qgis theLayer is vectorial and d its geometries polygons
-Args:</p>
-<blockquote>
-<div>the theLayer</div></blockquote>
+<dd><p>Tell if a QGIS layer is vector and its geometries are polygons.</p>
 <dl class="docutils">
+<dt>Args:</dt>
+<dd><blockquote class="first">
+<div>the theLayer</div></blockquote>
+<dl class="last docutils">
 <dt>Returns:</dt>
 <dd>bool - true if the theLayer contains polygons</dd>
 <dt>Raises:</dt>
 <dd>None</dd>
+</dl>
+</dd>
 </dl>
 </dd></dl>
 
@@ -442,9 +445,27 @@ to points only.</p>
 
 <dl class="function">
 <dt id="safe_qgis.utilities.setupLogger">
-<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">setupLogger</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/utilities.html#setupLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.utilities.setupLogger" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">setupLogger</tt><big>(</big><em>theLogFile=None</em>, <em>theSentryUrl=None</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/utilities.html#setupLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.utilities.setupLogger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run once when the module is loaded and enable logging</p>
-<p>Args: None</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last">
+<li><p class="first">theLogFile: str - optional full path to a file to write logs to.</p>
+</li>
+<li><dl class="first docutils">
+<dt>theSentryUrl: str - optional url to sentry api for remote logging.</dt>
+<dd><dl class="first docutils">
+<dt>Defaults to <a class="reference external" href="http://c64a83978732474ea751d432ab943a6b">http://c64a83978732474ea751d432ab943a6b</a></dt>
+<dd><p class="first last">:<a class="reference external" href="mailto:d9d8e08786174227b9dcd8a4c3f6e9da&#37;&#52;&#48;sentry&#46;linfiniti&#46;com/5">d9d8e08786174227b9dcd8a4c3f6e9da<span>&#64;</span>sentry<span>&#46;</span>linfiniti<span>&#46;</span>com/5</a></p>
+</dd>
+</dl>
+<p class="last">which is the sentry project for InaSAFE desktop.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
 <p>Returns: None</p>
 <p>Raises: None</p>
 <p>Borrowed heavily from this:
@@ -519,11 +540,11 @@ the original string.</dd>
           <img class="logo" src="../../_static/icon.png" alt="Logo"/>
         </a></p>
   <h4>Previous topic</h4>
-  <p class="topless"><a href="impact_calculator.html"
-                        title="previous chapter">Module:  safe_qgis.impact_calculator</a></p>
+  <p class="topless"><a href="help.html"
+                        title="previous chapter">Module:  safe_qgis.help</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="keyword_io.html"
-                        title="next chapter">Module:  safe_qgis.keyword_io</a></p>
+  <p class="topless"><a href="impact_functions_doc_base.html"
+                        title="next chapter">Module:  safe_qgis.impact_functions_doc_base</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../_sources/api-docs/safe_qgis/utilities.txt"
@@ -558,10 +579,10 @@ the original string.</dd>
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="keyword_io.html" title="Module: safe_qgis.keyword_io"
+          <a href="impact_functions_doc_base.html" title="Module: safe_qgis.impact_functions_doc_base"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="impact_calculator.html" title="Module: safe_qgis.impact_calculator"
+          <a href="help.html" title="Module: safe_qgis.help"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -574,9 +595,9 @@ the original string.</dd>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

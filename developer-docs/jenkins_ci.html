@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../_static/cloud.js"></script>
+    <script type="text/javascript" src="../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../index.html" />
     <link rel="up" title="InaSAFE developer documentation" href="index.html" />
@@ -166,6 +166,7 @@ sudo /etc/init.d/apache reload</pre>
 <li>Jenkins Cobertura Plugin</li>
 <li>Jenkins Gravatar plugin</li>
 <li>Jenkins SSH Slaves plugin</li>
+<li>xvfb</li>
 </ul>
 </div>
 <div class="section" id="lock-down-access">
@@ -202,6 +203,7 @@ project name!).</li>
 <li>Check <em class="guilabel">Enable project-based security</em> then add an entry for
 <strong>Anonymous</strong> with <tt class="kbd docutils literal"><span class="pre">Job:</span> <span class="pre">Read</span></tt> and <tt class="kbd docutils literal"><span class="pre">Job</span> <span class="pre">Discover</span></tt> permissions
 only. This will allow anonymous read-only access to the project.</li>
+<li><em class="guilabel">Xvfb</em> set to ticked.</li>
 <li><em class="guilabel">GitHub project</em> set to <tt class="kbd docutils literal"><span class="pre">https://github.com/AIFDR/inasafe/</span></tt></li>
 <li><em class="guilabel">Source Code Management</em> check <em class="guilabel">Git</em> and set to
 <tt class="kbd docutils literal"><span class="pre">git&#64;github.com:AIFDR/inasafe.git</span></tt></li>
@@ -353,8 +355,7 @@ jenkins@maps:~$ git config --global user.name "Jenkins Build Server @Linfiniti2"
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The source tree will be in
-<tt class="file docutils literal"><span class="pre">~/jobs/InaSAFE/workspace/</span></tt>.</p>
+<p class="last">The source tree will be in <tt class="file docutils literal"><span class="pre">~/jobs/InaSAFE/workspace/</span></tt>.</p>
 </div>
 </div>
 <div class="section" id="project-setup">
@@ -384,7 +385,6 @@ or fails.</p>
 <h2>Further Reading<a class="headerlink" href="#further-reading" title="Permalink to this headline">¶</a></h2>
 <p>Here are some useful resources we found while getting things set up.</p>
 <ul class="simple">
-<li><a class="reference external" href="http://hustoknow.blogspot.com/2011/02/setting-up-django-nose-on-hudson.html">http://hustoknow.blogspot.com/2011/02/setting-up-django-nose-on-hudson.html</a></li>
 <li><a class="reference external" href="http://www.alexconrad.org/2011/10/jenkins-and-python.html">http://www.alexconrad.org/2011/10/jenkins-and-python.html</a></li>
 <li><a class="reference external" href="http://hustoknow.blogspot.com/2011/02/setting-up-django-nose-on-hudson.html">http://hustoknow.blogspot.com/2011/02/setting-up-django-nose-on-hudson.html</a></li>
 <li><a class="reference external" href="http://blog.jvc26.org/2011/06/13/jenkins-ci-and-django-howto">http://blog.jvc26.org/2011/06/13/jenkins-ci-and-django-howto</a></li>
@@ -485,9 +485,9 @@ the most usful article I found)</li>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Dec 19, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

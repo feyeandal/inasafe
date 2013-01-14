@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -100,7 +100,7 @@
                                       <span class="n">unitTestDataPath</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">readKeywordsFromFile</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.keywords_dialog</span> <span class="kn">import</span> <span class="n">KeywordsDialog</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="n">KeywordNotFoundException</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="n">KeywordNotFoundError</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.utilities</span> <span class="kn">import</span> <span class="n">getDefaults</span>
 
 
@@ -148,7 +148,7 @@
     <span class="n">myPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TESTDATA</span><span class="p">,</span> <span class="n">myFile</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">myTitle</span> <span class="o">=</span> <span class="n">readKeywordsFromFile</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">KeywordNotFoundException</span><span class="p">:</span>
+    <span class="k">except</span> <span class="n">KeywordNotFoundError</span><span class="p">:</span>
         <span class="n">myTitle</span> <span class="o">=</span> <span class="s">&#39;kabupaten_jakarta_singlepart_3_good_attr&#39;</span>
     <span class="n">myLayer</span> <span class="o">=</span> <span class="n">QgsVectorLayer</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="n">myTitle</span><span class="p">,</span> <span class="s">&#39;ogr&#39;</span><span class="p">)</span>
     <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
@@ -161,7 +161,7 @@
     <span class="n">myPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TESTDATA</span><span class="p">,</span> <span class="n">myFile</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">myTitle</span> <span class="o">=</span> <span class="n">readKeywordsFromFile</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">KeywordNotFoundException</span><span class="p">:</span>
+    <span class="k">except</span> <span class="n">KeywordNotFoundError</span><span class="p">:</span>
         <span class="n">myTitle</span> <span class="o">=</span> <span class="s">&#39;kabupaten_jakarta_singlepart_3_good_attr&#39;</span>
     <span class="n">myLayer</span> <span class="o">=</span> <span class="n">QgsVectorLayer</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="n">myTitle</span><span class="p">,</span> <span class="s">&#39;ogr&#39;</span><span class="p">)</span>
     <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
@@ -651,9 +651,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

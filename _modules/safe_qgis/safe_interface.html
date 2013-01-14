@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -107,16 +107,16 @@
                       <span class="n">BoundingBoxError</span><span class="p">,</span>
                       <span class="n">ReadLayerError</span><span class="p">,</span>
                       <span class="n">get_plugins</span><span class="p">,</span> <span class="n">get_version</span><span class="p">)</span>
-
+<span class="kn">from</span> <span class="nn">safe.postprocessors</span> <span class="kn">import</span> <span class="n">get_post_processors</span>
 <span class="kn">from</span> <span class="nn">safe.defaults</span> <span class="kn">import</span> <span class="n">DEFAULTS</span>
 <span class="c"># pylint: enable=W0611</span>
 
 <span class="c"># InaSAFE GUI specific functionality</span>
 <span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="kn">import</span> <span class="n">QCoreApplication</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">KeywordNotFoundException</span><span class="p">,</span>
-                                  <span class="n">StyleInfoNotFoundException</span><span class="p">,</span>
-                                  <span class="n">InvalidParameterException</span><span class="p">,</span>
-                                  <span class="n">InsufficientOverlapException</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">KeywordNotFoundError</span><span class="p">,</span>
+                                  <span class="n">StyleInfoNotFoundError</span><span class="p">,</span>
+                                  <span class="n">InvalidParameterError</span><span class="p">,</span>
+                                  <span class="n">InsufficientOverlapError</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">safe.common.exceptions</span> <span class="kn">import</span> <span class="n">BoundingBoxError</span><span class="p">,</span> <span class="n">ReadLayerError</span>
 <span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;InaSAFE&#39;</span><span class="p">)</span>
@@ -218,7 +218,7 @@
                <span class="s">&#39;and viewport did not overlap, so no computation was &#39;</span>
                <span class="s">&#39;done. Please make sure you pan to where the data is and &#39;</span>
                <span class="s">&#39;that hazard and exposure data overlaps.&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InsufficientOverlapException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">InsufficientOverlapError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">myOptimalExtent</span>
 
@@ -272,13 +272,13 @@
 <span class="sd">        plugins will be returned in the list.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">       NoFunctionsFoundException if no functions are found.</span>
+<span class="sd">       NoFunctionsFoundError if no functions are found.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">myDict</span> <span class="o">=</span> <span class="n">get_admissible_plugins</span><span class="p">(</span><span class="n">theKeywordList</span><span class="p">)</span>
         <span class="c">#if len(myDict) &lt; 1:</span>
         <span class="c">#    myMessage = &#39;No InaSAFE impact functions could be found&#39;</span>
-        <span class="c">#    raise NoFunctionsFoundException(myMessage)</span>
+        <span class="c">#    raise NoFunctionsFoundError(myMessage)</span>
         <span class="k">return</span> <span class="n">myDict</span>
     <span class="k">except</span><span class="p">:</span>
         <span class="k">raise</span>
@@ -299,21 +299,21 @@
 <span class="sd">       A string containing the retrieved value for the keyword.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">       KeywordNotFoundException if the keyword is not recognised.</span>
+<span class="sd">       KeywordNotFoundError if the keyword is not recognised.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">myValue</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="n">theLayer</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">InvalidParameterException</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">InvalidParameterError</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">myValue</span> <span class="o">=</span> <span class="n">theLayer</span><span class="o">.</span><span class="n">get_keywords</span><span class="p">(</span><span class="n">keyword</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Keyword retrieval failed for </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">) </span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="n">theLayer</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(),</span> <span class="n">keyword</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
-        <span class="k">raise</span> <span class="n">KeywordNotFoundException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">KeywordNotFoundError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">myValue</span> <span class="ow">or</span> <span class="n">myValue</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;No value was found for keyword </span><span class="si">%s</span><span class="s"> in layer </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">theLayer</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(),</span> <span class="n">keyword</span><span class="p">))</span>
-        <span class="k">raise</span> <span class="n">KeywordNotFoundException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">KeywordNotFoundError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">myValue</span>
 
 </div>
@@ -339,20 +339,20 @@
 <span class="sd">       complete keywords dictionary is returned.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">       KeywordNotFoundException if the keyword is not recognised.</span>
+<span class="sd">       KeywordNotFoundError if the keyword is not recognised.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># check the source layer path is valid</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">theLayerPath</span><span class="p">):</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Cannot get keywords from a non-existent file.&#39;</span>
                        <span class="s">&#39;</span><span class="si">%s</span><span class="s"> does not exist.&#39;</span> <span class="o">%</span> <span class="n">theLayerPath</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InvalidParameterException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">InvalidParameterError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="c"># check there really is a keywords file for this layer</span>
     <span class="n">myKeywordFilePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">theLayerPath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">myKeywordFilePath</span> <span class="o">+=</span> <span class="s">&#39;.keywords&#39;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">myKeywordFilePath</span><span class="p">):</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;No keywords file found for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myKeywordFilePath</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InvalidParameterException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">InvalidParameterError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="c"># now get the requested keyword using the inasafe library</span>
     <span class="n">myDictionary</span> <span class="o">=</span> <span class="bp">None</span>
@@ -361,7 +361,7 @@
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Keyword retrieval failed for </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">) </span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="n">myKeywordFilePath</span><span class="p">,</span> <span class="n">theKeyword</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
-        <span class="k">raise</span> <span class="n">KeywordNotFoundException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">KeywordNotFoundError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="c"># if no keyword was supplied, just return the dict</span>
     <span class="k">if</span> <span class="n">theKeyword</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -369,7 +369,7 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">theKeyword</span> <span class="ow">in</span> <span class="n">myDictionary</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;No value was found in file </span><span class="si">%s</span><span class="s"> for keyword </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">myKeywordFilePath</span><span class="p">,</span> <span class="n">theKeyword</span><span class="p">))</span>
-        <span class="k">raise</span> <span class="n">KeywordNotFoundException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">KeywordNotFoundError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">myValue</span> <span class="o">=</span> <span class="n">myDictionary</span><span class="p">[</span><span class="n">theKeyword</span><span class="p">]</span>
@@ -412,29 +412,29 @@
 
 <span class="sd">    Raises:</span>
 
-<span class="sd">       * StyleInfoNotFoundException if the style is not found.</span>
-<span class="sd">       * InvalidParameterException if the paramers are not correct.</span>
+<span class="sd">       * StyleInfoNotFoundError if the style is not found.</span>
+<span class="sd">       * InvalidParameterError if the paramers are not correct.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">theLayer</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">InvalidParameterException</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">InvalidParameterError</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">theLayer</span><span class="p">,</span> <span class="s">&#39;get_style_info&#39;</span><span class="p">):</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Argument &quot;</span><span class="si">%s</span><span class="s">&quot; was not a valid layer instance&#39;</span> <span class="o">%</span>
                <span class="n">theLayer</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">StyleInfoNotFoundException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">StyleInfoNotFoundError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">myValue</span> <span class="o">=</span> <span class="n">theLayer</span><span class="o">.</span><span class="n">get_style_info</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Styleinfo retrieval failed for </span><span class="si">%s</span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">theLayer</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(),</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
-        <span class="k">raise</span> <span class="n">StyleInfoNotFoundException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">StyleInfoNotFoundError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">myValue</span> <span class="ow">or</span> <span class="n">myValue</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;No styleInfo was found for layer </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="n">theLayer</span><span class="o">.</span><span class="n">get_filename</span><span class="p">()))</span>
-        <span class="k">raise</span> <span class="n">StyleInfoNotFoundException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">StyleInfoNotFoundError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">myValue</span>
 
 </div>
@@ -564,9 +564,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

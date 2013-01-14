@@ -28,12 +28,12 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../index.html" />
     <link rel="up" title="Package::safe.common" href="../common.html" />
-    <link rel="next" title="Module: safe.common.numerics" href="numerics.html" />
-    <link rel="prev" title="Module: safe.common.version" href="version.html" /> 
+    <link rel="next" title="Module: safe.common.interpolation2d" href="interpolation2d.html" />
+    <link rel="prev" title="Module: safe.common.test_geodesy" href="test_geodesy.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -48,10 +48,10 @@
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="numerics.html" title="Module: safe.common.numerics"
+          <a href="interpolation2d.html" title="Module: safe.common.interpolation2d"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="version.html" title="Module: safe.common.version"
+          <a href="test_geodesy.html" title="Module: safe.common.test_geodesy"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../../index.html">Home</a> &raquo;</li>
     <li><a href="../../../contents.html">Contents</a> &raquo;</li>
@@ -87,6 +87,8 @@ tmpfile = unique_filename(dir=tmpdir)
 print tmpfile
 /tmp/inasafe/23-08-2012/timlinux/testing/tmpMRpF_C</p>
 </div>
+<p>If you specify INASAFE_WORK_DIR as an environment var, it will be
+used in preference to the system temp directory.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><dl class="first last docutils">
@@ -143,6 +145,14 @@ message: error message in case statement evaluates as False</div></blockquote>
 </dl>
 </dd></dl>
 
+<dl class="function">
+<dt id="safe.common.utilities.zip_shp">
+<tt class="descclassname">safe.common.utilities.</tt><tt class="descname">zip_shp</tt><big>(</big><em>shp_path</em>, <em>extra_ext=None</em>, <em>remove_file=False</em><big>)</big><a class="headerlink" href="#safe.common.utilities.zip_shp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zip shape file and its gang (.shx, .dbf, .prj)
+and extra_file is a list of another ext related to shapefile, if exist
+The zip file will be put in the same directory</p>
+</dd></dl>
+
 <p>This module forms part of the <a class="reference external" href="http://inasafe.org">InaSAFE</a> tool.</p>
 </div>
 
@@ -156,11 +166,11 @@ message: error message in case statement evaluates as False</div></blockquote>
           <img class="logo" src="../../../_static/icon.png" alt="Logo"/>
         </a></p>
   <h4>Previous topic</h4>
-  <p class="topless"><a href="version.html"
-                        title="previous chapter">Module:  safe.common.version</a></p>
+  <p class="topless"><a href="test_geodesy.html"
+                        title="previous chapter">Module:  safe.common.test_geodesy</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="numerics.html"
-                        title="next chapter">Module:  safe.common.numerics</a></p>
+  <p class="topless"><a href="interpolation2d.html"
+                        title="next chapter">Module:  safe.common.interpolation2d</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../../_sources/api-docs/safe/common/utilities.txt"
@@ -195,10 +205,10 @@ message: error message in case statement evaluates as False</div></blockquote>
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="numerics.html" title="Module: safe.common.numerics"
+          <a href="interpolation2d.html" title="Module: safe.common.interpolation2d"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="version.html" title="Module: safe.common.version"
+          <a href="test_geodesy.html" title="Module: safe.common.test_geodesy"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../../index.html">Home</a> &raquo;</li>
     <li><a href="../../../contents.html">Contents</a> &raquo;</li>
@@ -212,9 +222,9 @@ message: error message in case statement evaluates as False</div></blockquote>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

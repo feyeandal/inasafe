@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -85,7 +85,8 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="kn">import</span> <span class="n">QCoreApplication</span><span class="p">,</span> <span class="n">QProcess</span>
-<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QgsCoordinateTransform</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QGis</span><span class="p">,</span>
+                       <span class="n">QgsCoordinateTransform</span><span class="p">,</span>
                        <span class="n">QgsCoordinateReferenceSystem</span><span class="p">,</span>
                        <span class="n">QgsRectangle</span><span class="p">,</span>
                        <span class="n">QgsMapLayer</span><span class="p">,</span>
@@ -97,10 +98,11 @@
                                       <span class="n">readKeywordsFromFile</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">safe_qgis.keyword_io</span> <span class="kn">import</span> <span class="n">KeywordIO</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">InvalidParameterException</span><span class="p">,</span>
-                           <span class="n">NoFeaturesInExtentException</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">InvalidParameterError</span><span class="p">,</span>
+                           <span class="n">NoFeaturesInExtentError</span><span class="p">,</span>
                            <span class="n">CallGDALError</span><span class="p">,</span>
-                           <span class="n">InvalidProjectionException</span><span class="p">)</span>
+                           <span class="n">InvalidProjectionError</span><span class="p">,</span>
+                           <span class="n">InvalidClipGeometryError</span><span class="p">)</span>
 
 <span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;InaSAFE&#39;</span><span class="p">)</span>
 
@@ -122,8 +124,12 @@
     <span class="k">return</span> <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">myContext</span><span class="p">,</span> <span class="n">theText</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="clipLayer"><a class="viewcode-back" href="../../api-docs/safe_qgis/clipper.html#safe_qgis.clipper.clipLayer">[docs]</a><span class="k">def</span> <span class="nf">clipLayer</span><span class="p">(</span><span class="n">theLayer</span><span class="p">,</span> <span class="n">theExtent</span><span class="p">,</span> <span class="n">theCellSize</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">theExtraKeywords</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-              <span class="n">explodeMultipart</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="clipLayer"><a class="viewcode-back" href="../../api-docs/safe_qgis/clipper.html#safe_qgis.clipper.clipLayer">[docs]</a><span class="k">def</span> <span class="nf">clipLayer</span><span class="p">(</span><span class="n">theLayer</span><span class="p">,</span>
+              <span class="n">theExtent</span><span class="p">,</span>
+              <span class="n">theCellSize</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+              <span class="n">theExtraKeywords</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+              <span class="n">theExplodeFlag</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+              <span class="n">theHardClipFlag</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Clip a Hazard or Exposure layer to the extents provided.</span>
 
 <span class="sd">    .. note:: Will delegate to clipVectorLayer or clipRasterLayer as needed.</span>
@@ -131,31 +137,40 @@
 <span class="sd">    Args:</span>
 
 <span class="sd">        * theLayer - a valid QGIS vector or raster layer</span>
-<span class="sd">        * theExtent - an array representing the exposure layer</span>
+<span class="sd">        * theExtent either: an array representing the exposure layer</span>
 <span class="sd">           extents in the form [xmin, ymin, xmax, ymax]. It is assumed</span>
 <span class="sd">           that the coordinates are in EPSG:4326 although currently</span>
 <span class="sd">           no checks are made to enforce this.</span>
+<span class="sd">                    or: A QgsGeometry of type polygon. **Polygon clipping is</span>
+<span class="sd">           currently only supported for vector datasets.**</span>
 <span class="sd">        * theCellSize - cell size which the layer should be resampled to.</span>
 <span class="sd">            This argument will be ignored for vector layers and if not provided</span>
 <span class="sd">            for a raster layer, the native raster cell size will be used.</span>
 <span class="sd">        * theExtraKeywords - Optional keywords dictionary to be added to</span>
-<span class="sd">                          output layer</span>
-<span class="sd">        * explodeMultipart - a bool describing if to convert multipart</span>
-<span class="sd">        features into singleparts</span>
+<span class="sd">                          output layer.</span>
+<span class="sd">        * theExplodeFlag - a bool specifying whether multipart features</span>
+<span class="sd">            should be &#39;exploded&#39; into singleparts. **This parameter is ignored</span>
+<span class="sd">            for raster layer clipping.**</span>
+<span class="sd">        * theHardClipFlag - a bool specifying whether line and polygon features</span>
+<span class="sd">            that extend beyond the extents should be clipped such that they</span>
+<span class="sd">            are reduced in size to the part of the geometry that intersects</span>
+<span class="sd">            the extent only. Default is False. **This parameter is ignored</span>
+<span class="sd">            for raster layer clipping.**</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Path to the output clipped layer (placed in the</span>
-<span class="sd">        system temp dir). The output layer will be reprojected to EPSG:4326</span>
-<span class="sd">        if needed.</span>
+<span class="sd">        Path to the output clipped layer (placed in the system temp dir).</span>
+<span class="sd">        The output layer will be reprojected to EPSG:4326 if needed.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        None</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">theLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QgsMapLayer</span><span class="o">.</span><span class="n">VectorLayer</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_clipVectorLayer</span><span class="p">(</span><span class="n">theLayer</span><span class="p">,</span> <span class="n">theExtent</span><span class="p">,</span>
-            <span class="n">theExtraKeywords</span><span class="o">=</span><span class="n">theExtraKeywords</span><span class="p">,</span>
-            <span class="n">explodeMultipart</span><span class="o">=</span><span class="n">explodeMultipart</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_clipVectorLayer</span><span class="p">(</span><span class="n">theLayer</span><span class="p">,</span>
+                                <span class="n">theExtent</span><span class="p">,</span>
+                                <span class="n">theExtraKeywords</span><span class="o">=</span><span class="n">theExtraKeywords</span><span class="p">,</span>
+                                <span class="n">theExplodeFlag</span><span class="o">=</span><span class="n">theExplodeFlag</span><span class="p">,</span>
+                                <span class="n">theHardClipFlag</span><span class="o">=</span><span class="n">theHardClipFlag</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_clipRasterLayer</span><span class="p">(</span><span class="n">theLayer</span><span class="p">,</span> <span class="n">theExtent</span><span class="p">,</span> <span class="n">theCellSize</span><span class="p">,</span>
@@ -166,8 +181,11 @@
             <span class="k">raise</span> <span class="n">e</span>
 
 </div>
-<span class="k">def</span> <span class="nf">_clipVectorLayer</span><span class="p">(</span><span class="n">theLayer</span><span class="p">,</span> <span class="n">theExtent</span><span class="p">,</span>
-                     <span class="n">theExtraKeywords</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">explodeMultipart</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_clipVectorLayer</span><span class="p">(</span><span class="n">theLayer</span><span class="p">,</span>
+                     <span class="n">theExtent</span><span class="p">,</span>
+                     <span class="n">theExtraKeywords</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                     <span class="n">theExplodeFlag</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                     <span class="n">theHardClipFlag</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Clip a Hazard or Exposure layer to the</span>
 <span class="sd">    extents of the current view frame. The layer must be a</span>
 <span class="sd">    vector layer or an exception will be thrown.</span>
@@ -177,18 +195,23 @@
 <span class="sd">    Args:</span>
 
 <span class="sd">        * theLayer - a valid QGIS vector layer in EPSG:4326</span>
-<span class="sd">        * theExtent -  an array representing the exposure layer</span>
+<span class="sd">        * theExtent either: an array representing the exposure layer</span>
 <span class="sd">           extents in the form [xmin, ymin, xmax, ymax]. It is assumed</span>
 <span class="sd">           that the coordinates are in EPSG:4326 although currently</span>
 <span class="sd">           no checks are made to enforce this.</span>
+<span class="sd">                    or: A QgsGeometry of type polygon. **Polygon clipping is</span>
+<span class="sd">           currently only supported for vector datasets.**</span>
 <span class="sd">        * theExtraKeywords - any additional keywords over and above the</span>
 <span class="sd">          original keywords that should be associated with the cliplayer.</span>
-<span class="sd">        * explodeMultipart - a bool describing if to convert multipart</span>
-<span class="sd">        features into singleparts</span>
+<span class="sd">        * theExplodeFlag - a bool specifying whether multipart features</span>
+<span class="sd">            should be &#39;exploded&#39; into singleparts.</span>
+<span class="sd">        * theHardClipFlag - a bool specifying whether line and polygon features</span>
+<span class="sd">            that extend beyond the extents should be clipped such that they</span>
+<span class="sd">            are reduced in size to the part of the geometry that intersects</span>
+<span class="sd">            the extent only. Default is False.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Path to the output clipped layer (placed in the</span>
-<span class="sd">        system temp dir).</span>
+<span class="sd">        Path to the output clipped layer (placed in the system temp dir).</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">       None</span>
@@ -196,12 +219,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">theLayer</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">theExtent</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Layer or Extent passed to clip is None.&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InvalidParameterException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">InvalidParameterError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">theLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">!=</span> <span class="n">QgsMapLayer</span><span class="o">.</span><span class="n">VectorLayer</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Expected a vector layer but received a </span><span class="si">%s</span><span class="s">.&#39;</span> <span class="o">%</span>
                        <span class="nb">str</span><span class="p">(</span><span class="n">theLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()))</span>
-        <span class="k">raise</span> <span class="n">InvalidParameterException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">InvalidParameterError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="c">#myHandle, myFilename = tempfile.mkstemp(&#39;.sqlite&#39;, &#39;clip_&#39;,</span>
     <span class="c">#    temp_dir())</span>
@@ -220,8 +243,20 @@
     <span class="n">myGeoCrs</span> <span class="o">=</span> <span class="n">QgsCoordinateReferenceSystem</span><span class="p">()</span>
     <span class="n">myGeoCrs</span><span class="o">.</span><span class="n">createFromId</span><span class="p">(</span><span class="mi">4326</span><span class="p">,</span> <span class="n">QgsCoordinateReferenceSystem</span><span class="o">.</span><span class="n">EpsgCrsId</span><span class="p">)</span>
     <span class="n">myXForm</span> <span class="o">=</span> <span class="n">QgsCoordinateTransform</span><span class="p">(</span><span class="n">myGeoCrs</span><span class="p">,</span> <span class="n">theLayer</span><span class="o">.</span><span class="n">crs</span><span class="p">())</span>
-    <span class="n">myRect</span> <span class="o">=</span> <span class="n">QgsRectangle</span><span class="p">(</span><span class="n">theExtent</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">theExtent</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-        <span class="n">theExtent</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">theExtent</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">myAllowedClipTypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">QGis</span><span class="o">.</span><span class="n">WKBPolygon</span><span class="p">,</span> <span class="n">QGis</span><span class="o">.</span><span class="n">WKBPolygon25D</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">theExtent</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">myRect</span> <span class="o">=</span> <span class="n">QgsRectangle</span><span class="p">(</span><span class="n">theExtent</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">theExtent</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">theExtent</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">theExtent</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">myClipPolygon</span> <span class="o">=</span> <span class="n">QgsGeometry</span><span class="o">.</span><span class="n">fromRect</span><span class="p">(</span><span class="n">myRect</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">theExtent</span><span class="p">)</span> <span class="ow">is</span> <span class="n">QgsGeometry</span> <span class="ow">and</span>
+          <span class="n">theExtent</span><span class="o">.</span><span class="n">wkbType</span> <span class="ow">in</span> <span class="n">myAllowedClipTypes</span><span class="p">):</span>
+        <span class="n">myRect</span> <span class="o">=</span> <span class="n">theExtent</span><span class="o">.</span><span class="n">boundingBox</span><span class="p">()</span><span class="o">.</span><span class="n">toRectF</span><span class="p">()</span>
+        <span class="n">myClipPolygon</span> <span class="o">=</span> <span class="n">theExtent</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">InvalidClipGeometryError</span><span class="p">(</span>
+            <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Clip geometry must be an extent or a single part&#39;</span>
+            <span class="s">&#39;polygon based geometry.&#39;</span><span class="p">))</span>
+
     <span class="n">myProjectedExtent</span> <span class="o">=</span> <span class="n">myXForm</span><span class="o">.</span><span class="n">transformBoundingBox</span><span class="p">(</span><span class="n">myRect</span><span class="p">)</span>
 
     <span class="c"># Get vector layer</span>
@@ -267,14 +302,20 @@
     <span class="k">while</span> <span class="n">myProvider</span><span class="o">.</span><span class="n">nextFeature</span><span class="p">(</span><span class="n">myFeature</span><span class="p">):</span>
         <span class="n">myGeometry</span> <span class="o">=</span> <span class="n">myFeature</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span>
         <span class="c"># Loop through the parts adding them to the output file</span>
-        <span class="c"># we write out single part features unless explodeMultipart is False</span>
-        <span class="k">if</span> <span class="n">explodeMultipart</span><span class="p">:</span>
+        <span class="c"># we write out single part features unless theExplodeFlag is False</span>
+        <span class="k">if</span> <span class="n">theExplodeFlag</span><span class="p">:</span>
             <span class="n">myGeometryList</span> <span class="o">=</span> <span class="n">explodeMultiPartGeometry</span><span class="p">(</span><span class="n">myGeometry</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">myGeometryList</span> <span class="o">=</span> <span class="p">[</span><span class="n">myGeometry</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">myPart</span> <span class="ow">in</span> <span class="n">myGeometryList</span><span class="p">:</span>
             <span class="n">myPart</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">myXForm</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">theHardClipFlag</span><span class="p">:</span>
+                <span class="c"># Remove any dangling bits so only intersecting area is</span>
+                <span class="c"># kept.</span>
+                <span class="n">myPart</span> <span class="o">=</span> <span class="n">clipGeometry</span><span class="p">(</span><span class="n">myClipPolygon</span><span class="p">,</span> <span class="n">myPart</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">myPart</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">continue</span>
             <span class="n">myFeature</span><span class="o">.</span><span class="n">setGeometry</span><span class="p">(</span><span class="n">myPart</span><span class="p">)</span>
             <span class="n">myWriter</span><span class="o">.</span><span class="n">addFeature</span><span class="p">(</span><span class="n">myFeature</span><span class="p">)</span>
         <span class="n">myCount</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -284,7 +325,7 @@
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;No features fall within the clip extents. &#39;</span>
                        <span class="s">&#39;Try panning / zooming to an area containing data &#39;</span>
                        <span class="s">&#39;and then try to run your analysis again.&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">NoFeaturesInExtentException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">NoFeaturesInExtentError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="n">myKeywordIO</span> <span class="o">=</span> <span class="n">KeywordIO</span><span class="p">()</span>
     <span class="n">myKeywordIO</span><span class="o">.</span><span class="n">copyKeywords</span><span class="p">(</span><span class="n">theLayer</span><span class="p">,</span> <span class="n">myFilename</span><span class="p">,</span>
@@ -293,6 +334,49 @@
     <span class="k">return</span> <span class="n">myFilename</span>  <span class="c"># Filename of created file</span>
 
 
+<div class="viewcode-block" id="clipGeometry"><a class="viewcode-back" href="../../api-docs/safe_qgis/clipper.html#safe_qgis.clipper.clipGeometry">[docs]</a><span class="k">def</span> <span class="nf">clipGeometry</span><span class="p">(</span><span class="n">theClipPolygon</span><span class="p">,</span> <span class="n">theGeometry</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clip a geometry (linestring or polygon) using a clip polygon.</span>
+
+<span class="sd">    To do this we combine the clip polygon with the input geometry which</span>
+<span class="sd">    will add nodes to the input geometry where it intersects the clip polygon.</span>
+<span class="sd">    Next we get the symmetrical difference between the input geometry and the</span>
+<span class="sd">    combined geometry.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        * theClipPolygon - QgsGeometry a Polygon or Polygon25D geometry to clip</span>
+<span class="sd">            with. Multipart polygons are not supported so the client needs to</span>
+<span class="sd">            take care of that.</span>
+<span class="sd">        * theGeometry - QgsGeometry - linestring or polygon that should be</span>
+<span class="sd">            clipped.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        QgsGeometry - clipped to the region of the clip polygon.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Add nodes to input geometry where it intersects with clip</span>
+    <span class="n">myLineTypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">QGis</span><span class="o">.</span><span class="n">WKBLineString</span><span class="p">,</span> <span class="n">QGis</span><span class="o">.</span><span class="n">WKBLineString25D</span><span class="p">]</span>
+    <span class="n">myPointTypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">QGis</span><span class="o">.</span><span class="n">WKBPoint</span><span class="p">,</span> <span class="n">QGis</span><span class="o">.</span><span class="n">WKBPoint25D</span><span class="p">]</span>
+    <span class="n">myPolygonTypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">QGis</span><span class="o">.</span><span class="n">WKBPolygon</span><span class="p">,</span> <span class="n">QGis</span><span class="o">.</span><span class="n">WKBPolygon25D</span><span class="p">]</span>
+    <span class="n">myType</span> <span class="o">=</span> <span class="n">theGeometry</span><span class="o">.</span><span class="n">wkbType</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">myType</span> <span class="ow">in</span> <span class="n">myLineTypes</span><span class="p">:</span>
+        <span class="n">myCombinedGeometry</span> <span class="o">=</span> <span class="n">theGeometry</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">theClipPolygon</span><span class="p">)</span>
+        <span class="c"># Gives you the lines inside the clip</span>
+        <span class="n">mySymmetricalGeometry</span> <span class="o">=</span> <span class="n">theGeometry</span><span class="o">.</span><span class="n">symDifference</span><span class="p">(</span><span class="n">myCombinedGeometry</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mySymmetricalGeometry</span>
+    <span class="k">elif</span> <span class="n">myType</span> <span class="ow">in</span> <span class="n">myPolygonTypes</span><span class="p">:</span>
+        <span class="n">myIntersectionGeometry</span> <span class="o">=</span> <span class="n">theGeometry</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">theClipPolygon</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">myIntersectionGeometry</span>
+    <span class="k">elif</span> <span class="n">myType</span> <span class="ow">in</span> <span class="n">myPointTypes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">theClipPolygon</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">theGeometry</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">theGeometry</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+</div>
 <div class="viewcode-block" id="explodeMultiPartGeometry"><a class="viewcode-back" href="../../api-docs/safe_qgis/clipper.html#safe_qgis.clipper.explodeMultiPartGeometry">[docs]</a><span class="k">def</span> <span class="nf">explodeMultiPartGeometry</span><span class="p">(</span><span class="n">theGeom</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convert a multipart geometry to a list of single parts. This method was</span>
 <span class="sd">    adapted from Carson Farmer&#39;s fTools doGeometry implementation in QGIS.</span>
@@ -345,10 +429,12 @@
 <span class="sd">    Args:</span>
 
 <span class="sd">        * theLayer - a valid QGIS raster layer in EPSG:4326</span>
-<span class="sd">        * theExtent -  an array representing the exposure layer</span>
+<span class="sd">        * theExtent either: an array representing the exposure layer</span>
 <span class="sd">           extents in the form [xmin, ymin, xmax, ymax]. It is assumed</span>
 <span class="sd">           that the coordinates are in EPSG:4326 although currently</span>
 <span class="sd">           no checks are made to enforce this.</span>
+<span class="sd">                    or: A QgsGeometry of type polygon. **Polygon clipping is</span>
+<span class="sd">           currently only supported for vector datasets.**</span>
 <span class="sd">        * theCellSize - cell size (in GeoCRS) which the layer should</span>
 <span class="sd">            be resampled to. If not provided for a raster layer (i.e.</span>
 <span class="sd">            theCellSize=None), the native raster cell size will be used.</span>
@@ -364,12 +450,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">theLayer</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">theExtent</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Layer or Extent passed to clip is None.&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InvalidParameterException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">InvalidParameterError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">theLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">!=</span> <span class="n">QgsMapLayer</span><span class="o">.</span><span class="n">RasterLayer</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Expected a raster layer but received a </span><span class="si">%s</span><span class="s">.&#39;</span> <span class="o">%</span>
                <span class="nb">str</span><span class="p">(</span><span class="n">theLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()))</span>
-        <span class="k">raise</span> <span class="n">InvalidParameterException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">InvalidParameterError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="n">myWorkingLayer</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">theLayer</span><span class="o">.</span><span class="n">source</span><span class="p">())</span>
 
@@ -386,7 +472,7 @@
     <span class="c"># in its keywords.</span>
     <span class="n">myKeywords</span> <span class="o">=</span> <span class="n">readKeywordsFromFile</span><span class="p">(</span><span class="n">myKeywordsPath</span><span class="p">)</span>
     <span class="k">if</span> <span class="s">&#39;datatype&#39;</span> <span class="ow">in</span> <span class="n">myKeywords</span> <span class="ow">and</span> <span class="n">myKeywords</span><span class="p">[</span><span class="s">&#39;datatype&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;density&#39;</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">theLayer</span><span class="o">.</span><span class="n">srs</span><span class="p">()</span><span class="o">.</span><span class="n">epsg</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">4326</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">theLayer</span><span class="o">.</span><span class="n">srs</span><span class="p">()</span><span class="o">.</span><span class="n">authid</span><span class="p">())</span> <span class="o">!=</span> <span class="s">&#39;EPSG:4326&#39;</span><span class="p">:</span>
 
             <span class="c"># This layer is not WGS84 geographic</span>
             <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Layer </span><span class="si">%s</span><span class="s"> represents density but has spatial &#39;</span>
@@ -395,7 +481,7 @@
                          <span class="s">&#39;and try again. For more information, see issue &#39;</span>
                          <span class="s">&#39;https://github.com/AIFDR/inasafe/issues/123&#39;</span>
                          <span class="o">%</span> <span class="p">(</span><span class="n">myWorkingLayer</span><span class="p">,</span> <span class="n">theLayer</span><span class="o">.</span><span class="n">srs</span><span class="p">()</span><span class="o">.</span><span class="n">toProj4</span><span class="p">()))</span>
-            <span class="k">raise</span> <span class="n">InvalidProjectionException</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">InvalidProjectionError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="c"># We need to provide gdalwarp with a dataset for the clip</span>
     <span class="c"># because unline gdal_translate, it does not take projwin.</span>
@@ -493,7 +579,39 @@
     <span class="n">myFile</span> <span class="o">=</span> <span class="nb">file</span><span class="p">(</span><span class="n">myFilename</span><span class="p">,</span> <span class="s">&#39;wt&#39;</span><span class="p">)</span>
     <span class="n">myFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">myKml</span><span class="p">)</span>
     <span class="n">myFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">myFilename</span></div>
+    <span class="k">return</span> <span class="n">myFilename</span>
+
+</div>
+<div class="viewcode-block" id="extentToGeoArray"><a class="viewcode-back" href="../../api-docs/safe_qgis/clipper.html#safe_qgis.clipper.extentToGeoArray">[docs]</a><span class="k">def</span> <span class="nf">extentToGeoArray</span><span class="p">(</span><span class="n">theExtent</span><span class="p">,</span> <span class="n">theSourceCrs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert the supplied extent to geographic and return as as array.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        theExtent: QgsRectangle to be transformed to geocrs.</span>
+<span class="sd">        theSourceCrs: QgsCoordinateReferenceSystem representing the original</span>
+<span class="sd">            extent&#39;s CRS.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: Transformed extents in EPSG:4326 in the form</span>
+<span class="sd">              [xmin, ymin, xmix, ymax]</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">myGeoCrs</span> <span class="o">=</span> <span class="n">QgsCoordinateReferenceSystem</span><span class="p">()</span>
+    <span class="n">myGeoCrs</span><span class="o">.</span><span class="n">createFromEpsg</span><span class="p">(</span><span class="mi">4326</span><span class="p">)</span>
+    <span class="n">myXForm</span> <span class="o">=</span> <span class="n">QgsCoordinateTransform</span><span class="p">(</span>
+        <span class="n">theSourceCrs</span><span class="p">,</span>
+        <span class="n">myGeoCrs</span><span class="p">)</span>
+
+    <span class="c"># Get the clip area in the layer&#39;s crs</span>
+    <span class="n">myTransformedExtent</span> <span class="o">=</span> <span class="n">myXForm</span><span class="o">.</span><span class="n">transformBoundingBox</span><span class="p">(</span><span class="n">theExtent</span><span class="p">)</span>
+
+    <span class="n">myGeoExtent</span> <span class="o">=</span> <span class="p">[</span><span class="n">myTransformedExtent</span><span class="o">.</span><span class="n">xMinimum</span><span class="p">(),</span>
+                   <span class="n">myTransformedExtent</span><span class="o">.</span><span class="n">yMinimum</span><span class="p">(),</span>
+                   <span class="n">myTransformedExtent</span><span class="o">.</span><span class="n">xMaximum</span><span class="p">(),</span>
+                   <span class="n">myTransformedExtent</span><span class="o">.</span><span class="n">yMaximum</span><span class="p">()]</span>
+    <span class="k">return</span> <span class="n">myGeoExtent</span></div>
 </pre></div>
 
           </div>
@@ -542,9 +660,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

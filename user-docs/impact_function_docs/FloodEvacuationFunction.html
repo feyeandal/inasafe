@@ -28,12 +28,12 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Impact Functions Documentation" href="../impact_functions_doc.html" />
     <link rel="next" title="Flood Building Impact Function" href="FloodBuildingImpactFunction.html" />
-    <link rel="prev" title="Flood Evacuation Function Vector Hazard" href="FloodEvacuationFunctionVectorHazard.html" /> 
+    <link rel="prev" title="P A G Fatality Function" href="PAGFatalityFunction.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -51,7 +51,7 @@
           <a href="FloodBuildingImpactFunction.html" title="Flood Building Impact Function"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="FloodEvacuationFunctionVectorHazard.html" title="Flood Evacuation Function Vector Hazard"
+          <a href="PAGFatalityFunction.html" title="P A G Fatality Function"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -72,14 +72,19 @@
 <h1>Flood Evacuation Function<a class="headerlink" href="#flood-evacuation-function" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p><strong>Unique Identifier</strong>: Flood Evacuation Function</p>
 <p><strong>Rating</strong>: 4</p>
+<p><strong>Limitation</strong>: The default threshold of 1 meter was selected based on consensus, not hard evidence.</p>
 <p><strong>Title</strong>: Need evacuation</p>
+<p><strong>Unique Identifier</strong>: Flood Evacuation Function</p>
+<p><strong>Permissible Hazard Input</strong>: A hazard raster layer where each cell represents flood depth (in meters).</p>
 <p><strong>Author</strong>: AIFDR</p>
+<p><strong>Actions</strong>: Provide details about how many people would likely need to be evacuated, where they are located and what resources would be required to support them.</p>
+<p><strong>Synopsis</strong>: To assess the impacts of (flood or tsunami) inundation on population.</p>
+<p><strong>Permissible Exposure Input</strong>: An exposure raster layer where each cell represent population count.</p>
 </div>
 <div class="section" id="details">
 <h2>Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
-<p>No documentation found</p>
+<p>The population subject to inundation exceeding a threshold (default 1m) is calculated and returned as a raster layer.In addition the total number and the required needs in terms of the BNPB (Perka 7) are reported. The threshold can be changed and even contain multiple numbers in which case evacuation and needs are calculated using the largest number with population breakdowns provided for the smaller numbers. The population raster is resampled to the resolution of the hazard raster and is rescaled so that the resampled population counts reflect estimates of population count per resampled cell. The resulting impact layer has the same resolution and reflects population count per cell which are affected by inundation.</p>
 </div>
 </div>
 
@@ -102,8 +107,8 @@
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="FloodEvacuationFunctionVectorHazard.html"
-                        title="previous chapter">Flood Evacuation Function Vector Hazard</a></p>
+  <p class="topless"><a href="PAGFatalityFunction.html"
+                        title="previous chapter">P A G Fatality Function</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="FloodBuildingImpactFunction.html"
                         title="next chapter">Flood Building Impact Function</a></p>
@@ -144,7 +149,7 @@
           <a href="FloodBuildingImpactFunction.html" title="Flood Building Impact Function"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="FloodEvacuationFunctionVectorHazard.html" title="Flood Evacuation Function Vector Hazard"
+          <a href="PAGFatalityFunction.html" title="P A G Fatality Function"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -157,9 +162,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

@@ -1,0 +1,178 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>safe.impact_functions.earthquake.pager_earthquake_fatality_model &mdash; InaSAFE 1.0.1-final documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Noticia+Text|Droid+Sans+Mono" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0.1-final',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.cookie.js"></script>
+    <script type="text/javascript" src="../../../../_static/toggle_sections.js"></script>
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/>
+    <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="relbar-top">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+    <li><a href="../../../../index.html">Home</a> &raquo;</li>
+    <li><a href="../../../../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for safe.impact_functions.earthquake.pager_earthquake_fatality_model</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">from</span> <span class="nn">safe.impact_functions.earthquake.itb_earthquake_fatality_model</span> <span class="kn">import</span> <span class="p">(</span>
+ <span class="n">ITBFatalityFunction</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="n">ugettext</span> <span class="k">as</span> <span class="n">tr</span>
+
+<span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="n">get_defaults</span>
+
+
+<div class="viewcode-block" id="PAGFatalityFunction"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/earthquake/pager_earthquake_fatality_model.html#safe.impact_functions.earthquake.pager_earthquake_fatality_model.PAGFatalityFunction">[docs]</a><span class="k">class</span> <span class="nc">PAGFatalityFunction</span><span class="p">(</span><span class="n">ITBFatalityFunction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Population Vulnerability Model Pager</span>
+<span class="sd">    Loss ratio(MMI) = standard normal distrib( 1 / BETA * ln(MMI/THETA)).</span>
+<span class="sd">    Reference:</span>
+<span class="sd">    Jaiswal, K. S., Wald, D. J., and Hearne, M. (2009a).</span>
+<span class="sd">    Estimating casualties for large worldwide earthquakes using an empirical</span>
+<span class="sd">    approach. U.S. Geological Survey Open-File Report 2009-1136.</span>
+
+<span class="sd">    :author Helen Crowley</span>
+<span class="sd">    :rating 3</span>
+
+<span class="sd">    :param requires category==&#39;hazard&#39; and \</span>
+<span class="sd">                    subcategory==&#39;earthquake&#39; and \</span>
+<span class="sd">                    layertype==&#39;raster&#39; and \</span>
+<span class="sd">                    unit==&#39;MMI&#39;</span>
+
+<span class="sd">    :param requires category==&#39;exposure&#39; and \</span>
+<span class="sd">                    subcategory==&#39;population&#39; and \</span>
+<span class="sd">                    layertype==&#39;raster&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Die or be displaced according Pager model&#39;</span><span class="p">)</span>
+    <span class="n">defaults</span> <span class="o">=</span> <span class="n">get_defaults</span><span class="p">()</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Theta</span><span class="o">=</span><span class="mf">11.067</span><span class="p">,</span> <span class="n">Beta</span><span class="o">=</span><span class="mf">0.106</span><span class="p">,</span>  <span class="c"># Model coefficients</span>
+                      <span class="c"># Rates of people displaced for each MMI level</span>
+                      <span class="n">displacement_rate</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                         <span class="mf">3.5</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                         <span class="mi">6</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">7</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                                         <span class="mi">8</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">8.5</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">9</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">9.5</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                                         <span class="mi">10</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+                      <span class="n">mmi_range</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)),</span>
+                      <span class="n">step</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+                      <span class="c"># Threshold below which layer should be transparent</span>
+                      <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                      <span class="n">calculate_displaced_people</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">postprocessors</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;Gender&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">},</span>
+                          <span class="s">&#39;Age&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                              <span class="s">&#39;params&#39;</span><span class="p">:</span>
+                                  <span class="p">{</span><span class="s">&#39;youth_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;YOUTH_RATIO&#39;</span><span class="p">],</span>
+                                   <span class="s">&#39;adult_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ADULT_RATIO&#39;</span><span class="p">],</span>
+                                   <span class="s">&#39;elder_ratio&#39;</span><span class="p">:</span> <span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ELDER_RATIO&#39;</span><span class="p">]}}})</span>
+
+<div class="viewcode-block" id="PAGFatalityFunction.fatality_rate"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/earthquake/pager_earthquake_fatality_model.html#safe.impact_functions.earthquake.pager_earthquake_fatality_model.PAGFatalityFunction.fatality_rate">[docs]</a>    <span class="k">def</span> <span class="nf">fatality_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mmi</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pager method to compute fatality rate&quot;&quot;&quot;</span>
+
+        <span class="n">N</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">THETA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;Theta&#39;</span><span class="p">]</span>
+        <span class="n">BETA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;Beta&#39;</span><span class="p">]</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">mmi</span> <span class="o">/</span> <span class="n">THETA</span><span class="p">)</span> <span class="o">/</span> <span class="n">BETA</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">N</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+        <p class="logo"><a href="../../../../contents.html">
+          <img class="logo" src="../../../../_static/icon.png" alt="Logo"/>
+        </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+    <li><a href="../../../../index.html">Home</a> &raquo;</li>
+    <li><a href="../../../../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
+      Last updated on Jan 14, 2013.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+    <!-- cloud_sptheme 1.3 -->
+  </body>
+</html>

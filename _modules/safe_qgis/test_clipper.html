@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -91,12 +91,17 @@
 
 <span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QgsVectorLayer</span><span class="p">,</span>
                        <span class="n">QgsRasterLayer</span><span class="p">,</span>
-                       <span class="n">QgsGeometry</span><span class="p">)</span>
+                       <span class="n">QgsGeometry</span><span class="p">,</span>
+                       <span class="n">QgsPoint</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">readSafeLayer</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">getOptimalExtent</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="n">InvalidProjectionException</span><span class="p">,</span> <span class="n">CallGDALError</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.clipper</span> <span class="kn">import</span> <span class="n">clipLayer</span><span class="p">,</span> <span class="n">extentToKml</span><span class="p">,</span> <span class="n">explodeMultiPartGeometry</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="n">InvalidProjectionError</span><span class="p">,</span> <span class="n">CallGDALError</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.clipper</span> <span class="kn">import</span> <span class="p">(</span><span class="n">clipLayer</span><span class="p">,</span>
+                               <span class="n">extentToKml</span><span class="p">,</span>
+                               <span class="n">explodeMultiPartGeometry</span><span class="p">,</span>
+                               <span class="n">clipGeometry</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.utilities</span> <span class="kn">import</span> <span class="n">qgisVersion</span>
 
 <span class="kn">from</span> <span class="nn">safe_qgis.utilities_test</span> <span class="kn">import</span> <span class="p">(</span><span class="n">getQgisTestApp</span><span class="p">,</span>
                             <span class="n">setCanvasCrs</span><span class="p">,</span>
@@ -105,13 +110,14 @@
                             <span class="n">GEOCRS</span><span class="p">,</span>
                             <span class="n">setJakartaGeoExtent</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">safe.common.testing</span> <span class="kn">import</span> <span class="n">HAZDATA</span><span class="p">,</span> <span class="n">TESTDATA</span><span class="p">,</span> <span class="n">EXPDATA</span>
+<span class="kn">from</span> <span class="nn">safe.common.testing</span> <span class="kn">import</span> <span class="n">HAZDATA</span><span class="p">,</span> <span class="n">TESTDATA</span><span class="p">,</span> <span class="n">EXPDATA</span><span class="p">,</span> <span class="n">UNITDATA</span>
 <span class="kn">from</span> <span class="nn">safe.common.exceptions</span> <span class="kn">import</span> <span class="n">GetDataError</span>
 <span class="kn">from</span> <span class="nn">safe.api</span> <span class="kn">import</span> <span class="n">nanallclose</span>
 
 <span class="c"># Setup pathnames for test data sets</span>
 <span class="n">VECTOR_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TESTDATA</span><span class="p">,</span> <span class="s">&#39;Padang_WGS84.shp&#39;</span><span class="p">)</span>
 <span class="n">VECTOR_PATH2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TESTDATA</span><span class="p">,</span> <span class="s">&#39;OSM_subset_google_mercator.shp&#39;</span><span class="p">)</span>
+<span class="n">VECTOR_PATH3</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">UNITDATA</span><span class="p">,</span> <span class="s">&#39;exposure&#39;</span><span class="p">,</span> <span class="s">&#39;buildings_osm_4326.shp&#39;</span><span class="p">)</span>
 
 <span class="n">RASTERPATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">HAZDATA</span><span class="p">,</span> <span class="s">&#39;Shakemap_Padang_2009.asc&#39;</span><span class="p">)</span>
 <span class="n">RASTERPATH2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TESTDATA</span><span class="p">,</span> <span class="s">&#39;population_padang_1.asc&#39;</span><span class="p">)</span>
@@ -498,10 +504,10 @@
                           <span class="n">myBoundingBox</span><span class="p">,</span>
                           <span class="n">myResolution</span><span class="p">,</span>
                           <span class="n">theExtraKeywords</span><span class="o">=</span><span class="n">myExtraKeywords</span><span class="p">)</span>
-            <span class="k">except</span> <span class="n">InvalidProjectionException</span><span class="p">:</span>
+            <span class="k">except</span> <span class="n">InvalidProjectionError</span><span class="p">:</span>
                 <span class="k">pass</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Should have raised InvalidProjectionException&#39;</span>
+                <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Should have raised InvalidProjectionError&#39;</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ClipperTest.test_extentToKml"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_clipper.html#safe_qgis.test_clipper.ClipperTest.test_extentToKml">[docs]</a>    <span class="k">def</span> <span class="nf">test_extentToKml</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -563,6 +569,92 @@
         <span class="n">myCollection</span> <span class="o">=</span> <span class="n">explodeMultiPartGeometry</span><span class="p">(</span><span class="n">myGeometry</span><span class="p">)</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Expected 2 parts from multipart point geometry&#39;</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">myCollection</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="n">myMessage</span>
+</div>
+<div class="viewcode-block" id="ClipperTest.test_clipGeometry"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_clipper.html#safe_qgis.test_clipper.ClipperTest.test_clipGeometry">[docs]</a>    <span class="k">def</span> <span class="nf">test_clipGeometry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test that we can clip a geometry using another geometry.&quot;&quot;&quot;</span>
+        <span class="n">myGeometry</span> <span class="o">=</span> <span class="n">QgsGeometry</span><span class="o">.</span><span class="n">fromPolyline</span><span class="p">([</span>
+            <span class="n">QgsPoint</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+            <span class="n">QgsPoint</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+            <span class="n">QgsPoint</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span>
+            <span class="n">QgsPoint</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">)])</span>
+
+        <span class="n">myClipPolygon</span> <span class="o">=</span> <span class="n">QgsGeometry</span><span class="o">.</span><span class="n">fromPolygon</span><span class="p">([[</span>
+             <span class="n">QgsPoint</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+             <span class="n">QgsPoint</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span>
+             <span class="n">QgsPoint</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span>
+             <span class="n">QgsPoint</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+             <span class="n">QgsPoint</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)]])</span>
+
+        <span class="n">myResult</span> <span class="o">=</span> <span class="n">clipGeometry</span><span class="p">(</span><span class="n">myClipPolygon</span><span class="p">,</span> <span class="n">myGeometry</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">qgisVersion</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">10800</span><span class="p">:</span>
+            <span class="n">myExpectedWkt</span> <span class="o">=</span> <span class="s">&#39;LINESTRING(20.0 20.0, 30.0 30.0)&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">myExpectedWkt</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;LINESTRING(20.000000 20.000000, &#39;</span>
+                <span class="s">&#39;30.000000 30.000000)&#39;</span><span class="p">)</span>
+        <span class="c"># There should only be one feature that intersects this clip</span>
+        <span class="c"># poly so this assertion should work.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">myExpectedWkt</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">myResult</span><span class="o">.</span><span class="n">exportToWkt</span><span class="p">()))</span>
+
+        <span class="c"># Now poly on poly clip test</span>
+        <span class="n">myClipPolygon</span> <span class="o">=</span> <span class="n">QgsGeometry</span><span class="o">.</span><span class="n">fromWkt</span><span class="p">(</span>
+            <span class="s">&#39;POLYGON((106.8218 -6.1842,106.8232 -6.1842,&#39;</span>
+            <span class="s">&#39;106.82304963 -6.18317148,106.82179736 -6.18314774,&#39;</span>
+            <span class="s">&#39;106.8218 -6.1842))&#39;</span><span class="p">)</span>
+        <span class="n">myGeometry</span> <span class="o">=</span> <span class="n">QgsGeometry</span><span class="o">.</span><span class="n">fromWkt</span><span class="p">(</span>
+            <span class="s">&#39;POLYGON((106.8216869 -6.1852067,106.8213233 -6.1843051,&#39;</span>
+            <span class="s">&#39;106.8212891 -6.1835559,106.8222566 -6.1835184,&#39;</span>
+            <span class="s">&#39;106.8227557 -6.1835076,106.8228588 -6.1851204,&#39;</span>
+            <span class="s">&#39;106.8216869 -6.1852067))&#39;</span><span class="p">)</span>
+        <span class="n">myResult</span> <span class="o">=</span> <span class="n">clipGeometry</span><span class="p">(</span><span class="n">myClipPolygon</span><span class="p">,</span> <span class="n">myGeometry</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">qgisVersion</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">10800</span><span class="p">:</span>
+            <span class="n">myExpectedWkt</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s">&#39;POLYGON((106.82179833 -6.18353616,106.8222566 -6.1835184,&#39;</span>
+                <span class="s">&#39;106.8227557 -6.1835076,106.82279996 -6.1842,&#39;</span>
+                <span class="s">&#39;106.8218 -6.1842,106.82179833 -6.18353616))&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">myExpectedWkt</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s">&#39;POLYGON((106.821798 -6.183536,106.822257 -6.183518,&#39;</span>
+                <span class="s">&#39;106.822756 -6.183508,106.822800 -6.184200,&#39;</span>
+                <span class="s">&#39;106.821800 -6.184200,106.821798 -6.183536))&#39;</span><span class="p">)</span>
+        <span class="c"># There should only be one feature that intersects this clip</span>
+        <span class="c"># poly so this assertion should work.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">myExpectedWkt</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">myResult</span><span class="o">.</span><span class="n">exportToWkt</span><span class="p">()))</span>
+
+        <span class="c"># Now point on poly test clip</span>
+
+        <span class="n">myGeometry</span> <span class="o">=</span> <span class="n">QgsGeometry</span><span class="o">.</span><span class="n">fromWkt</span><span class="p">(</span><span class="s">&#39;POINT(106.82241 -6.18369)&#39;</span><span class="p">)</span>
+        <span class="n">myResult</span> <span class="o">=</span> <span class="n">clipGeometry</span><span class="p">(</span><span class="n">myClipPolygon</span><span class="p">,</span> <span class="n">myGeometry</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">qgisVersion</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">10800</span><span class="p">:</span>
+            <span class="n">myExpectedWkt</span> <span class="o">=</span> <span class="s">&#39;POINT(106.82241 -6.18369)&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">myExpectedWkt</span> <span class="o">=</span> <span class="s">&#39;POINT(106.822410 -6.183690)&#39;</span>
+            <span class="c"># There should only be one feature that intersects this clip</span>
+        <span class="c"># poly so this assertion should work.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">myExpectedWkt</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">myResult</span><span class="o">.</span><span class="n">exportToWkt</span><span class="p">()))</span>
+</div>
+<div class="viewcode-block" id="ClipperTest.test_clipVectorHard"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_clipper.html#safe_qgis.test_clipper.ClipperTest.test_clipVectorHard">[docs]</a>    <span class="k">def</span> <span class="nf">test_clipVectorHard</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Vector layers can be hard clipped.</span>
+
+<span class="sd">        Hard clipping will remove any dangling, non intersecting elements.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">myVectorLayer</span> <span class="o">=</span> <span class="n">QgsVectorLayer</span><span class="p">(</span><span class="n">VECTOR_PATH3</span><span class="p">,</span>
+                                       <span class="s">&#39;OSM Buildings&#39;</span><span class="p">,</span>
+                                       <span class="s">&#39;ogr&#39;</span><span class="p">)</span>
+        <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Failed to load osm buildings&#39;</span>
+        <span class="k">assert</span> <span class="n">myVectorLayer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">myVectorLayer</span><span class="o">.</span><span class="n">isValid</span><span class="p">()</span>
+        <span class="n">setCanvasCrs</span><span class="p">(</span><span class="n">GEOCRS</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="n">setJakartaGeoExtent</span><span class="p">()</span>
+        <span class="n">myClipRect</span> <span class="o">=</span> <span class="p">[</span><span class="mf">106.8218</span><span class="p">,</span> <span class="o">-</span><span class="mf">6.1842</span><span class="p">,</span> <span class="mf">106.8232</span><span class="p">,</span> <span class="o">-</span><span class="mf">6.1830</span><span class="p">]</span>
+
+        <span class="c"># Clip the vector to the bbox</span>
+        <span class="n">myResult</span> <span class="o">=</span> <span class="n">clipLayer</span><span class="p">(</span><span class="n">myVectorLayer</span><span class="p">,</span> <span class="n">myClipRect</span><span class="p">,</span> <span class="n">theHardClipFlag</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># Check the output is valid</span>
+        <span class="k">assert</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">myResult</span><span class="p">))</span>
 </div></div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">suite</span> <span class="o">=</span> <span class="n">unittest</span><span class="o">.</span><span class="n">makeSuite</span><span class="p">(</span><span class="n">ClipperTest</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">)</span>
@@ -616,9 +708,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>

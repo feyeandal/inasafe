@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
-    <script type="text/javascript" src="../../_static/cloud.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
@@ -85,8 +85,8 @@
                                       <span class="n">availableFunctions</span><span class="p">,</span>
                                       <span class="n">readKeywordsFromFile</span><span class="p">,</span>
                                       <span class="n">readSafeLayer</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">KeywordNotFoundException</span><span class="p">,</span>
-                                  <span class="n">InsufficientOverlapException</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">KeywordNotFoundError</span><span class="p">,</span>
+                                  <span class="n">InsufficientOverlapError</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe.common.exceptions</span> <span class="kn">import</span> <span class="n">BoundingBoxError</span>
 <span class="kn">from</span> <span class="nn">safe.common.testing</span> <span class="kn">import</span> <span class="n">TESTDATA</span><span class="p">,</span> <span class="n">HAZDATA</span><span class="p">,</span> <span class="n">EXPDATA</span>
 
@@ -187,7 +187,7 @@
         <span class="n">view_port</span> <span class="o">=</span> <span class="p">[</span><span class="mf">105.3</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.3</span><span class="p">,</span> <span class="mf">110.29</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.5</span><span class="p">]</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">getOptimalExtent</span><span class="p">(</span><span class="n">hazard_bbox</span><span class="p">,</span> <span class="n">exposure_bbox</span><span class="p">,</span> <span class="n">view_port</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">InsufficientOverlapException</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">InsufficientOverlapError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Did not find expected error message in </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">assert</span> <span class="s">&#39;did not overlap&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">myMessage</span>
         <span class="k">else</span><span class="p">:</span>
@@ -201,7 +201,7 @@
         <span class="k">except</span> <span class="n">BoundingBoxError</span><span class="p">:</span>
             <span class="c">#good this was expected</span>
             <span class="k">pass</span>
-        <span class="k">except</span> <span class="n">InsufficientOverlapException</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">InsufficientOverlapError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Did not find expected error message in </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">assert</span> <span class="s">&#39;Invalid&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">myMessage</span>
         <span class="k">else</span><span class="p">:</span>
@@ -261,7 +261,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">myKeyword</span> <span class="o">=</span> <span class="n">readKeywordsFromFile</span><span class="p">(</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">rasterShakePath</span><span class="p">,</span> <span class="s">&#39;boguskeyword&#39;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">KeywordNotFoundException</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">KeywordNotFoundError</span><span class="p">:</span>
             <span class="k">pass</span>  <span class="c"># this is good</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Request for bogus keyword raised incorrect &#39;</span>
@@ -369,9 +369,9 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Nov 29, 2012.
+      Last updated on Jan 14, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
-    <!-- cloud_sptheme 1.4 -->
+    <!-- cloud_sptheme 1.3 -->
   </body>
 </html>
