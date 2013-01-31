@@ -1926,7 +1926,6 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
 
     def hideBusy(self):
         """A helper function to indicate processing is done."""
-        #self.pbnRunStop.setText('Run')
         if self.runner:
             QtCore.QObject.disconnect(self.runner,
                                QtCore.SIGNAL('done()'),
