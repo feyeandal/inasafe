@@ -27,7 +27,7 @@ import uuid
 from functools import partial
 
 from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import pyqtSlot
+from PyQt4.QtCore import pyqtSlot, pyqtSignal
 
 from qgis.core import (QgsMapLayer,
                        QgsVectorLayer,
@@ -115,7 +115,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
     # A custom signal to let listeners know that the job is done
     # set the bool param to True if the analysis all completed
     # ok and False if any of it failed.
-    analysisDone = QtCore.pyqtSignal(bool)
+    analysisDone = pyqtSignal(bool)
 
     def __init__(self, iface):
         """Constructor for the dialog.
