@@ -33,40 +33,16 @@ def runScript():
           '..',
           'inasafe_data'))
 
-    myDock = macro.findInaSAFEDock()
-    myDock.show()
-
-    # open jakarta layer
     macro.addLayers(myRoot, [
-        'exposure//DKI_Buildings.shp',
+        'exposure/DKI_Buildings.shp',
         'hazard/Jakarta_RW_2007flood.shp',
         'test/Population_Jakarta_geographic.asc',
     ])
 
-#    macro.addVectorLayer(myRoot, [
-#        'exposure/DKI_Buildings.shp',
-#        'hazard/Jakarta_RW_2007flood.shp',
- #       'hazard/Flood_Current_Depth_Jakarta_geographic.asc',
-#        'hazard/Population_Jakarta_geographic.asc',
-#        'exposure/DKI_buildings.shp',
-#        'hazard/jakarta_flood_category_123.asc',
-#        'exposure/kabupaten_jakarta_singlepart.shp',
-#    ])
-
-    macro.setupScenario(
-        theHazard='A flood in Jakarta',
-        theExposure='Bangunan-bangunan penting',
-        theFunction='Terkena banjir',
-    )
-
-#    myResult, myMessage = macro.setupScenario(
-#        theHazard='A flood in Jakarta like in 2007',
-#        theExposure='People',
-#        theFunction='Need evacuation',
-#        theFunctionId='Flood Evacuation Function',
-#        theAggregation='kabupaten jakarta singlepart',
-#        theAggregationEnabledFlag=True)
-#
-#    assert myResult, myMessage
+    #macro.setupScenario(
+    #    theHazard='A flood in Jakarta',
+    #    theExposure='Essential buildings',
+    #    theFunction='Be flooded',
+    #)
 
     macro.runScenario()

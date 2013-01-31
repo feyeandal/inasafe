@@ -1,6 +1,6 @@
 """
 InaSAFE Disaster risk assessment tool developed by AusAid -
-**Impact Functions Dialog.**
+**Script runner dialog.**
 
 Contact : ole.moller.nielsen@gmail.com
 
@@ -25,7 +25,7 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignature
 from script_dialog_base import Ui_ScriptDialogBase
 
-import qgis.utils
+import qgis
 
 LOGGER = logging.getLogger('InaSAFE')
 
@@ -37,7 +37,7 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         """Constructor for the dialog.
 
         Args:
-           * theParent - Optional widget to use as parent
+           theParent - Optional widget to use as parent.
         Returns:
            not applicable
         Raises:

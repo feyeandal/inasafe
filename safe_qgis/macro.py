@@ -37,14 +37,14 @@ def findInaSAFEDock():
 
 def setupScenario(theHazard, theExposure, theFunction,
                   theAggregation=None):
-    """Simulate user activities when setting combo box state in InaSAFE Dock widget.
+    """Simulate user activities when setting combo box state in InaSAFE Dock.
 
     Args:
-        theHazard str - (Required) name of the hazard combo entry to set.
-        theExposure str - (Required) name of exposure combo entry to set.
-        theFunction str - (Required) name of the function combo entry to set.
-        theAggregation str - (Optional) which layer should be used for
-        aggregation.
+        * theHazard str - (Required) name of the hazard combo entry to set.
+        * theExposure str - (Required) name of exposure combo entry to set.
+        * theFunction str - (Required) name of the function combo entry to set.
+        * theAggregation str - (Optional) which layer should be used for
+          aggregation.
 
     Returns: None.
 
@@ -96,7 +96,6 @@ def runScenario():
     QtCore.QObject.connect(theDock.pbnRunStop,
         QtCore.SIGNAL('enabled()'), completed)
     theDock.pbnRunStop.click()
-
 
 
 def addLayers(theDirectory, thePaths):
