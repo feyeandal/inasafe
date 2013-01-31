@@ -89,12 +89,10 @@ def runScenario():
 
     def completed():
         LOGGER.debug("scenario done")
-        QtCore.QObject.disconnect(theDock.pbnRunStop,
-            QtCore.SIGNAL('enabled()'),
-            completed)
+        theDock.analysisDone.disconnect(completed)
 
-    QtCore.QObject.connect(theDock.pbnRunStop,
-        QtCore.SIGNAL('enabled()'), completed)
+    theDock.analysisDone.connect(completed)
+    # Start the analysis
     theDock.pbnRunStop.click()
 
 

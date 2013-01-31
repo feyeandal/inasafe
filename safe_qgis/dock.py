@@ -112,6 +112,11 @@ LOGGER = logging.getLogger('InaSAFE')
 class Dock(QtGui.QDockWidget, Ui_DockBase):
     """Dock implementation class for the inaSAFE plugin."""
 
+    # A custom signal to let listeners know that the job is done
+    # set the bool param to True if the analysis all completed
+    # ok and False if any of it failed.
+    analysisDone = QtCore.pyqtSignal(bool)
+
     def __init__(self, iface):
         """Constructor for the dialog.
 
@@ -202,7 +207,6 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         myCanvas = self.iface.mapCanvas()
         QtCore.QObject.connect(myCanvas, QtCore.SIGNAL('extentsChanged()'),
                                self.checkMemoryUsage)
-
 
     def readSettings(self):
         """Set the dock state from QSettings. Do this on init and after
@@ -987,6 +991,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         if not myFlag:
             self.displayHtml(myMessage)
             self.hideBusy()
+            self.analysisDone.emit(False)
             return
 
         self.postProcessingLayer = self.getPostProcessingLayer()
@@ -1042,6 +1047,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                 myMessage = getExceptionWithStacktrace(e, theHtml=True)
                 self.displayHtml(myMessage)
                 self.hideBusy()
+                self.analysisDone.emit(False)
                 return
 
         LOGGER.debug('Do zonal aggregation: ' + str(self.doZonalAggregation))
@@ -1060,7 +1066,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             QtCore.SIGNAL('rejected()'),
             partial(self.acceptCancelled, myOriginalKeywords))
         # go check if our postprocessing layer has any keywords set and if not
-        # prompt for them. if a prompt is shown myContinue will be false
+        # prompt for them. If a prompt is shown myContinue will be false
         # and the run method is called by the accepted signal
         myContinue = self._checkPostProcessingAttributes()
         if myContinue:
@@ -1082,6 +1088,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         self.keywordIO.writeKeywords(self.postProcessingLayer, theOldKeywords)
         self.hideBusy()
         self.setOkButtonStatus()
+        self.analysisDone.emit(False)
 
     def run(self):
         """Execute analysis when ok button on settings is clicked."""
@@ -1109,15 +1116,18 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         except CallGDALError, e:
             self.spawnError(e,
                 self.tr('An error occurred when calling a GDAL command'))
+            self.analysisDone.emit(False)
             return
         except IOError, e:
             self.spawnError(e,
                 self.tr('An error occurred when writing clip file'))
+            self.analysisDone.emit(False)
             return
         except InsufficientOverlapError, e:
             self.spawnError(e,
                 self.tr('An exception occurred when setting up the '
                     'impact calculator.'))
+            self.analysisDone.emit(False)
             return
         except NoFeaturesInExtentError, e:
             self.spawnError(e,
@@ -1125,6 +1135,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                     'no features visible in the current view. Try '
                     'zooming out or panning until some features '
                     'become visible.'))
+            self.analysisDone.emit(False)
             return
         except InvalidProjectionError, e:
             self.spawnError(e,
@@ -1134,6 +1145,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                     'accurately if we re-project it from its '
                     'native coordinate reference system to'
                     'WGS84/GeoGraphic.'))
+            self.analysisDone.emit(False)
             return
         except MemoryError, e:
             self.spawnError(e,
@@ -1143,6 +1155,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                     'Alternatively, consider using a smaller geographical '
                     'area for your analysis, or using rasters with a larger '
                     'cell size.') + self.checkMemoryUsage())
+            self.analysisDone.emit(False)
             return
 
         try:
@@ -1151,6 +1164,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             self.spawnError(e,
                 self.tr('An exception occurred when setting up '
                     'the model runner.'))
+            self.analysisDone.emit(False)
             return
 
         QtCore.QObject.connect(self.runner,
@@ -1177,10 +1191,11 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             QtGui.qApp.restoreOverrideCursor()
             # .. todo :: Disconnect done slot/signal
         except Exception, e:  # pylint: disable=W0703
-
+            self.analysisDone.emit(False)
             # FIXME (Ole): This branch is not covered by the tests
             self.spawnError(e, self.tr('An exception occurred when starting'
                                 ' the model.'))
+            self.analysisDone.emit(False)
 
     def spawnError(self, theException, theMessage):
         """A helper to spawn an error and halt processing.
@@ -1256,12 +1271,12 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         Raises:
             Any exceptions raised by the InaSAFE library will be propagated.
         """
-#        import time
-#        startTime = time.clock()
+        # import time
+        # startTime = time.clock()
         myPostprocPolygons = self.mySafePostprocLayer.get_geometry()
         myPolygonsLayer = safe_read_layer(theLayerFilename)
         myRemainingPolygons = numpy.array(myPolygonsLayer.get_geometry())
-#        myRemainingAttributes = numpy.array(myPolygonsLayer.get_data())
+        # myRemainingAttributes = numpy.array(myPolygonsLayer.get_data())
         myRemainingIndexes = numpy.array(range(len(myRemainingPolygons)))
 
         #used for unit tests only
@@ -1541,6 +1556,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                 myMessage = getExceptionWithStacktrace(myException,
                     theHtml=True,
                     theContext=myContext)
+            self.analysisDone.emit(False)
             QtGui.qApp.restoreOverrideCursor()
             self.hideBusy()
             self.displayHtml(myMessage)
@@ -1560,8 +1576,10 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             myMessage = getExceptionWithStacktrace(e, theHtml=True,
                 theContext=myMessage)
             self.displayHtml(myMessage)
+            self.analysisDone.emit(False)
             return
         self.completed()
+        self.analysisDone.emit(True)
 
     def initializePostProcessor(self):
         """Initializes and clears self._postProcessingOutput.
@@ -1862,7 +1880,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             self.aggregationErrorSkipPostprocessing = myMessage
             return
 
-        # start data retreival: fetch no geometry and
+        # start data retrieval: fetch no geometry and
         # 1 attr for each feature
         myImpactProvider.select([myTargetFieldIndex], QgsRectangle(), False)
         myTotal = 0
@@ -2322,6 +2340,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             # Display message and traceback
             myMessage = getExceptionWithStacktrace(e, theHtml=True)
             self.displayHtml(myMessage)
+            self.analysisDone.emit(False)
         else:
             # On success, display generated report
 
@@ -2388,6 +2407,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         else:
             myMessage = self.tr('Impact layer %1 was neither a raster or a '
                    'vector layer').arg(myQGISImpactLayer.source())
+            self.analysisDone.emit(False)
             raise ReadLayerError(myMessage)
 
         # Add layers to QGIS
