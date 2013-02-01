@@ -1,6 +1,10 @@
 """
 InaSAFE Disaster risk assessment tool developed by AusAid -
-**Script to check InaSAFE widgets behavior**
+**Script to check InaSAFE widgets behavior.**
+
+.. warning:: This is a prototype and you should probably not use it! It
+    can potentially change your InaSAFE settings without you realising it
+    and subsequently cause strange behaviours. TS
 
 Contact : ole.moller.nielsen@gmail.com
 
@@ -50,8 +54,8 @@ def runScript(iface):
     ## when we click the dock button, InsafeDock widget must be visible
     actionDock.trigger()
 
-    macro.assertTrue(actionDock.isChecked())
-    macro.assertTrue(dock.isVisible())
+    assertTrue(actionDock.isChecked())
+    assertTrue(dock.isVisible())
 
     ## when we click options button, OptionsDialog must be visible
     actionOptions.trigger()
@@ -60,12 +64,16 @@ def runScript(iface):
         OptionsDialog, 'InaSAFEOptionsDialog')
 
     #assert optionsDialog.isHidden() is False
-    macro.assertTrue(optionsDialog.isVisible())
+    assertTrue(optionsDialog.isVisible())
 
     ## check OptionsDialog flags
     optionsDialog.cbxUseThread.setChecked(True)
     optionsDialog.cbxVisibleLayersOnly.setChecked(True)
     optionsDialog.accept()
 
-    macro.assertTrue(dock.runInThreadFlag)
-    macro.assertTrue(dock.showOnlyVisibleLayersFlag)
+    assertTrue(dock.runInThreadFlag)
+    assertTrue(dock.showOnlyVisibleLayersFlag)
+
+def assertTrue(theFlag):
+    if not theFlag:
+        raise Exception('State not as expected.')
