@@ -20,6 +20,7 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
 import os
 import sys
 import logging
+import re
 
 from PyQt4 import QtGui
 from PyQt4.QtCore import pyqtSignature
@@ -64,15 +65,6 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         self.populateTable()
         self.adjustSize()
 
-    def getScriptPath(self):
-        """ Get base path for directory that contains the script files
-
-        Returns:
-        String containing absolute base path for script files
-        """
-        myRoot = os.path.dirname(__file__)
-        return os.path.abspath(os.path.join(myRoot, '..', 'script_runner'))
-
     def populateTable(self):
         """ Populate table with files from folder 'script_runner' directory.
 
@@ -97,7 +89,6 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         for index, filename in enumerate(myFiles):
             self.tblScript.setItem(index, 0, QtGui.QTableWidgetItem(filename))
             self.tblScript.setItem(index, 1, QtGui.QTableWidgetItem(''))
-
 
     def runScript(self, theFilename):
         """ runs script in QGIS
@@ -169,3 +160,107 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
         self.gboOptions.setVisible(theFlag)
         self.adjustSize()
+
+
+def readScenarios(theFilename):
+    """Read keywords dictionary from file
+
+    Args:
+        * theFilename: Name of file holding scenarios - should be placed
+            in the script_runner directory.
+
+    Returns:
+        None
+
+    Raises: None
+
+    A scenarios file may look like this:
+
+        [jakarta_flood]
+        hazard: /path/to/hazard.tif
+        exposure: /path/to/exposure.tif
+        function: function_id
+        aggregation: /path/to/aggregation_layer.tif
+    """
+
+    # Input checks
+    myFilename = os.path.join(getScriptPath(), theFilename)
+    myBasename, myExtension = os.path.splitext(theFilename)
+
+    myMessage = ('Unknown extension for file %s. '
+                 'Expected %s.keywords' % (myFilename, myBasename))
+    LOGGER.error(myMessage)
+
+    if not os.path.isfile(myFilename):
+        return {}
+
+    # Read all entries
+    myBlocks = {}
+    myKeys = {}
+    myFile = open(myFilename, 'r')
+    myBlock = None
+    myFirstKeys = None
+    for line in myFile.readlines():
+        # Remove trailing (but not preceeding!) whitespace
+        # FIXME: Can be removed altogether
+        myLine = line.rstrip()
+
+        # Ignore blank lines
+        if myLine == '':
+            continue
+
+        # Check if it is an ini style group header
+        myBlockFlag = re.search(r'^\[.*]$', myLine, re.M | re.I)
+
+        if myBlockFlag:
+            # Write the old block if it exists - must have a current
+            # block to prevent orphans
+            if len(myKeys) > 0 and myBlock is not None:
+                myBlocks[myBlock] = myKeys
+            if myFirstKeys is None and len(myKeys) > 0:
+                myFirstKeys = myKeys
+                # Now set up for a new block
+            myBlock = myLine[1:-1]
+            # Reset the keys each time we encounter a new block
+            # until we know we are on the desired one
+            myKeys = {}
+            continue
+
+        if ':' not in myLine:
+            continue
+        else:
+            # Get splitting point
+            myIndex = myLine.find(':')
+
+            # Take key as everything up to the first ':'
+            myKey = myLine[:myIndex]
+
+            # Take value as everything after the first ':'
+            myValue = myLine[myIndex + 1:].strip()
+
+        # Add entry to dictionary
+        myKeys[myKey] = myValue
+
+    myFile.close()
+
+    # Write out any unfinalised block data
+    if len(myKeys) > 0 and myBlock is not None:
+        myBlocks[myBlock] = myKeys
+    if myFirstKeys is None:
+        myFirstKeys = myKeys
+
+    # Ok we have generated a structure that looks like this:
+    # myBlocks = {{ 'foo' : { 'a': 'b', 'c': 'd'},
+    #           { 'bar' : { 'd': 'e', 'f': 'g'}}
+    # where foo and bar are scenarios and their dicts are the options for
+    # that scenario (e.g. hazard, exposure etc)
+    return myBlocks
+
+def getScriptPath():
+    """ Get base path for directory that contains the script files
+
+    Returns:
+    String containing absolute base path for script files
+    """
+    myRoot = os.path.dirname(__file__)
+    return os.path.abspath(os.path.join(myRoot, '..', 'script_runner'))
