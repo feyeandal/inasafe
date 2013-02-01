@@ -21,8 +21,9 @@ import os
 import sys
 import logging
 
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
 from PyQt4.QtCore import pyqtSignature
+
 from script_dialog_base import Ui_ScriptDialogBase
 
 import qgis
@@ -46,17 +47,23 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         QtGui.QDialog.__init__(self, theParent)
         self.setupUi(self)
         self.setWindowTitle(self.tr('Script Dialog'))
+        LOGGER.info('Script runner dialog started')
 
-        self.tblScript.setColumnWidth(0, 200)
-        self.tblScript.setColumnWidth(1, 50)
+        #myHeaderView = QtGui.QHeaderView(Qt.Horizontal, self.tblScript)
+        #self.tblScript.setHorizontalHeader(myHeaderView)
+        #myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch);
+        #myHeaderView.setResizeMode(1, QtGui.QHeaderView.Interactive);
 
-        self.gboOptions.setVisible(False)
+        #self.tblScript.setColumnWidth(0, 200)
+        #self.tblScript.setColumnWidth(1, 50)
+
+        #self.gboOptions.setVisible(False)
 
         # add script folder to sys.path
-        sys.path.append(self.getScriptPath())
+        #sys.path.append(self.getScriptPath())
 
-        self.populateTable()
-        self.adjustSize()
+        #self.populateTable()
+        #self.adjustSize()
 
 
     def getScriptPath(self):
@@ -69,11 +76,13 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         return os.path.abspath(os.path.join(myRoot, '..', 'script_runner'))
 
     def populateTable(self):
-        """ Populate table list in script dialog with file
-        from folder 'script_runner'
+        """ Populate table with files from folder 'script_runner' directory.
+
+        Args:
+            None
 
         Returns:
-        None
+            None
         """
 
         self.tblScript.clearContents()
@@ -143,11 +152,10 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
             # set status to 'fail'
             myStatusItem.setText(self.tr('Fail'))
 
-            LOGGER.log(0, ex.message)
+            LOGGER.exception('Running macro failed')
 
             # just reraise the exception
             raise
-
 
 
     @pyqtSignature('')

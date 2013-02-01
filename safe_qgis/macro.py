@@ -28,72 +28,29 @@ from qgis.utils import iface
 
 LOGGER = logging.getLogger('InaSAFE')
 
-def findInaSAFEDock():
+def getDock():
     """ Get InaSAFE Dock widget instance.
     Returns: Dock - instance of InaSAFE Dock in QGIS main window.
     """
     return iface.mainWindow().findChild(Dock, 'InaSAFEDock')
 
 
-def setupScenario(theHazard, theExposure, theFunction,
-                  theAggregation=None):
-    """Simulate user activities when setting combo box state in InaSAFE Dock.
-
-    Args:
-        * theHazard str - (Required) name of the hazard combo entry to set.
-        * theExposure str - (Required) name of exposure combo entry to set.
-        * theFunction str - (Required) name of the function combo entry to set.
-        * theAggregation str - (Optional) which layer should be used for
-          aggregation.
-
-    Returns: None.
-
-    Raises: Exception - occurs when this function failed to set the state of combo box.
-    """
-
-    def setComboBox(theWidget, theText, theFailMessage):
-        myIndex = theWidget.findText(theText)
-        if myIndex == -1:
-            raise Exception(theFailMessage)
-        theWidget.setCurrentIndex(myIndex)
-
-    myDock = findInaSAFEDock()
-    myDock.show()
-
-    if theHazard is not None:
-        myMessage = tr('Hazard Layer Not Found: %s' % theHazard)
-        setComboBox(myDock.cboHazard, theHazard, myMessage)
-
-    if theExposure is not None:
-        myMessage = tr('Exposure Layer Not Found: %s' % theExposure)
-        setComboBox(myDock.cboExposure, theExposure, myMessage)
-
-    if theFunction is not None:
-        myMessage = tr('Impact Function Not Found: %s' % theFunction)
-        setComboBox(myDock.cboFunction, theFunction, myMessage)
-
-    if theAggregation is not None:
-        if myDock.cboAggregation.isEnabled() is False:
-            raise Exception('The aggregation combobox should be enabled')
-
-        myMessage = tr('Aggregation layer Not Found: %s' % theAggregation)
-        setComboBox(myDock.cboAggregation, theAggregation, myMessage)
-
-
 def runScenario():
     """Simulate pressing run button in InaSAFE dock widget.
-    Returns: None
+
+    Returns:
+        None
     """
 
-    theDock = findInaSAFEDock()
+    myDock = getDock()
 
     def completed():
         LOGGER.debug("scenario done")
-        theDock.analysisDone.disconnect(completed)
+        myDock.analysisDone.disconnect(completed)
 
-    theDock.analysisDone.connect(completed)
+    myDock.analysisDone.connect(completed)
     # Start the analysis
-    theDock.pbnRunStop.click()
+    myDock.pbnRunStop.click()
 
 
 def addLayers(theDirectory, thePaths):
@@ -135,11 +92,3 @@ def addLayers(theDirectory, thePaths):
         else:
             raise Exception('File %s had illegal extension' % myPath)
 
-
-def assertEquals(theValue, theExpected, theMessage=None):
-    if theValue != theExpected:
-        raise Exception(theMessage)
-
-def assertTrue(theValue, theMessage=None):
-    if theValue is not True:
-        raise Exception(theMessage)

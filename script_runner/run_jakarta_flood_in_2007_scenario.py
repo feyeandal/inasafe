@@ -18,12 +18,6 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
 
 import os
-
-from PyQt4.QtGui import *
-from safe_qgis.dock import Dock
-from safe_qgis.options_dialog import OptionsDialog
-
-import qgis.utils
 import safe_qgis.macro as macro
 
 def runScript():
@@ -38,11 +32,5 @@ def runScript():
         'hazard/Jakarta_RW_2007flood.shp',
         'test/Population_Jakarta_geographic.asc',
     ])
-
-    #macro.setupScenario(
-    #    theHazard='A flood in Jakarta',
-    #    theExposure='Essential buildings',
-    #    theFunction='Be flooded',
-    #)
 
     macro.runScenario()
