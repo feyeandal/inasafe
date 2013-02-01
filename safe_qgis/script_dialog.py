@@ -156,14 +156,17 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
     def on_pbnRunAll_clicked(self):
         for myRow in range(self.tblScript.rowCount() - 1):
             self.tblScript.selectRow(myRow)
-            self.on_btnRunSelected_clicked()
+            try:
+                self.on_btnRunSelected_clicked()
+            except:
+                LOGGER.exception('Batch execution failed')
 
     @pyqtSignature('')
     def on_btnRunSelected_clicked(self):
         myCurrentRow = self.tblScript.currentRow()
         # See if this is a python script or a scenario read from a text file
         myItem = self.tblScript.item(myCurrentRow, 0)
-        if myItem.data(QtCore.Qt.UserRole) is None:
+        if myItem.data(QtCore.Qt.UserRole).isNull():
             # Its a python script
             myFilename = myItem.text()
 
