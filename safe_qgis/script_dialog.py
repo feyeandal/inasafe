@@ -154,7 +154,7 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
     @pyqtSignature('')
     def on_pbnRunAll_clicked(self):
-        for myRow in range(self.tblScript.rowCount() - 1):
+        for myRow in range(self.tblScript.rowCount()):
             self.tblScript.selectRow(myRow)
             try:
                 self.on_btnRunSelected_clicked()
