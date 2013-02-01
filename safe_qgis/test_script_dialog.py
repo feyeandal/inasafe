@@ -30,7 +30,14 @@ class ScriptDialogTest(unittest.TestCase):
     def testScenarioParser(self):
         """Test if we can load scenarios from a text file."""
         myDictionary = readScenarios('test.txt')
-        myExpectedDictionary = {}
+        myExpectedDictionary = {
+            'jakarta_flood_buildings':
+                    {'exposure': 'exposure/DKI_Buildings.shp',
+                     'hazard': 'hazard/Jakarta_RW_2007flood.shp'},
+            'jakarta_flood_people': {
+                      'exposure': 'test/Population_Jakarta_geographic.asc',
+                      'hazard': 'hazard/Jakarta_RW_2007flood.shp'}
+        }
         self.assertDictEqual(myExpectedDictionary, myDictionary)
 
 if __name__ == '__main__':
