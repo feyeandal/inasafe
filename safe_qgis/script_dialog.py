@@ -22,7 +22,7 @@ import sys
 import logging
 import re
 
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignature
 
 from script_dialog_base import Ui_ScriptDialogBase
@@ -105,9 +105,9 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 ))
                 self.tblScript.insertRow(self.tblScript.rowCount())
                 myRow = self.tblScript.rowCount() - 1
-
-                self.tblScript.setItem(myRow, 0, QtGui.QTableWidgetItem(
-                    myKey))
+                myItem = QtGui.QTableWidgetItem(myKey)
+                myItem.setData(QtCore.Qt.UserRole, myValue)
+                self.tblScript.setItem(myRow, 0, myItem)
                 self.tblScript.setItem(myRow, 1, QtGui.QTableWidgetItem(''))
 
     def runScript(self, theFilename):
@@ -146,25 +146,52 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
     @pyqtSignature('')
     def on_btnRunSelected_clicked(self):
         myCurrentRow = self.tblScript.currentRow()
-        myFilename = str(self.tblScript.item(myCurrentRow, 0).text())
+        # See if this is a python script or a scenario read from a text file
+        myItem = self.tblScript.item(myCurrentRow, 0)
+        if myItem.data(QtCore.Qt.UserRole) is None:
+            # Its a python script
+            myFilename = myItem.text()
 
-        # set status to 'running'
-        myStatusItem = self.tblScript.item(myCurrentRow, 1)
-        myStatusItem.setText(self.tr('Running'))
+            # set status to 'running'
+            myStatusItem = self.tblScript.item(myCurrentRow, 1)
+            myStatusItem.setText(self.tr('Running'))
 
-        # run script
-        try:
-            self.runScript(myFilename)
-            # set status to 'OK'
-            myStatusItem.setText(self.tr('OK'))
-        except Exception as ex:
-            # set status to 'fail'
-            myStatusItem.setText(self.tr('Fail'))
+            # run script
+            try:
+                self.runScript(myFilename)
+                # set status to 'OK'
+                myStatusItem.setText(self.tr('OK'))
+            except Exception as ex:
+                # set status to 'fail'
+                myStatusItem.setText(self.tr('Fail'))
 
-            LOGGER.exception('Running macro failed')
+                LOGGER.exception('Running macro failed')
 
-            # just reraise the exception
-            raise
+                # just re raise the exception
+                raise
+        else:
+            # Its a dict containing files for a scenario
+            myText = myItem.text()
+            myDict = myItem.data(QtCore.Qt.UserRole)
+
+            # Set status to 'running'
+            myStatusItem = self.tblScript.item(myCurrentRow, 1)
+            myStatusItem.setText(self.tr('Running'))
+
+            # Run script
+            try:
+                LOGGER.info('Running scenario: %s' % myDict)
+                # set status to 'OK'
+                myStatusItem.setText(self.tr('OK'))
+            except Exception as ex:
+                # set status to 'fail'
+                myStatusItem.setText(self.tr('Fail'))
+
+                LOGGER.exception('Running macro failed')
+
+                # just re raise the exception
+                raise
+
 
 
     @pyqtSignature('')
