@@ -11,7 +11,7 @@ Contact : ole.moller.nielsen@gmail.com
 
 """
 
-__author__ = 'bungcip@gmail.com'
+__author__ = 'bungcip@gmail.com & tim@linfiniti.com'
 __revision__ = '$Format:%H$'
 __date__ = '01/10/2012'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
@@ -151,6 +151,12 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
             else:
                 myFunction()
 
+
+    @pyqtSignature('')
+    def on_pbnRunAll_clicked(self):
+        for myRow in range(self.tblScript.rowCount() - 1):
+            self.tblScript.selectRow(myRow)
+            self.on_btnRunSelected_clicked()
 
     @pyqtSignature('')
     def on_btnRunSelected_clicked(self):

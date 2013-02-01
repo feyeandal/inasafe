@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'impact_functions_doc_base.ui'
 #
-# Created: Tue Oct 16 12:12:12 2012
-#      by: PyQt4 UI code generator 4.9.1
+# Created: Fri Feb  1 18:04:39 2013
+#      by: PyQt4 UI code generator 4.9
 #
 # WARNING! All changes made in this file will be lost!
 
