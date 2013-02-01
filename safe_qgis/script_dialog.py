@@ -49,22 +49,20 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         self.setWindowTitle(self.tr('Script Dialog'))
         LOGGER.info('Script runner dialog started')
 
-        #myHeaderView = QtGui.QHeaderView(Qt.Horizontal, self.tblScript)
-        #self.tblScript.setHorizontalHeader(myHeaderView)
-        #myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch);
-        #myHeaderView.setResizeMode(1, QtGui.QHeaderView.Interactive);
+        myHeaderView = self.tblScript.horizontalHeader()
+        myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch);
+        myHeaderView.setResizeMode(1, QtGui.QHeaderView.Interactive);
 
-        #self.tblScript.setColumnWidth(0, 200)
-        #self.tblScript.setColumnWidth(1, 50)
+        self.tblScript.setColumnWidth(0, 200)
+        self.tblScript.setColumnWidth(1, 50)
 
-        #self.gboOptions.setVisible(False)
+        self.gboOptions.setVisible(False)
 
-        # add script folder to sys.path
-        #sys.path.append(self.getScriptPath())
+        # Add script folder to sys.path.
+        sys.path.append(self.getScriptPath())
 
-        #self.populateTable()
-        #self.adjustSize()
-
+        self.populateTable()
+        self.adjustSize()
 
     def getScriptPath(self):
         """ Get base path for directory that contains the script files
