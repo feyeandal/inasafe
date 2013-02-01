@@ -32,13 +32,17 @@ if [ "$BRANCH" != "gh-pages" ]; then
   exit 1
 else
   echo "Environement looks good, lets start"
-  echo "Pulling lates sources of gh-pages ..."
-  git pull
+  git fetch
+  echo "Merging lates sources of origin/gh-pages ..."
+  git merge origin/gh-pages
   echo "Generating .rst files for API doc..."
   python $SCRIPTDIR/gen_rst_script.py
+  echo "Generating .rst files for impact function doc..."
   cd $INASAFEDIR
+  make gen_impact_function_doc
   echo "Pulling lates sources of inaSAFE ..."
-  git pull
+  git fetch
+  git merge origin/master
   echo "Generating docs..."
   make clean docs
   

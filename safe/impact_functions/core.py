@@ -10,7 +10,7 @@ import numpy
 import logging
 import keyword as python_keywords
 from safe.common.polygon import inside_polygon
-from safe.common.utilities import ugettext as _
+from safe.common.utilities import ugettext as tr
 from safe.common.tables import Table, TableCell, TableRow
 from utilities import pretty_string, remove_double_spaces
 
@@ -65,10 +65,13 @@ def get_function_title(func):
         otherwise what is returned by the function pretty_function_name.
     """
 
+    myTitle = None
     if hasattr(func, 'title'):
-        return func.title
+        myTitle = func.title
     else:
-        return pretty_function_name(func)
+        myTitle = pretty_function_name(func)
+
+    return tr(myTitle)
 
 
 def get_plugins(name=None):
@@ -115,6 +118,7 @@ def get_plugin(name):
     return impact_function
 
 
+# FIXME (Ole): Deprecate this function (see issue #392)
 def pretty_function_name(func):
     """Return a human readable name for the function
     if the function has a func.plugin_name use this
@@ -197,7 +201,7 @@ def requirement_check(params, require_str, verbose=False):
         # Check that symbol is not a Python keyword
         if key in python_keywords.kwlist:
             msg = ('Error in plugin requirements'
-                   'Must not use Python keywords as params: %s' % (key))
+                   'Must not use Python keywords as params: %s' % key)
             #print msg
             #logger.error(msg)
             return False
@@ -349,7 +353,7 @@ def get_question(hazard_title, exposure_title, func):
     """
 
     function_title = get_function_title(func)
-    return (_('In the event of <i>%(hazard)s</i> how many '
+    return (tr('In the event of <i>%(hazard)s</i> how many '
               '<i>%(exposure)s</i> might <i>%(impact)s</i>')
             % {'hazard': hazard_title.lower(),
                'exposure': exposure_title.lower(),
@@ -584,9 +588,9 @@ def get_plugins_as_table(dict_filter=None):
     # use this list for avoiding wrong order in dict
     atts = ['category', 'subcategory', 'layertype',
                            'datatype', 'unit']
-    header = TableRow([_('Title'), _('ID'), _('Category'),
-                       _('Sub Category'), _('Layer type'), _('Data type'),
-                       _('Unit')],
+    header = TableRow([tr('Title'), tr('ID'), tr('Category'),
+                       tr('Sub Category'), tr('Layer type'), tr('Data type'),
+                       tr('Unit')],
                       header=True)
     table_body.append(header)
 
@@ -605,6 +609,10 @@ def get_plugins_as_table(dict_filter=None):
                           'unit': False}
 
             dict_req = parse_single_requirement(str(requirement))
+
+            # If the impact function is disabled, do not show it
+            if dict_req.get('disabled', False):
+                continue
 
             for myKey in dict_found.iterkeys():
                 myFilter = dict_filter.get(myKey, [])
@@ -653,7 +661,7 @@ def get_plugins_as_table(dict_filter=None):
                        str(cw) + '%', str(cw) + '%', str(cw) + '%',
                        str(cw) + '%']
     table = Table(table_body, col_width=table_col_width)
-    table.caption = _('Available Impact Functions')
+    table.caption = tr('Available Impact Functions')
 
     return table
 
@@ -679,6 +687,8 @@ def get_unique_values():
     plugins_dict = dict([(pretty_function_name(p), p)
                          for p in FunctionProvider.plugins])
     for key, func in plugins_dict.iteritems():
+        if not is_function_enabled(func):
+            continue
         dict_retval['title'].add(get_function_title(func))
         dict_retval['id'].add(key)
         for requirement in requirements_collect(func):
@@ -697,43 +707,42 @@ def get_unique_values():
     return dict_retval
 
 
-def get_dict_doc_func(func):
-    """Collect all doc string of func and return a beatiuful format of them
-    in a dictionary format.
+def get_documentation(func):
+    """Collect documentaion of a impact function and return it as a dictionary
 
         Args:
             * func : name of function
         Returns:
             * Dictionary contains:
-                synopsis : string (first line)
                 author : string (identified by :author)
+                synopsis : string (first line)
                 rating : integer (identified by :rating)
                 param_req : list of param (identified by :param requires)
-                detail : detail description (identified by :detail)
-                citation : list of citation in string (identified by :citation)
-                limitation : string (identified by :limitation)
+                detail : detail description (function properties)
+                citation : list of citation in string (function properties)
+                limitation : string (function properties)
     """
-    retval = {'synopsis': '',
-              'author': '',
-              'rating': '',
-              'param_req': [],
-              'detail': '',
-              'citation': [],
-              'limitaion': ''}
+    retval = {'unique_identifier': func}
 
     plugins_dict = dict([(pretty_function_name(p), p)
                          for p in FunctionProvider.plugins])
     if func not in plugins_dict.keys():
-        return retval
+        return None
     else:
         func = plugins_dict[func]
 
     author_tag = ':author'
     rating_tag = ':rating'
-    param_req_tag = ':param requires'
-    detail_tag = ':detail'
-    citation_tag = ':citation'
-    limitation_tag = ':limitation'
+
+    # attributes
+    synopsis = 'synopsis'
+    actions = 'actions'
+    # citations must be a list
+    citations = 'citations'
+    detailed_description = 'detailed_description'
+    permissible_hazard_input = 'permissible_hazard_input'
+    permissible_exposure_input = 'permissible_exposure_input'
+    limitation = 'limitation'
 
     if hasattr(func, '__doc__') and func.__doc__:
         doc_str = func.__doc__
@@ -742,18 +751,71 @@ def get_dict_doc_func(func):
             doc_line = doc_line.strip()
 
             if doc_line.startswith(author_tag):
-                retval['author'] = doc_line[len(author_tag) + 1:]
+                retval['author'] = remove_double_spaces(
+                                        doc_line[len(author_tag) + 1:])
             elif doc_line.startswith(rating_tag):
-                retval['rating'] = int(doc_line[len(rating_tag) + 1:])
-            elif doc_line.startswith(detail_tag):
-                retval['detail'] = doc_line[len(detail_tag) + 1:]
-            elif doc_line.startswith(limitation_tag):
-                retval['limitation'] = doc_line[len(limitation_tag) + 1:]
-            elif doc_line.startswith(param_req_tag):
-                retval['param_req'].append(doc_line[len(param_req_tag) + 1:])
-            elif doc_line.startswith(citation_tag):
-                retval['citation'].append(doc_line[len(citation_tag) + 1:])
+                retval['rating'] = doc_line[len(rating_tag) + 1:]
+    retval['title'] = get_function_title(func)
 
-        retval['synopsis'] = remove_double_spaces(doc_str.split('\n')[0])
-
+    if hasattr(func, synopsis):
+        retval[synopsis] = func.synopsis
+    if hasattr(func, actions):
+        retval[actions] = func.actions
+    if hasattr(func, citations):
+        retval[citations] = func.citations
+    if hasattr(func, detailed_description):
+        retval[detailed_description] = func.detailed_description
+    if hasattr(func, permissible_hazard_input):
+        retval[permissible_hazard_input] = func.permissible_hazard_input
+    if hasattr(func, permissible_exposure_input):
+        retval[permissible_exposure_input] = func.permissible_exposure_input
+    if hasattr(func, limitation):
+        retval[limitation] = func.limitation
     return retval
+
+
+def is_function_enabled(func):
+    """Check whether a function is enabled or not
+    :param func:
+    :return: False is disabled param is True
+    """
+    for requirement in requirements_collect(func):
+        dict_req = parse_single_requirement(str(requirement))
+
+        # If the impact function is disabled, do not show it
+        if dict_req.get('disabled', False):
+            return False
+    return True
+
+
+def format_int(x):
+    """Format integer with separator between thousands
+
+    From http://stackoverflow.com/questions/5513615/
+                add-thousands-separators-to-a-number
+
+    # FIXME (Ole)
+    Currently not using locale coz broken
+
+    Instead use this:
+    http://docs.python.org/library/string.html#formatspec
+
+    """
+
+    # This is broken
+    #import locale
+    #locale.setlocale(locale.LC_ALL, '')  # Broken, why?
+    #s = locale.format('%d', x, 1)
+
+    import os
+    lang = os.getenv('LANG')
+
+    s = '{0:,}'.format(x)
+    #s = '{0:n}'.format(x)  # n means locale aware (read up on this)
+
+    # Quick solution for the moment
+    if lang == 'id':
+        # Replace commas with dots
+        s = s.replace(',', '.')
+
+    return s

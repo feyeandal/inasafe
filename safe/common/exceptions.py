@@ -65,3 +65,13 @@ class GetDataError(InaSAFEError):
 class NoKeywordsFoundError(InaSAFEError):
     """When no keywords could be found for a layer."""
     pass
+
+
+class PostProcessorError(Exception):
+    """Raised when requested import cannot be performed if QGIS is too old."""
+    pass
+
+
+class WindowsError(Exception):
+    """For windows specific errors."""
+    pass

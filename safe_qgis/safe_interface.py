@@ -15,7 +15,6 @@ Contact : ole.moller.nielsen@gmail.com
 """
 
 __author__ = 'tim@linfiniti.com, ole.moller.nielsen@gmail.com'
-__version__ = '0.5.0'
 __revision__ = '$Format:%H$'
 __date__ = '04/04/2012'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
@@ -25,35 +24,48 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
 # Standard modules
 import os
 import unicodedata
+import logging
 
 # SAFE functionality - passed on to QGIS modules
 # pylint: disable=W0611
-from safe.api import get_admissible_plugins
-from safe.api import get_function_title
-from safe.api import get_plugins as safe_get_plugins
-from safe.api import (read_sublayer_names,
-                      read_keywords,
-                      bbox_intersection,
-                      NoKeywordsFoundError)
-from safe.api import write_keywords as safe_write_keywords
-from safe.api import read_layer as safe_read_layer
-from safe.api import (buffered_bounding_box,
+
+from safe.api import (get_admissible_plugins,
+                      get_function_title,
+                      get_plugins as safe_get_plugins,
+                      read_sublayer_names,
+                      read_keywords, bbox_intersection,
+                      write_keywords as safe_write_keywords,
+                      read_layer as safe_read_layer,
+                      buffered_bounding_box,
                       verify as verify_util,
-                      VerificationError)
+                      VerificationError,
+                      InaSAFEError,
+                      NoKeywordsFoundError,
+                      temp_dir,
+                      unique_filename,
+                      safe_tr as safeTr,
+                      get_free_memory,
+                      calculate_impact as safe_calculate_impact,
+                      BoundingBoxError,
+                      ReadLayerError,
+                      get_plugins, get_version,
+                      in_and_outside_polygon as points_in_and_outside_polygon,
+                      calculate_polygon_centroid,
+                      get_postprocessors,
+                      get_postprocessor_human_name)
 
-from safe.api import (calculate_impact as safe_calculate_impact,
-                      internationalisedNames)
-
-from safe.common.utilities import temp_dir, unique_filename
+from safe.defaults import DEFAULTS
 # pylint: enable=W0611
 
 # InaSAFE GUI specific functionality
 from PyQt4.QtCore import QCoreApplication
-from safe_qgis.exceptions import (KeywordNotFoundException,
-                                  StyleInfoNotFoundException,
-                                  InvalidParameterException,
-                                  InsufficientOverlapException)
-from safe.common.exceptions import BoundingBoxError
+from safe_qgis.exceptions import (KeywordNotFoundError,
+                                  StyleInfoNotFoundError,
+                                  InvalidParameterError,
+                                  InsufficientOverlapError)
+
+from safe.common.exceptions import BoundingBoxError, ReadLayerError
+LOGGER = logging.getLogger('InaSAFE')
 
 
 def tr(theText):
@@ -68,7 +80,7 @@ def tr(theText):
        Translated version of the given string if available, otherwise
        the original string.
     """
-    myContext = "is_safe_interface"
+    myContext = "@default"
     return QCoreApplication.translate(myContext, theText)
 
 
@@ -152,7 +164,7 @@ def getOptimalExtent(theHazardGeoExtent,
                'and viewport did not overlap, so no computation was '
                'done. Please make sure you pan to where the data is and '
                'that hazard and exposure data overlaps.')
-        raise InsufficientOverlapException(myMessage)
+        raise InsufficientOverlapError(myMessage)
 
     return myOptimalExtent
 
@@ -206,13 +218,13 @@ def availableFunctions(theKeywordList=None):
         plugins will be returned in the list.
 
     Raises:
-       NoFunctionsFoundException if no functions are found.
+       NoFunctionsFoundError if no functions are found.
     """
     try:
         myDict = get_admissible_plugins(theKeywordList)
         #if len(myDict) < 1:
         #    myMessage = 'No InaSAFE impact functions could be found'
-        #    raise NoFunctionsFoundException(myMessage)
+        #    raise NoFunctionsFoundError(myMessage)
         return myDict
     except:
         raise
@@ -233,21 +245,21 @@ def readKeywordsFromLayer(theLayer, keyword):
        A string containing the retrieved value for the keyword.
 
     Raises:
-       KeywordNotFoundException if the keyword is not recognised.
+       KeywordNotFoundError if the keyword is not recognised.
     """
     myValue = None
     if theLayer is None:
-        raise InvalidParameterException()
+        raise InvalidParameterError()
     try:
         myValue = theLayer.get_keywords(keyword)
     except (NoKeywordsFoundError, Exception), e:
         myMessage = tr('Keyword retrieval failed for %s (%s) \n %s' % (
                 theLayer.get_filename(), keyword, str(e)))
-        raise KeywordNotFoundException(myMessage)
+        raise KeywordNotFoundError(myMessage)
     if not myValue or myValue == '':
         myMessage = tr('No value was found for keyword %s in layer %s' % (
                     theLayer.get_filename(), keyword))
-        raise KeywordNotFoundException(myMessage)
+        raise KeywordNotFoundError(myMessage)
     return myValue
 
 
@@ -279,30 +291,29 @@ def readKeywordsFromFile(theLayerPath, theKeyword=None, theSubLayer=None):
        complete keywords dictionary is returned.
 
     Raises:
-       KeywordNotFoundException if the keyword is not recognised.
+       KeywordNotFoundError if the keyword is not recognised.
     """
     # check the source layer path is valid
     if not os.path.isfile(theLayerPath):
-        myMessage = tr('Cannot get keywords from a non-existant file.'
-               '%s does not exist.' % theLayerPath)
-        raise InvalidParameterException(myMessage)
+        myMessage = tr('Cannot get keywords from a non-existent file.'
+                       '%s does not exist.' % theLayerPath)
+        raise InvalidParameterError(myMessage)
 
     # check there really is a keywords file for this layer
     myKeywordFilePath = os.path.splitext(theLayerPath)[0]
     myKeywordFilePath += '.keywords'
     if not os.path.isfile(myKeywordFilePath):
-        wrappedPath = theLayerPath.replace(os.sep, '<wbr>' + os.sep)
-        myMessage = tr('No keywords file found for %s' % wrappedPath)
-        raise InvalidParameterException(myMessage)
+        myMessage = tr('No keywords file found for %s' % myKeywordFilePath)
+        raise InvalidParameterError(myMessage)
 
-    #now get the requested keyword using the inasafe library
+    # now get the requested keyword using the inasafe library
     myDictionary = None
     try:
         myDictionary = read_keywords(myKeywordFilePath, sublayer=theSubLayer)
     except Exception, e:
         myMessage = tr('Keyword retrieval failed for %s (%s) \n %s' % (
                 myKeywordFilePath, theKeyword, str(e)))
-        raise KeywordNotFoundException(myMessage)
+        raise KeywordNotFoundError(myMessage)
 
     # if no keyword was supplied, just return the dict
     if theKeyword is None:
@@ -310,7 +321,7 @@ def readKeywordsFromFile(theLayerPath, theKeyword=None, theSubLayer=None):
     if not theKeyword in myDictionary:
         myMessage = tr('No value was found in file %s for keyword %s' % (
                     myKeywordFilePath, theKeyword))
-        raise KeywordNotFoundException(myMessage)
+        raise KeywordNotFoundError(myMessage)
 
     try:
         myValue = myDictionary[theKeyword]
@@ -354,29 +365,29 @@ def getStyleInfo(theLayer):
 
     Raises:
 
-       * StyleInfoNotFoundException if the style is not found.
-       * InvalidParameterException if the paramers are not correct.
+       * StyleInfoNotFoundError if the style is not found.
+       * InvalidParameterError if the paramers are not correct.
     """
 
     if not theLayer:
-        raise InvalidParameterException()
+        raise InvalidParameterError()
 
     if not hasattr(theLayer, 'get_style_info'):
         myMessage = tr('Argument "%s" was not a valid layer instance' %
                theLayer)
-        raise StyleInfoNotFoundException(myMessage)
+        raise StyleInfoNotFoundError(myMessage)
 
     try:
         myValue = theLayer.get_style_info()
     except Exception, e:
         myMessage = tr('Styleinfo retrieval failed for %s\n %s' % (
                     theLayer.get_filename(), str(e)))
-        raise StyleInfoNotFoundException(myMessage)
+        raise StyleInfoNotFoundError(myMessage)
 
     if not myValue or myValue == '':
         myMessage = tr('No styleInfo was found for layer %s' % (
                 theLayer.get_filename()))
-        raise StyleInfoNotFoundException(myMessage)
+        raise StyleInfoNotFoundError(myMessage)
     return myValue
 
 

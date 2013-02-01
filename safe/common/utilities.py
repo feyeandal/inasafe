@@ -1,18 +1,37 @@
 """Utilities for InaSAFE
 """
 import os
+import sys
+import zipfile
 import gettext
-import logging
 from datetime import date
 import getpass
-
-# FIXME (Ole): For some reason this module doesn't work without this
-# pylint: disable=W0404
-import logging.handlers
-# pylint: enable=W0404
 from tempfile import mkstemp
+from subprocess import PIPE, Popen
+import ctypes
 
-from safe.common.exceptions import VerificationError
+from safe.common.exceptions import VerificationError, WindowsError
+
+class MEMORYSTATUSEX(ctypes.Structure):
+    """
+    This class is used for getting the free memory on Windows
+    """
+    _fields_ = [
+        ("dwLength", ctypes.c_ulong),
+        ("dwMemoryLoad", ctypes.c_ulong),
+        ("ullTotalPhys", ctypes.c_ulonglong),
+        ("ullAvailPhys", ctypes.c_ulonglong),
+        ("ullTotalPageFile", ctypes.c_ulonglong),
+        ("ullAvailPageFile", ctypes.c_ulonglong),
+        ("ullTotalVirtual", ctypes.c_ulonglong),
+        ("ullAvailVirtual", ctypes.c_ulonglong),
+        ("sullAvailExtendedVirtual", ctypes.c_ulonglong),
+        ]
+
+    def __init__(self):
+        # have to initialize this to the size of MEMORYSTATUSEX
+        self.dwLength = ctypes.sizeof(self)
+        super(MEMORYSTATUSEX, self).__init__()
 
 
 def verify(statement, message=None):
@@ -45,83 +64,6 @@ def ugettext(s):
     return t.ugettext(s)
 
 
-def setup_logger():
-    """Run once when the module is loaded and enable logging
-
-    Args: None
-
-    Returns: None
-
-    Raises: None
-
-    Borrowed heavily from this:
-    http://docs.python.org/howto/logging-cookbook.html
-
-    Use this to first initialise the logger (see safe/__init__.py)::
-
-       from safe.common import utilities
-       utilities.setupLogger()
-
-    You would typically only need to do the above once ever as the
-    safe modle is initialised early and will set up the logger
-    globally so it is available to all packages / subpackages as
-    shown below.
-
-    In a module that wants to do logging then use this example as
-    a guide to get the initialised logger instance::
-
-       # The LOGGER is intialised in utilities.py by init
-       import logging
-       LOGGER = logging.getLogger('InaSAFE')
-
-    Now to log a message do::
-
-       LOGGER.debug('Some debug message')
-
-    .. note:: The file logs are written to the inasafe user tmp dir e.g.:
-       /tmp/inasafe/23-08-2012/timlinux/logs/inasafe.log
-
-    """
-    myLogger = logging.getLogger('InaSAFE')
-    myLogger.setLevel(logging.DEBUG)
-    # create syslog handler which logs even debug messages
-    # (ariel): Make this log to /var/log/safe.log instead of
-    #               /var/log/syslog
-    # (Tim) Ole and I discussed this - we prefer to log into the
-    # user's temporary working directory.
-    myTempDir = temp_dir('logs')
-    myFilename = os.path.join(myTempDir, 'inasafe.log')
-    myFileHandler = logging.FileHandler(myFilename)
-    myFileHandler.setLevel(logging.DEBUG)
-    # create console handler with a higher log level
-    myConsoleHandler = logging.StreamHandler()
-    myConsoleHandler.setLevel(logging.ERROR)
-    # Email handler for errors
-    myEmailServer = 'localhost'
-    myEmailServerPort = 25
-    mySenderAddress = 'logs@inasafe.org'
-    myRecipientAddresses = ['tim@linfiniti.com']
-    mySubject = 'Error'
-    myEmailHandler = logging.handlers.SMTPHandler(
-        (myEmailServer, myEmailServerPort),
-        mySenderAddress,
-        myRecipientAddresses,
-        mySubject)
-    myEmailHandler.setLevel(logging.ERROR)
-    # create formatter and add it to the handlers
-    myFormatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    myFileHandler.setFormatter(myFormatter)
-    myConsoleHandler.setFormatter(myFormatter)
-    myEmailHandler.setFormatter(myFormatter)
-    # add the handlers to the logger
-    myLogger.addHandler(myFileHandler)
-    myLogger.addHandler(myConsoleHandler)
-    myLogger.info('Safe Logger Module Loaded')
-    myLogger.info('----------------------')
-    myLogger.info('CWD: %s' % os.path.abspath(os.path.curdir))
-
-
 def temp_dir(sub_dir='work'):
     """Obtain the temporary working directory for the operating system.
 
@@ -134,7 +76,10 @@ def temp_dir(sub_dir='work'):
        tmpdir = temp_dir('testing')
        tmpfile = unique_filename(dir=tmpdir)
        print tmpfile
-       /tmp/inasafe/23-08-2012/timlinux/work/testing/tmpMRpF_C
+       /tmp/inasafe/23-08-2012/timlinux/testing/tmpMRpF_C
+
+    If you specify INASAFE_WORK_DIR as an environment var, it will be
+    used in preference to the system temp directory.
 
     Args:
         sub_dir str - optional argument which will cause an additional
@@ -148,12 +93,17 @@ def temp_dir(sub_dir='work'):
     """
     user = getpass.getuser().replace(' ', '_')
     current_date = date.today()
-    date_string = current_date.strftime("%d-%m-%Y")
-    # Following 4 lines are a workaround for tempfile.tempdir() unreliabilty
-    handle, filename = mkstemp()
-    os.close(handle)
-    new_directory = os.path.dirname(filename)
-    os.remove(filename)
+    date_string = current_date.isoformat()
+    if 'INASAFE_WORK_DIR' in os.environ:
+        new_directory = os.environ['INASAFE_WORK_DIR']
+    else:
+        # Following 4 lines are a workaround for tempfile.tempdir()
+        # unreliabilty
+        handle, filename = mkstemp()
+        os.close(handle)
+        new_directory = os.path.dirname(filename)
+        os.remove(filename)
+
     path = os.path.join(new_directory, 'inasafe', date_string, user, sub_dir)
 
     if not os.path.exists(path):
@@ -196,6 +146,9 @@ def unique_filename(**kwargs):
     if 'dir' not in kwargs:
         path = temp_dir('impacts')
         kwargs['dir'] = path
+    else:
+        path = temp_dir(kwargs['dir'])
+        kwargs['dir'] = path
     if not os.path.exists(kwargs['dir']):
         # Ensure that the dir mask won't conflict with the mode
         # Umask sets the new mask and returns the old
@@ -214,3 +167,109 @@ def unique_filename(**kwargs):
     except OSError:
         pass
     return filename
+
+try:
+    from safe_qgis.utilities import getDefaults as get_qgis_defaults
+
+    def get_defaults(default=None):
+        return get_qgis_defaults(theDefault=default)
+except ImportError:
+    #this is used when we are in safe without access to qgis (e.g. web )
+    from safe.defaults import DEFAULTS
+
+    def get_defaults(default=None):
+        if default is None:
+            return DEFAULTS
+        elif default in DEFAULTS:
+            return DEFAULTS[default]
+        else:
+            return None
+
+
+def zip_shp(shp_path, extra_ext=None, remove_file=False):
+    """Zip shape file and its gang (.shx, .dbf, .prj)
+    and extra_file is a list of another ext related to shapefile, if exist
+    The zip file will be put in the same directory
+    """
+
+    # go to the directory
+    my_cwd = os.getcwd()
+    shp_dir, shp_name = os.path.split(shp_path)
+    os.chdir(shp_dir)
+
+    shp_basename, _ = os.path.splitext(shp_name)
+    exts = ['.shp', '.shx', '.dbf', '.prj']
+    if extra_ext is not None:
+        exts.extend(extra_ext)
+
+    # zip files
+    zip_filename = shp_basename + '.zip'
+    zip_object = zipfile.ZipFile(zip_filename, 'w')
+    for ext in exts:
+        if os.path.isfile(shp_basename + ext):
+            zip_object.write(shp_basename + ext)
+    zip_object.close()
+
+    if remove_file:
+        for ext in exts:
+            if os.path.isfile(shp_basename + ext):
+                os.remove(shp_basename + ext)
+
+    os.chdir(my_cwd)
+
+def get_free_memory():
+    """Return current free memory on the machine.
+    Currently supported for Windows, Linux
+    Return in MB unit
+    """
+    if 'win32' in sys.platform:
+        # windows
+        return get_free_memory_win()
+    elif 'linux2' in sys.platform:
+        # linux
+        return get_free_memory_linux()
+    elif 'darwin' in sys.platform:
+        # mac
+        return get_free_memory_osx()
+
+def get_free_memory_win():
+    """Return current free memory on the machine for windows.
+    Warning : this script is really not robust
+    Return in MB unit
+    """
+    stat = MEMORYSTATUSEX()
+    ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat))
+    return int(stat.ullAvailPhys / 1024 / 1024)
+
+def get_free_memory_linux():
+    """Return current free memory on the machine for linux.
+    Warning : this script is really not robust
+    Return in MB unit
+    """
+    try:
+        p = Popen('free -m', shell=True, stdout=PIPE)
+        stdout_string = p.communicate()[0].split('\n')[2]
+    except OSError:
+        raise OSError
+    stdout_list = stdout_string.split(' ')
+    stdout_list = [x for x in stdout_list if x != '']
+    return int(stdout_list[3])
+
+def get_free_memory_osx():
+    """Return current free memory on the machine for mac os.
+    Warning : this script is really not robust
+    Return in MB unit
+    """
+    try:
+        p = Popen('echo -e "\n$(top -l 1 | awk \'/PhysMem/\';)\n"', \
+                  shell=True, stdout=PIPE)
+        stdout_string = p.communicate()[0].split('\n')[1]
+        # e.g. output (its a single line)
+        # PhysMem: 1491M wired, 3032M active, 1933M inactive,
+        # 6456M used, 1735M free.
+    except OSError:
+        raise OSError
+    stdout_list = stdout_string.split(',')
+    inactive = stdout_list[2].replace('M inactive', '').replace(' ', '')
+    free = stdout_list[4].replace('M free.', '').replace(' ', '')
+    return int(inactive) + int(free)

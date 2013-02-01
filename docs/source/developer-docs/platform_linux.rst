@@ -62,7 +62,8 @@ on your machine in order to work effectively with the code base:
 On an ubuntu system you can install these requirements using apt::
 
    sudo apt-get install git rsync pep8 python-nose python-coverage \
-   python-gdal python-numpy python-sphinx pyqt4-dev-tools pyflakes \
+   python-gdal python-numpy python-sphinx pyqt4-dev-tools pyflakes
+
    sudo pip install cloud-sptheme python-nosexcover
 
 In some cases these dependencies may already be on your system via installation
@@ -84,11 +85,11 @@ QGIS installed in a non-standard location
 .........................................
 
 For running unit tests that need QGIS, you may need to adjust *PYTHONPATH* and
-*QGISPATH* if QGIS is running in a non standard location. For example with
+*QGIS_PREFIX_PATH* if QGIS is running in a non standard location. For example with
 QGIS built from source into /usr/local (and python bindings global install
 option disabled), you could run these commands (or add them to your ~/.bashrc)::
 
-   export QGISPATH=/usr/local
+   export QGIS_PREFIX_PATH=/usr/local
    export PYTHONPATH=$PYTHONPATH:/usr/local/share/qgis/python/
 
 .. note:: The above can be set within Eclipse's project properties if you are
@@ -124,18 +125,18 @@ riabclipper test you would do::
 Achievements
 ............
 
-.. note:: This is optional and thus not hard coded into the 
+.. note:: This is optional and thus not hard coded into the
    makefile.
 
 Optionally you can enable nose achievments which is a motivational
 tool that gives you little achievement awards based on your test
 results::
 
-sudo pip install git+git://github.com/exogen/nose-achievements.git
+   sudo pip install git+git://github.com/exogen/nose-achievements.git
 
-Now create this file in the root of your inasafe git checkout 
+Now create this file in the root of your inasafe git checkout
 :file:`setup.cfg`::
-   
+
    [nosetests]
    with-achievements=1
 

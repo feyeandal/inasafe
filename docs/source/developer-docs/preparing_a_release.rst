@@ -9,7 +9,6 @@ as follows and are described in detail below:
 + Identify what version number the new release will be assigned.
 + Close all issues marked as blockers for the release.
 + If needed, create a release branch
-+ Update all source files to the new version number.
 + Update all source files for PEP8 and PEP257 compliance.
 + Ensure no assert statements are critical to code flow
 + Ensure that Qt resources and user interface files have been compiled
@@ -85,7 +84,7 @@ Branching is requred for Major and Minor releases. The process of branching
 is described in :doc:`version_control` whose accompanying illustration is
 repeated below for your convenience:
 
-.. figure:: ../_static/release-workflow.png
+.. figure:: ../static/release-workflow.png
    :align:   center
 
 The purpose of creating a branch is to isolate incompatible and possibly
@@ -97,25 +96,6 @@ version at the point of release.
 **Outcome:** If needed, create a release branch which provides a 'known good'
 version that can be returned to at any point in time.
 
-Updating the source version number
-..................................
-
-In the preample to any source file there should be a standard header as
-described in the :doc:`coding_standards` document. Included in this header
-section is the version number e.g.::
-
-   __version__ = '0.1.0'
-
-This number should be updated in every source file prior to release. Under
-linux this can easily be done using the :command:`rpl` command (which can
-easily be installed (by doing for example :command:`sudo apt-get install rpl`).
-
-Using th example above, to update version numbers for minor release '0.1.1'
-you could issue the following command at the root of the plugin source tree::
-
-   rpl "__version__ = '0.1.0'" "__version__ = '0.1.1'" *.py
-
-**Outcome::** Every source file should be updated to indicate the version number.
 
 PEP8 and PEP257 compliance
 ..........................
@@ -133,7 +113,7 @@ Under the Eclipse/PyDev IDE, there is also on the fly checking support which
 can be enabled and that will notify you of any compliance issues as illutrated
 in the screenshot below.
 
-.. figure:: ../_static/pep8-highlighting.jpeg
+.. figure:: ../static/pep8-highlighting.jpeg
    :align:   center
 
 
@@ -149,7 +129,7 @@ On some platforms the use of python optimised code is mandated and we are
 likely to get hard to investigate bug reports from end users at some
 unspecified point in the future.
 
-.. note:: This is a 'soft' requirement - since the python code for the plugin
+..  note:: This is a 'soft' requirement - since the python code for the plugin
    will be executed by the QGIS python internals, we can be fairly certain that
    python code will be executed with out the -O optimisation option for the
    short term.
@@ -159,8 +139,8 @@ unspecified point in the future.
 Compile Qt resources and user interface files
 .............................................
 
-The Qt4 resource and user interface definition files supplied with Risk in a
-Box need to be compiled before they can be deployed. There are two utility
+The Qt4 resource and user interface definition files supplied with InaSAFE
+ need to be compiled before they can be deployed. There are two utility
 functions provided by Qt4 for this purpose:
 
 * :command:`pyuic4` - A tool to compile Qt4 user interface definition files
@@ -268,7 +248,7 @@ In particular the following two languages are supported as part of this
 project:
 
 * English
-* Bahasa Indonesian
+* Bahasa Indonesia
 
 There are three components of the project that require translation:
 
@@ -303,54 +283,43 @@ ensure that all generated documentation is also under version control.
 **Outcome:** Sphinx documentation is compiled providing complete documentation
 to be shipped with the plugin.
 
-Update plugin metadata
-----------------------
+Update plugin metadata and version number
+.........................................
 
 QGIS uses specific metadata to register the plugin. At the time of writing
 the mechanism for registering this metadata is in transition from an in-source
 based system to an .ini file based system. In the interim, both should be
 maintained.
 
-The in-source metadata is updated by editing the :file:`__init__.py` file
-in the top level directory of the source tree::
+There are two files containing version numbers:
 
-   def name():
-      """A user friendly name for the plugin."""
-      return '|project_name|'
+* :file:`__init__.py`
+* :file:`metadata.txt
 
+In the init file you would typically update the version entry like this::
 
-   def description():
-       """A one line description for the plugin."""
-       return 'InaSAFE Disaster risk assessment tool developed by AusAid and World Bank'
+    def version():
+        """Version of the plugin."""
+        return 'Version 1.1.0'
 
+.. note:: Be very careful about editing medata in __init__.py. The system
+    of storing metadata in QGIS plugins is being deprecated (from QGIS 2.0)
+    because it is extremely fragile and prone to breakage by poor text
+    formatting.
 
-   def version():
-       """Version of the plugin."""
-       return 'Version 0.1'
+In metadata you would typically update the version and status entries to::
 
+    version=1.1.0
+    # alpha, beta, rc or final
+    status=beta
 
-   def icon():
-       """Icon path for the plugin."""
-       return 'icon.png'
+Immediately after branching, and then change the status designation to final
+just prior to tagging the release.
 
+Both of these files should be updated to reflect the version number and the
+metadata.txt file should reflect the release status.
 
-   def qgisMinimumVersion():
-       """Minimum version of QGIS needed to run this plugin -
-       currently set to 1.7."""
-       return '1.7'
-
-In general only the version function needs to be updated to reflect the new
-version of the InaSAFE plugin.
-
-.. note:: The above will be deprecated with the release of QGIS 2.0, see
-   below for the alternative method of describing the plugin.
-
-For newer versions of QGIS (1.8+), the :file:`metadata.txt` will be used to
-store descriptive information about the plugin. Simply edit this file with
-a text editor and update it as needed.
-
-**Outcome:** The plugin metadata to reflects the current version of Risk in a
-Box.
+**Outcome:** The plugin metadata to reflects the current version of InaSAFE.
 
 Generate a test package
 -----------------------
@@ -417,11 +386,11 @@ simply do it in git as illustrated below.::
    git tag version-0_1_0
    git push --tags origin version-0_1_0
 
-.. note:: 1) Replace 'dot' separators with underscores for the version number.
-   2) You can differentiate release **branches** from release **tags** by the
+.. note:: Replace 'dot' separators with underscores for the version number.
+.. note:: You can differentiate release **branches** from release **tags** by the
    fact that branch names have only the minor version number (e.g.
-   :samp:`version-0_4`) whereas release tags are reserved for point releases
-   (e.g. :samp:`version-0_4_1`).
+   version-0_4) whereas release tags are reserved for point releases
+   (e.g. version-0_4_1).
 
 **Outcome:** The release is tagged in GIT and can be checked out at any point
 in the future. The tagged source tree can easily be downloaded at any point by

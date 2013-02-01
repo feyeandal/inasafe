@@ -11,16 +11,16 @@ Contact : ole.moller.nielsen@gmail.com
 """
 
 __author__ = 'tim@linfiniti.com'
-__version__ = '0.5.0'
 __revision__ = '$Format:%H$'
 __date__ = '20/01/2011'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
 
-
-from PyQt4 import (QtGui, QtCore, QtWebKit)
-from help_base import Ui_HelpBase
 import os
+import logging
+from PyQt4 import (QtGui, QtCore)
+
+LOGGER = logging.getLogger('InaSAFE')
 
 
 class Help(QtGui.QDialog):
@@ -46,15 +46,13 @@ class Help(QtGui.QDialog):
         Raises:
            no exceptions explicitly raised
         """
-        QtGui.QDialog.__init__(self, theParent)
-        # Set up the user interface from Designer.
-        self.ui = Ui_HelpBase()
-        self.ui.setupUi(self)
+        self.parent = theParent
         self.context = theContext
-        self.showContexthelp()
+        QtGui.QDialog.__init__(self, self.parent)
+        self.showContextHelp()
 
-    def showContexthelp(self):
-        """Load the help text into the wvResults widget"""
+    def showContextHelp(self):
+        """Load the help text into the wvResults widget."""
         ROOT = os.path.dirname(__file__)
         myPath = os.path.abspath(os.path.join(ROOT, '..', 'docs', 'build',
                                             'html', 'user-docs',
@@ -65,12 +63,14 @@ class Help(QtGui.QDialog):
                                             'docs', 'build',
                                             'html', 'user-docs',
                                             self.context + '.html'))
+            LOGGER.debug(os.path.isfile(myContextPath))
             if os.path.isfile(myContextPath):
                 myPath = myContextPath
+
         if not os.path.isfile(myPath):
-            QtGui.QMessageBox.warning(self, self.tr('InaSAFE'),
+            QtGui.QMessageBox.warning(self.parent, self.tr('InaSAFE'),
             (self.tr('Documentation could not be found at:\n'
-                      '%s' % myPath)))
-        self.ui.webView.settings().setAttribute(
-            QtWebKit.QWebSettings.DeveloperExtrasEnabled, True)
-        self.ui.webView.setUrl(QtCore.QUrl('file:///' + myPath))
+                      '%1').arg(myPath)))
+        else:
+            myUrl = QtCore.QUrl('file:///' + myPath)
+            QtGui.QDesktopServices.openUrl(myUrl)

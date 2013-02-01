@@ -6,5 +6,6 @@ Package::safe.impact_functions.earthquake
 
    earthquake/padang_building_impact_model
    earthquake/itb_building_impact_model
-   earthquake/earthquake_impact_on_women
+   earthquake/earthquake_building_impact
    earthquake/itb_earthquake_fatality_model
+   earthquake/pager_earthquake_fatality_model

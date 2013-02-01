@@ -15,7 +15,9 @@ from qgis.core import (QgsDataSourceURI, QgsVectorLayer)
 from safe.common.testing import HAZDATA, UNITDATA
 from safe_qgis.utilities_test import (getQgisTestApp, loadLayer)
 from safe_qgis.keyword_io import KeywordIO
-from safe_qgis.exceptions import HashNotFoundException
+from safe_qgis.exceptions import HashNotFoundError
+from safe_qgis.test_keywords_dialog import makePadangLayerClone
+
 QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
 
 # Don't change this, not even formatting, you will break tests!
@@ -60,6 +62,7 @@ class KeywordIOTest(unittest.TestCase):
                                        'datatype': 'itb',
                                        'subcategory': 'structure'}
         self.expectedRasterKeywords = {'category': 'hazard',
+                                       'source': 'USGS',
                                        'subcategory': 'earthquake',
                                        'unit': 'MMI',
                                        'title': ('An earthquake in Padang '
@@ -132,9 +135,9 @@ class KeywordIOTest(unittest.TestCase):
         try:
             myKeyword = self.keywordIO.readKeywordFromUri(PG_URI, 'datatype')
             #if the above didnt cause an exception then bad
-            myMessage = 'Expected a HashNotFoundException to be raised'
+            myMessage = 'Expected a HashNotFoundError to be raised'
             assert myMessage
-        except HashNotFoundException:
+        except HashNotFoundError:
             #we expect this outcome so good!
             pass
 
@@ -151,7 +154,7 @@ class KeywordIOTest(unittest.TestCase):
         myKeywords = self.keywordIO.readKeywords(self.fileRasterLayer)
         myExpectedKeywords = self.expectedRasterKeywords
         mySource = self.fileRasterLayer.source()
-        myMessage = 'Got: %s\n\nExpected %s\n\nSource: %s' % (
+        myMessage = 'Got:\n%s\nExpected:\n%s\nSource:\n%s' % (
                     myKeywords, myExpectedKeywords, mySource)
         assert myKeywords == myExpectedKeywords, myMessage
 
@@ -172,6 +175,63 @@ class KeywordIOTest(unittest.TestCase):
         myMessage = 'Got: %s\n\nExpected %s' % (
                     myKeywords, self.expectedBuildingsKeywords)
         assert myKeywords == self.expectedBuildingsKeywords, myMessage
+    
+    def test_appendKeywords(self):
+        """Can we append file keywords with the generic readKeywords method."""
+        myLayer, _ = makePadangLayerClone()
+        myNewKeywords = {'category': 'exposure', 'test': 'TEST'}
+        self.keywordIO.appendKeywords(myLayer, myNewKeywords)
+        myKeywords = self.keywordIO.readKeywords(myLayer)
+
+        for myKey, myValue in myNewKeywords.iteritems():
+            myMessage = ('Layer keywords misses appended key: %s\n'
+                        'Layer keywords:\n%s\n'
+                        'Appended keywords:\n%s\n' %
+                        (myKey,
+                         myKeywords,
+                         myNewKeywords))
+            assert myKey in myKeywords, myMessage
+            myMessage = ('Layer keywords misses appended value: %s\n'
+                         'Layer keywords:\n%s\n'
+                         'Appended keywords:\n%s\n' %
+                         (myValue,
+                          myKeywords,
+                          myNewKeywords))
+            assert myKeywords[myKey] == myValue, myMessage
+
+    def test_readDBKeywords(self):
+        """Can we read sqlite keywords with the generic readKeywords method
+        """
+        myLocalPath = os.path.join(os.path.dirname(__file__),
+                                   '..', 'jk.sqlite')
+        myPath = os.path.join(TESTDATA, 'test_keywords.db')
+        self.keywordIO.setKeywordDbPath(myPath)
+        # We need to make a local copy of the dataset so
+        # that we can use a local path that will hash properly on the
+        # database to return us the correct / valid keywords record.
+        shutil.copy2(os.path.join(TESTDATA, 'jk.sqlite'), myLocalPath)
+        myUri = QgsDataSourceURI()
+        # always use relative path!
+        myUri.setDatabase('../jk.sqlite')
+        myUri.setDataSource('', 'osm_buildings', 'Geometry')
+        # create a local version that has the relative url
+        mySqliteLayer = QgsVectorLayer(myUri.uri(), 'OSM Buildings',
+                                       'spatialite')
+        myExpectedSource = ('dbname=\'../jk.sqlite\' table="osm_buildings"'
+             ' (Geometry) sql=')
+        myMessage = 'Got source: %s\n\nExpected %s\n' % (
+                    mySqliteLayer.source, myExpectedSource)
+        assert mySqliteLayer.source() == myExpectedSource, myMessage
+        myKeywords = self.keywordIO.readKeywords(mySqliteLayer)
+        myExpectedKeywords = self.expectedSqliteKeywords
+        assert myKeywords == myExpectedKeywords, myMessage
+        mySource = self.sqliteLayer.source()
+        # delete mySqliteLayer so that we can delete the file
+        del mySqliteLayer
+        os.remove(myLocalPath)
+        myMessage = 'Got: %s\n\nExpected %s\n\nSource: %s' % (
+                    myKeywords, myExpectedKeywords, mySource)
+        assert myKeywords == myExpectedKeywords, myMessage
 
 if __name__ == '__main__':
     suite = unittest.makeSuite(KeywordIOTest, 'test')

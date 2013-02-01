@@ -72,6 +72,7 @@ Please observe the following coding standards when working on the codebase:
 
 **Example standard header**::
 
+    # -*- coding: utf-8 -*-
     """**One line description.**
 
     .. tip::
@@ -112,6 +113,11 @@ functions and class methods::
             None
         """
         self.keywordDbPath = str(thePath)
+
+* If you use a few lines of code in more than one place, refactor them into
+  their own function.
+* If you use a literal string or expression in more than one place, refactor
+  it into a function or variable.
 
 
 Various other sphinx markup elements may be used in the docstrings too.
@@ -156,6 +162,8 @@ are listed here for your convenience:
 + Try to avoid technical terms and rather use a laymans equivalent e.g. use
   the word 'Transparency' rather than 'Alpha Channel' (contrived example),
   'Text' instead of 'String' and so on.
++ Use consistent iconography. If you need an icon or icon elements, please
+  contact Robert Szczepanek on the mailing list for assistance.
 + Place long lists of widgets into scroll boxes. No dialog should exceed 580
   pixels in height and 1000 pixels in width.
 + Separate advanced options from basic ones. Novice users should be able to
@@ -166,7 +174,6 @@ are listed here for your convenience:
   user interface minimalistic and use sensible defaults.
 + If clicking a button will spawn a new dialog, an ellipsis (...) should be
   suffixed to the button text.
-
 
 
 Code statistics

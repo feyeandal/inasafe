@@ -12,10 +12,12 @@ the guidelines.
 
 import numpy
 
-from safe.impact_functions.core import FunctionProvider
-from safe.impact_functions.core import get_hazard_layer, get_exposure_layer
+from safe.impact_functions.core import (FunctionProvider,
+                                        get_hazard_layer,
+                                        get_exposure_layer,
+                                        format_int)
 from safe.storage.vector import Vector
-from safe.common.utilities import ugettext as _
+from safe.common.utilities import ugettext as tr
 from safe.impact_functions.mappings import osm2bnpb
 from safe.impact_functions.mappings import unspecific2bnpb
 from safe.impact_functions.mappings import sigab2bnpb
@@ -122,26 +124,26 @@ class EarthquakeGuidelinesFunction(FunctionProvider):
         impact_summary = ('<table border="0" width="320px">'
                    '   <tr><th><b>%s</b></th><th><b>%s</b></th></th>'
                     '   <tr></tr>'
-                    '   <tr><td>%s&#58;</td><td>%i</td></tr>'
-                    '   <tr><td>%s (10-25%%)&#58;</td><td>%i</td></tr>'
-                    '   <tr><td>%s (25-50%%)&#58;</td><td>%i</td></tr>'
-                    '   <tr><td>%s (50-100%%)&#58;</td><td>%i</td></tr>'
-                    % (_('Buildings'), _('Total'),
-                       _('All'), N,
-                       _('Low damage'), count1,
-                       _('Medium damage'), count2,
-                       _('High damage'), count3))
-        impact_summary += ('   <tr><td>%s (NaN)&#58;</td><td>%i</td></tr>'
-                    % ('Unknown', count_unknown))
+                    '   <tr><td>%s&#58;</td><td>%s</td></tr>'
+                    '   <tr><td>%s (10-25%%)&#58;</td><td>%s</td></tr>'
+                    '   <tr><td>%s (25-50%%)&#58;</td><td>%s</td></tr>'
+                    '   <tr><td>%s (50-100%%)&#58;</td><td>%s</td></tr>'
+                    % (tr('Buildings'), tr('Total'),
+                       tr('All'), format_int(N),
+                       tr('Low damage'), format_int(count1),
+                       tr('Medium damage'), format_int(count2),
+                       tr('High damage'), format_int(count3)))
+        impact_summary += ('   <tr><td>%s (NaN)&#58;</td><td>%s</td></tr>'
+                    % ('Unknown', format_int(count_unknown)))
         impact_summary += '</table>'
 
         # Create style
-        style_classes = [dict(label=_('Low damage'), min=0.5, max=1.5,
-                              colour='#fecc5c', transparency=1),
-                         dict(label=_('Medium damage'), min=1.5, max=2.5,
-                              colour='#fd8d3c', transparency=1),
-                         dict(label=_('High damage'), min=2.5, max=3.5,
-                              colour='#f31a1c', transparency=1)]
+        style_classes = [dict(label=tr('Low damage'), min=0.5, max=1.5,
+                              colour='#fecc5c', transparency=0),
+                         dict(label=tr('Medium damage'), min=1.5, max=2.5,
+                              colour='#fd8d3c', transparency=0),
+                         dict(label=tr('High damage'), min=2.5, max=3.5,
+                              colour='#f31a1c', transparency=0)]
         style_info = dict(target_field=self.target_field,
                           style_classes=style_classes)
 
