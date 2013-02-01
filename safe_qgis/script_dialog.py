@@ -25,9 +25,11 @@ import re
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignature
 
+import qgis
+
 from script_dialog_base import Ui_ScriptDialogBase
 
-import qgis
+from safe_qgis import macro
 
 LOGGER = logging.getLogger('InaSAFE')
 
@@ -106,7 +108,14 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 self.tblScript.insertRow(self.tblScript.rowCount())
                 myRow = self.tblScript.rowCount() - 1
                 myItem = QtGui.QTableWidgetItem(myKey)
-                myItem.setData(QtCore.Qt.UserRole, myValue)
+                # see for details of why we follow this pattern
+                # http://stackoverflow.com/questions/9257422/
+                # how-to-get-the-original-python-data-from-qvariant
+                # Make the value immutable.
+                myVariant = QtCore.QVariant((myValue,))
+                # To retrieve it again you would need to do:
+                #myValue = myVariant.toPyObject()[0]
+                myItem.setData(QtCore.Qt.UserRole, myVariant)
                 self.tblScript.setItem(myRow, 0, myItem)
                 self.tblScript.setItem(myRow, 1, QtGui.QTableWidgetItem(''))
 
@@ -171,24 +180,42 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 raise
         else:
             # Its a dict containing files for a scenario
-            myText = myItem.text()
-            myDict = myItem.data(QtCore.Qt.UserRole)
-
+            #myText = myItem.text()
+            # .. seealso:: :func:`populateTable` to understand the next 2 lines
+            myVariant = myItem.data(QtCore.Qt.UserRole)
+            myValue = myVariant.toPyObject()[0]
             # Set status to 'running'
             myStatusItem = self.tblScript.item(myCurrentRow, 1)
             myStatusItem.setText(self.tr('Running'))
 
+            myRoot = os.path.abspath(os.path.join(
+                os.path.realpath(os.path.dirname(__file__)),
+                                          '..',
+                                          '..',
+                                          'inasafe_data'))
+            myPaths = []
+            if 'hazard' in myValue:
+                myPaths.append(myValue['hazard'])
+            if 'exposure' in myValue:
+                myPaths.append(myValue['exposure'])
+            if 'aggregation' in myValue:
+                myPaths.append(myValue['aggregation'])
+            if self.cboNewProject.isChecked():
+                qgis.utils.iface.newProject()
+            # TODO support specific impact function
+            macro.addLayers(myRoot, myPaths)
+
+
             # Run script
             try:
-                LOGGER.info('Running scenario: %s' % myDict)
+                LOGGER.info('Running scenario: %s' % myValue)
+                macro.runScenario()
                 # set status to 'OK'
                 myStatusItem.setText(self.tr('OK'))
             except Exception as ex:
                 # set status to 'fail'
                 myStatusItem.setText(self.tr('Fail'))
-
                 LOGGER.exception('Running macro failed')
-
                 # just re raise the exception
                 raise
 
