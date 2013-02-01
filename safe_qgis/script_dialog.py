@@ -60,7 +60,7 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         self.gboOptions.setVisible(False)
 
         # Add script folder to sys.path.
-        sys.path.append(self.getScriptPath())
+        sys.path.append(getScriptPath())
 
         self.populateTable()
         self.adjustSize()
@@ -78,7 +78,7 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         self.tblScript.clearContents()
 
         # load the list of files in 'script_runner' folder
-        myPath = self.getScriptPath()
+        myPath = getScriptPath()
 
         # get '.py' files in folder
         myFiles = [
@@ -86,9 +86,29 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
         # insert files to table widget
         self.tblScript.setRowCount(len(myFiles))
-        for index, filename in enumerate(myFiles):
-            self.tblScript.setItem(index, 0, QtGui.QTableWidgetItem(filename))
-            self.tblScript.setItem(index, 1, QtGui.QTableWidgetItem(''))
+        for myIndex, myFilename in enumerate(myFiles):
+            self.tblScript.setItem(
+                myIndex, 0, QtGui.QTableWidgetItem(myFilename))
+            self.tblScript.setItem(
+                myIndex, 1, QtGui.QTableWidgetItem(''))
+
+        # get '.txt' files in folder
+        myFiles = [
+            x for x in os.listdir(myPath) if os.path.splitext(x)[1] == '.txt']
+
+        for myFile in myFiles:
+            LOGGER.info('looking for scenarios in %s' % myFile)
+            # insert scenarios from file into table widget
+            for myKey, myValue in readScenarios('test.txt').iteritems():
+                LOGGER.info('Found scenario: %s:%s in %s' % (
+                    myKey, myValue, myFile
+                ))
+                self.tblScript.insertRow(self.tblScript.rowCount())
+                myRow = self.tblScript.rowCount() - 1
+
+                self.tblScript.setItem(myRow, 0, QtGui.QTableWidgetItem(
+                    myKey))
+                self.tblScript.setItem(myRow, 1, QtGui.QTableWidgetItem(''))
 
     def runScript(self, theFilename):
         """ runs script in QGIS
@@ -188,8 +208,10 @@ def readScenarios(theFilename):
     myBasename, myExtension = os.path.splitext(theFilename)
 
     myMessage = ('Unknown extension for file %s. '
-                 'Expected %s.keywords' % (myFilename, myBasename))
-    LOGGER.error(myMessage)
+                 'Expected %s.txt' % (myFilename, myBasename))
+    if '.txt' != myExtension:
+        LOGGER.error(myMessage)
+        return
 
     if not os.path.isfile(myFilename):
         return {}
