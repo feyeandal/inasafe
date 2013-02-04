@@ -5,3 +5,9 @@ hazard:hazard/Jakarta_RW_2007flood.shp
 [jakarta_flood_people]
 exposure:test/Population_Jakarta_geographic.asc
 hazard:hazard/Jakarta_RW_2007flood.shp
+function:Flood Evacuation Function Vector Hazard
+
+[jakarta_flood_osm_buildings]
+exposure:test/osm_buildings.shp
+hazard:hazard/Jakarta_RW_2007flood.shp
+function:Flood Evacuation Function Vector Hazard
