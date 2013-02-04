@@ -53,8 +53,8 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         LOGGER.info('Script runner dialog started')
 
         myHeaderView = self.tblScript.horizontalHeader()
-        myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch);
-        myHeaderView.setResizeMode(1, QtGui.QHeaderView.Interactive);
+        myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch)
+        myHeaderView.setResizeMode(1, QtGui.QHeaderView.Interactive)
 
         self.tblScript.setColumnWidth(0, 200)
         self.tblScript.setColumnWidth(1, 50)
@@ -131,7 +131,7 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
         # import script module
         myModule, _ = os.path.splitext(theFilename)
-        if sys.modules.has_key(myModule):
+        if myModule in sys.modules:
             myScript = reload(sys.modules[myModule])
         else:
             myScript = __import__(myModule)
@@ -150,7 +150,6 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 myFunction(qgis.utils.iface)
             else:
                 myFunction()
-
 
     @pyqtSignature('')
     def on_pbnRunAll_clicked(self):
@@ -214,7 +213,6 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
             # TODO support specific impact function
             macro.addLayers(myRoot, myPaths)
 
-
             # Run script
             try:
                 LOGGER.info('Running scenario: %s' % myValue)
@@ -227,8 +225,6 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 LOGGER.exception('Running macro failed')
                 # just re raise the exception
                 raise
-
-
 
     @pyqtSignature('')
     def on_btnRefresh_clicked(self):
@@ -340,6 +336,7 @@ def readScenarios(theFilename):
     # where foo and bar are scenarios and their dicts are the options for
     # that scenario (e.g. hazard, exposure etc)
     return myBlocks
+
 
 def getScriptPath():
     """ Get base path for directory that contains the script files

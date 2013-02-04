@@ -25,6 +25,7 @@ QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
 
 from script_dialog import readScenarios
 
+
 class ScriptDialogTest(unittest.TestCase):
 
     def testScenarioParser(self):
@@ -39,6 +40,7 @@ class ScriptDialogTest(unittest.TestCase):
                       'hazard': 'hazard/Jakarta_RW_2007flood.shp'}
         }
         self.assertDictEqual(myExpectedDictionary, myDictionary)
+
 
 if __name__ == '__main__':
     suite = unittest.makeSuite(ScriptDialogTest, 'test')

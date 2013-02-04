@@ -232,7 +232,8 @@ class Plugin:
                         QIcon(':/plugins/inasafe/functions-table.png'),
                         self.tr('InaSAFE Impact Functions Browser'),
                         self.iface.mainWindow())
-        self.actionImpactFunctionsDoc.setObjectName('InaSAFEActionImpactFunctionsDoc')
+        self.actionImpactFunctionsDoc.setObjectName(
+                                    'InaSAFEActionImpactFunctionsDoc')
         self.actionImpactFunctionsDoc.setStatusTip(self.tr(
                                     'Open InaSAFE Impact Functions Browser'))
         self.actionImpactFunctionsDoc.setWhatsThis(self.tr(
@@ -263,7 +264,6 @@ class Plugin:
         self.iface.addToolBarIcon(self.actionScriptDialog)
         self.iface.addPluginToMenu(self.tr('InaSAFE'),
             self.actionScriptDialog)
-
 
         # Short cut for Open Impact Functions Doc
         self.keyAction = QAction("Test Plugin", self.iface.mainWindow())

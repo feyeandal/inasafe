@@ -28,6 +28,7 @@ from qgis.utils import iface
 
 LOGGER = logging.getLogger('InaSAFE')
 
+
 def getDock():
     """ Get InaSAFE Dock widget instance.
     Returns: Dock - instance of InaSAFE Dock in QGIS main window.
@@ -91,4 +92,3 @@ def addLayers(theDirectory, thePaths):
             iface.addVectorLayer(myPath, myBaseName, 'ogr')
         else:
             raise Exception('File %s had illegal extension' % myPath)
-
