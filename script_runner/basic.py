@@ -27,8 +27,8 @@ from safe_qgis.options_dialog import OptionsDialog
 
 import safe_qgis.macro as macro
 
-def runScript(iface):
 
+def runScript(iface):
     ## widgets
     mainWindow = iface.mainWindow()
     dock = mainWindow.findChild(Dock, 'InaSAFEDock')
@@ -73,6 +73,7 @@ def runScript(iface):
 
     assertTrue(dock.runInThreadFlag)
     assertTrue(dock.showOnlyVisibleLayersFlag)
+
 
 def assertTrue(theFlag):
     if not theFlag:

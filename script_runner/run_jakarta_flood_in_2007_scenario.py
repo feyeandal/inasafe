@@ -20,6 +20,7 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
 import os
 import safe_qgis.macro as macro
 
+
 def runScript():
     myRoot = os.path.abspath(os.path.join(os.path.realpath(os.path.dirname(
         __file__)),
