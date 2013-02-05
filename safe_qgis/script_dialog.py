@@ -30,6 +30,7 @@ import qgis
 from script_dialog_base import Ui_ScriptDialogBase
 
 from safe_qgis import macro
+from safe_qgis.exceptions import QgisPathError
 
 LOGGER = logging.getLogger('InaSAFE')
 
@@ -162,6 +163,7 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
     @pyqtSignature('')
     def on_btnRunSelected_clicked(self):
+        """Run the selected item"""
         myCurrentRow = self.tblScript.currentRow()
         # See if this is a python script or a scenario read from a text file
         myItem = self.tblScript.item(myCurrentRow, 0)
@@ -183,9 +185,8 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 myStatusItem.setText(self.tr('Fail'))
 
                 LOGGER.exception('Running macro failed')
+                return False
 
-                # just re raise the exception
-                raise
         else:
             # Its a dict containing files for a scenario
             #myText = myItem.text()
@@ -210,8 +211,32 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 myPaths.append(myValue['aggregation'])
             if self.cboNewProject.isChecked():
                 qgis.utils.iface.newProject()
-            # TODO support specific impact function
-            macro.addLayers(myRoot, myPaths)
+
+            LOGGER.info('Loading layers: \nRoot: %s\n%s' % (
+                    myRoot, myPaths))
+            try:
+                macro.addLayers(myRoot, myPaths)
+            except QgisPathError:
+                # set status to 'fail'
+                myStatusItem.setText(self.tr('Fail'))
+                LOGGER.exception('Loading layers failed: \nRoot: %s\n%s' % (
+                    myRoot, myPaths))
+                return False
+
+
+            # See if we have a preferred impact function
+            if 'function' in myValue:
+                myFunctionId = myValue['function']
+                myResult = macro.setFunctionId(myFunctionId)
+                if not myResult:
+                    myStatusItem.setText(self.tr('Fail'))
+                    return False
+
+            if 'aggregation' in myValue:
+                myResult = macro.setAggregationLayer(myValue['aggregation'])
+                if not myResult:
+                    myStatusItem.setText(self.tr('Fail'))
+                    return False
 
             # Run script
             try:
@@ -219,12 +244,12 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 macro.runScenario()
                 # set status to 'OK'
                 myStatusItem.setText(self.tr('OK'))
+                return True
             except Exception as ex:
                 # set status to 'fail'
                 myStatusItem.setText(self.tr('Fail'))
                 LOGGER.exception('Running macro failed')
-                # just re raise the exception
-                raise
+                return False
 
     @pyqtSignature('')
     def on_btnRefresh_clicked(self):
@@ -260,6 +285,7 @@ def readScenarios(theFilename):
         exposure: /path/to/exposure.tif
         function: function_id
         aggregation: /path/to/aggregation_layer.tif
+        extent: minx, miny, maxx, maxy
     """
 
     # Input checks
@@ -282,7 +308,7 @@ def readScenarios(theFilename):
     myBlock = None
     myFirstKeys = None
     for line in myFile.readlines():
-        # Remove trailing (but not preceeding!) whitespace
+        # Remove trailing (but not preceding!) whitespace
         # FIXME: Can be removed altogether
         myLine = line.rstrip()
 

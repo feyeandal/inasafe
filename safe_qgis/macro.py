@@ -21,8 +21,9 @@ import os
 import logging
 import PyQt4.QtCore as QtCore
 
-from safe.common.utilities import ugettext as tr
+from safe_qgis.exceptions import QgisPathError
 from safe_qgis.dock import Dock
+from qgis.core import QgsMapLayerRegistry
 from qgis.utils import iface
 
 
@@ -54,35 +55,42 @@ def runScenario():
     myDock.pbnRunStop.click()
 
 
+def extractPath(theDirectory, thePath):
+    """Get a path and basename given a directory and path."""
+    myFilename = os.path.split(thePath)[-1]  # In case path was absolute
+    myBaseName, myExt = os.path.splitext(myFilename)
+    myPath = os.path.join(theDirectory, thePath)
+    return myPath, myBaseName
+
+
 def addLayers(theDirectory, thePaths):
     """ Add vector or raster layer to current project
      Args:
-        theDirectory str - (Required) base directory to find path.
-        thePaths str or list - (Required) path of layer file.
+        * theDirectory: str - (Required) base directory to find path.
+        * thePaths: str or list - (Required) path of layer file.
 
-    Returns: None.
+    Returns:
+        None.
 
-    Raises: Exception - occurs when thePaths have illegal extension
-            TypeError - occurs when thePaths is not string or list
+    Raises:
+        * Exception - occurs when thePaths have illegal extension
+        * TypeError - occurs when thePaths is not string or list
     """
-
-    def extractPath(thePath):
-        myFilename = os.path.split(thePath)[-1]  # In case path was absolute
-        myBaseName, myExt = os.path.splitext(myFilename)
-        myPath = os.path.join(theDirectory, thePath)
-        return myPath, myBaseName
 
     myPaths = []
     if isinstance(thePaths, str):
-        myPaths.append(extractPath(thePaths))
+        myPaths.append(extractPath(theDirectory, thePaths))
     elif isinstance(thePaths, list):
-        myPaths = [extractPath(x) for x in thePaths]
+        myPaths = [extractPath(theDirectory, x) for x in thePaths]
     else:
         myMessage = "thePaths must be string or list not %s" % type(thePaths)
         raise TypeError(myMessage)
 
     for myPath, myBaseName in myPaths:
         myExt = os.path.splitext(myPath)[-1]
+
+        if not os.path.exists(myPath):
+            raise QgisPathError('File not found: %s' % myPath)
 
         if myExt in ['.asc', '.tif']:
             LOGGER.debug("add raster layer %s" % myPath)
@@ -92,3 +100,62 @@ def addLayers(theDirectory, thePaths):
             iface.addVectorLayer(myPath, myBaseName, 'ogr')
         else:
             raise Exception('File %s had illegal extension' % myPath)
+
+def setFunctionId(theFunctionId):
+    """Set the function combo to use the function with the given id.
+
+    Args:
+        theFunctionId: str - a string representing the unique identifier for
+            the desired function.
+
+    Returns:
+        bool: True on success, False in the case that the function is not
+            present in the function selector (based on the context of loaded
+            hazard and exposure layers.
+
+    Exception:
+        None
+    """
+    if theFunctionId is None or theFunctionId == '':
+        return False
+
+    myDock = getDock()
+    for myCount in range(0, myDock.cboFunction.count()):
+        myFunctionId = myDock.getFunctionID(myCount)
+        if myFunctionId == theFunctionId:
+            myDock.cboFunction.setCurrentIndex(myCount)
+            return True
+    return False
+
+def setAggregation(theAggregationLayer):
+    """Set the aggregation combo to use the layer with the given name.
+
+    Args:
+        theAggregationLayer: str - a string representing the source name of
+        the desired aggregation layer.
+
+    Returns:
+        bool: True on success, False in the case that the aggregation layer
+        is not in the aggregation selector.
+
+    Exception:
+        None
+
+    .. note:: Probably wont work for sublayers and anything else other than
+        file based layers (e.g. shp).
+
+    """
+    if theAggregationLayer is None or theAggregationLayer == '':
+        return False
+
+    myDock = getDock()
+
+    for myCount in range(0, myDock.cboAggregation.count()):
+        myLayerId = myDock.cboAggregation.itemData(myCount,
+                                                 QtCore.Qt.UserRole).toString()
+        myLayer = QgsMapLayerRegistry.instance().mapLayer(myLayerId)
+
+        if myLayer.source() == theAggregationLayer:
+            myDock.cboAggregation.setCurrentIndex(myCount)
+            return True
+    return False
