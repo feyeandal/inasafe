@@ -250,14 +250,14 @@ class Plugin:
         #-----------------------------------
         ## FIXME: need to change the image file....
         self.actionScriptDialog = QAction(
-                QIcon(':/plugins/inasafe/functions-table.png'),
+                QIcon(':/plugins/inasafe/batch.png'),
                 self.tr('InaSAFE GUI Scripting'),
                 self.iface.mainWindow())
 
         self.actionScriptDialog.setStatusTip(self.tr(
-            'InaSAFE GUI Scripting Tools'))
+            'InaSAFE GUI Batch Tools'))
         self.actionScriptDialog.setWhatsThis(self.tr(
-            'Run GUI Scripting Tools'))
+            'Run InaSAFE Batch Tools'))
         QObject.connect(self.actionScriptDialog, SIGNAL('triggered()'),
             self.showScriptDialog)
 

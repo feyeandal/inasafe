@@ -5,51 +5,51 @@ function:Volcano Building Impact
 extent:110.13,-7.81,110.67,-7.50
 
 [Merapi_volcano_population]
-exposure:Merapi/Data/jawa2_popmap10_all.shp
+exposure:Merapi/Data/jawa2_popmap10_all.tif
 hazard:Merapi/Data/merapi_krb.shp
 function:Volcano Polygon Hazard Population
 extent:110.13,-7.81,110.67,-7.50
 
 [Padang_Tsunami_osm_buildings]
-exposure:PadangTsunami/bangunan_padang_only.shp
-hazard:PadangTsunami/tsunami_padang_86.tif
+exposure:padang/Z/data/PadangTsunami/bangunan_padang_only.shp
+hazard:padang/Z/data/PadangTsunami/tsunami_padang_86.tif
 function:Flood Building Impact Function
 extent:100.323,-0.973,100.413,-0.921
 
 [Padang_Tsunami_population]
-exposure:PadangTsunami/penduduk_sumatra.tif
-hazard:PadangTsunami/tsunami_padang_86.tif
+exposure:padang/Z/data/Padang Earthquake/penduduk_sumatra.tif
+hazard:padang/Z/data/PadangTsunami/tsunami_padang_86.tif
 function:Flood Evacuation Function
 extent:100.282,-0.978,100.450,-0.882
 
 [Maumere_Tsunami_osm_buildings]
 exposure:Maumere/data/bangunan.shp
-hazard:Maumere/data/Tsunami di Maumere (Mw 8.1).tif
+hazard:Maumere/data/Tsunami_Maumere_Mw81.tif
 function:Flood Building Impact Function
 extent:122.17,-8.67,122.35,-8.57
 
 [Maumere_Tsunami_population]
 exposure:Maumere/data/NusaTenggara_popmap10.tif
-hazard:Maumere/data/Tsunami di Maumere (Mw 8.1).tif
+hazard:Maumere/data/Tsunami_Maumere_Mw81.tif
 function:Flood Evacuation Function
 extent:122.17,-8.67,122.35,-8.57
 
 [Palu_Earthquake_osm_building]
 exposure:Palu/data/bangunan.shp
-hazard:gempa Mw6.5 Palu-Koro Fault.tif
+hazard:Palu/data/gempa Mw6.5 Palu-Koro Fault.tif
 function:Earthquake Building Impact Function
 extent:119.827,-0.892,119.899,-0.850
 
 [Palu_Earthquake_population]
 exposure:Palu/data/penduduk Palu.tif
-hazard:gempa Mw6.5 Palu-Koro Fault.tif
-function:ITB Fatality Function
+hazard:Palu/data/gempa Mw6.5 Palu-Koro Fault.tif
+function:I T B Fatality Function
 extent:119.827,-0.892,119.899,-0.850
 
 [Palu_Earthquake_population]
 exposure:Palu/data/penduduk Palu.tif
-hazard:gempa Mw6.5 Palu-Koro Fault.tif
-function:PAG Fatality Function
+hazard:Palu/data/gempa Mw6.5 Palu-Koro Fault.tif
+function:P A G Fatality Function
 extent:119.827,-0.892,119.899,-0.850
 
 [Yogyakarta_Earthquake_osm_building]
@@ -61,18 +61,14 @@ extent:109.82,-8.22,111.03,-7.53
 [Yogyakarta_Earthquake_osm_building]
 exposure:Yogyakarta/data/penduduk Yogya.tif
 hazard:Yogyakarta/data/gempa Yogya 2006.tif
-function:ITB Fatality Function
+function:I T B Fatality Function
 extent:109.82,-8.22,111.03,-7.53
 
 [Yogyakarta_Earthquake_osm_building]
 exposure:Yogyakarta/data/penduduk Yogya.tif
 hazard:Yogyakarta/data/gempa Yogya 2006.tif
-function:PAG Fatality Function
+function:P A G Fatality Function
 extent:109.82,-8.22,111.03,-7.53
-
-[jakarta_flood_buildings]
-exposure:exposure/DKI_Buildings.shp
-hazard:hazard/Jakarta_RW_2007flood.shp
 
 [Banjir_Jakarta]
 exposure:Jakarta/data/bangunan jakarta.shp

@@ -31,6 +31,7 @@ from script_dialog_base import Ui_ScriptDialogBase
 
 from safe_qgis import macro
 from safe_qgis.exceptions import QgisPathError
+from safe_qgis.safe_interface import temp_dir
 
 LOGGER = logging.getLogger('InaSAFE')
 
@@ -67,6 +68,48 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
         self.populateTable()
         self.adjustSize()
+
+        # get the base data path from settings if available
+        mySettings = QtCore.QSettings()
+        myPath = mySettings.value('inasafe/baseDataDir', QtCore.QString(''))
+        self.leBaseDataDir.setText(myPath.toString())
+
+    @pyqtSignature('QString')
+    def on_leBaseDataDir_changed(self, theString):
+        """Handler for when user changes data base path.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+        mySettings = QtCore.QSettings()
+        mySettings.setValue('inasafe/baseDataDir',
+                            self.leBaseDataDir.text())
+
+    @pyqtSignature('')  # prevents actions being handled twice
+    def on_tbBaseDataDir_clicked(self):
+        """Autoconnect slot activated when the select cache file tool button is
+        clicked,
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+        mySettings = QtCore.QSettings()
+        myPath = mySettings.value(
+            'inasafe/baseDataDir', QtCore.QString('')).toString()
+        myNewPath = QtGui.QFileDialog.getExistingDirectory(self,
+                   self.tr('Set the base directory for data packages'),
+                   myPath,
+                   QtGui.QFileDialog.ShowDirsOnly)
+        self.leBaseDataDir.setText(myNewPath)
+        mySettings.setValue('inasafe/baseDataDir',
+                            self.leBaseDataDir.text())
+
 
     def populateTable(self):
         """ Populate table with files from folder 'script_runner' directory.
@@ -154,16 +197,47 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
     @pyqtSignature('')
     def on_pbnRunAll_clicked(self):
+        myReport = []
+        myFailCount = 0
+        myPassCount = 0
         for myRow in range(self.tblScript.rowCount()):
             self.tblScript.selectRow(myRow)
+            myItem = self.tblScript.item(self.tblScript.currentRow(), 0).text()
             try:
-                self.on_btnRunSelected_clicked()
+                if (self.on_btnRunSelected_clicked()):
+                    # P for passed
+                    myReport.append('P: %s' % str(myItem))
+                    myPassCount += 1
+                else:
+                    myReport.append('F: %s' % str(myItem))
+                    myFailCount += 1
             except:
                 LOGGER.exception('Batch execution failed')
+                myReport.append('F: %s' % str(myItem))
+                myFailCount += 1
+
+        myPath = os.path.join(temp_dir(), 'batch-report.txt')
+        myReportFile = file(myPath, 'wt')
+        myReportFile.write(' InaSAFE Batch Report File')
+        myReportFile.write('-----------------------------')
+        for myLine in myReport:
+            myReportFile.write(myLine)
+        myReportFile.write('-----------------------------')
+        myReportFile.write('Total passed: %s' % myPassCount)
+        myReportFile.write('Total failed: %s' % myFailCount)
+        myReportFile.write('Total tasks: %s' % len(myReport))
+        myReportFile.write('-----------------------------')
+        myReportFile.close()
+        LOGGER.info('Log written to %s' % myPath)
 
     @pyqtSignature('')
     def on_btnRunSelected_clicked(self):
-        """Run the selected item"""
+        """Run the selected item.
+
+        TODO: split the actual logic into its own function that can be shared
+         by this method and on_pbnRunAll_clicked.
+
+        """
         myCurrentRow = self.tblScript.currentRow()
         # See if this is a python script or a scenario read from a text file
         myItem = self.tblScript.item(myCurrentRow, 0)
@@ -197,11 +271,8 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
             myStatusItem = self.tblScript.item(myCurrentRow, 1)
             myStatusItem.setText(self.tr('Running'))
 
-            myRoot = os.path.abspath(os.path.join(
-                os.path.realpath(os.path.dirname(__file__)),
-                                          '..',
-                                          '..',
-                                          'inasafe_data'))
+            myRoot = str(self.leBaseDataDir.text())
+
             myPaths = []
             if 'hazard' in myValue:
                 myPaths.append(myValue['hazard'])
