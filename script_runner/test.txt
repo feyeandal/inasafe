@@ -1,3 +1,4 @@
+                                   
 [Merapi_volcano_osm_buildings]
 exposure:Merapi/Data/bangunan.shp
 hazard:Merapi/Data/merapi_krb.shp
@@ -11,14 +12,14 @@ function:Volcano Polygon Hazard Population
 extent:110.13,-7.81,110.67,-7.50
 
 [Padang_Tsunami_osm_buildings]
-exposure:padang/data/PadangTsunami/bangunan_padang_only.shp
-hazard:padang/data/PadangTsunami/tsunami_padang_86.tif
+exposure:Padang/data/Padang Tsunami/bangunan_padang_only.shp
+hazard:Padang/data/Padang Tsunami/tsunami_padang_86.tif
 function:Flood Building Impact Function
 extent:100.323,-0.973,100.413,-0.921
 
 [Padang_Tsunami_population]
-exposure:padang/data/Padang Earthquake/penduduk_sumatra.tif
-hazard:padang/data/PadangTsunami/tsunami_padang_86.tif
+exposure:Padang/data/Padang Earthquake/penduduk_sumatra.tif
+hazard:Padang/data/Padang Tsunami/tsunami_padang_86.tif
 function:Flood Evacuation Function
 extent:100.282,-0.978,100.450,-0.882
 
@@ -119,50 +120,50 @@ function:Flood Evacuation Function
 extent:106.774,-6.233,106.842,-6.190
 
 [gempa bumi di padang 2009]
-exposure:padang/data/Padang Earthquake/bangunan_padang_only.shp
-hazard:padang/data/Padang Earthquake/gempa_padang_2009.tif
+exposure:Padang/data/Padang Earthquake/bangunan_padang_only.shp
+hazard:Padang/data/Padang Earthquake/gempa_padang_2009.tif
 function:Earthquake Building Impact Function
 extent:96,-4,104,1
 
 [gempa bumi di padang 2009]
-exposure:padang/data/Padang Earthquake/bangunan_padang_only.shp
-hazard:padang/data/Padang Earthquake/gempa_padang_2009.tif
+exposure:Padang/data/Padang Earthquake/bangunan_padang_only.shp
+hazard:Padang/data/Padang Earthquake/gempa_padang_2009.tif
 function:Earthquake Building Impact Function
 extent:100.310,-0.988,100.434,-0.909
 
 [gempa bumi di padang 2009]
-exposure:padang/data/Padang Earthquake/penduduk_sumatra_1km.tif
-hazard:padang/data/Padang Earthquake/gempa_padang_2009.tif
+exposure:Padang/data/Padang Earthquake/penduduk_sumatra_1km.tif
+hazard:Padang/data/Padang Earthquake/gempa_padang_2009.tif
 function:I T B Fatality Function
 extent:96,-4,104,1
 
 [gempa bumi di padang 2009]
-exposure:padang/data/Padang Earthquake/penduduk_sumatra_1km.tif
-hazard:padang/data/Padang Earthquake/gempa_padang_2009.tif
+exposure:Padang/data/Padang Earthquake/penduduk_sumatra_1km.tif
+hazard:Padang/data/Padang Earthquake/gempa_padang_2009.tif
 function:I T B Fatality Function
 extent:100.310,-0.988,100.434,-0.909
 
 [gempa bumi di padang 2009]
-exposure:padang/data/Padang Earthquake/bangunan_padang_only.shp
-hazard:padang/data/Padang Earthquake/gempa_padang_2009.tif
+exposure:Padang/data/Padang Earthquake/bangunan_padang_only.shp
+hazard:Padang/data/Padang Earthquake/gempa_padang_2009.tif
 function:P A G Fatality Function
 extent:96,-4,104,1
 
 [gempa bumi di padang 2009]
-exposure:padang/data/Padang Earthquake/bangunan_padang_only.shp
-hazard:padang/data/Padang Earthquake/gempa_padang_2009.tif
+exposure:Padang/data/Padang Earthquake/bangunan_padang_only.shp
+hazard:Padang/data/Padang Earthquake/gempa_padang_2009.tif
 function:P A G Fatality Function
 extent:100.310,-0.988,100.434,-0.909
 
 [gempa bumi di padang 2009]
-exposure:padang/data/Padang Earthquake/penduduk_sumatra_1km.tif
-hazard:padang/data/Padang Earthquake/gempa_padang_2009.tif
+exposure:Padang/data/Padang Earthquake/penduduk_sumatra_1km.tif
+hazard:Padang/data/Padang Earthquake/gempa_padang_2009.tif
 function:P A G Fatality Function
 extent:96,-4,104,1
 
 [gempa bumi di padang 2009]
-exposure:padang/penduduk_1km2(compressed).tif
-hazard:padang/data/Padang Earthquake/gempa_padang_2009.tif
+exposure:Padang/data/Padang Earthquake/penduduk_sumatra_1km.tif
+hazard:Padang/data/Padang Earthquake/gempa_padang_2009.tif
 function:P A G Fatality Function
 extent:100.310,-0.988,100.434,-0.909
 
