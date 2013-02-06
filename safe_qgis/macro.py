@@ -101,6 +101,7 @@ def addLayers(theDirectory, thePaths):
         else:
             raise Exception('File %s had illegal extension' % myPath)
 
+
 def setFunctionId(theFunctionId):
     """Set the function combo to use the function with the given id.
 
@@ -126,6 +127,7 @@ def setFunctionId(theFunctionId):
             myDock.cboFunction.setCurrentIndex(myCount)
             return True
     return False
+
 
 def setAggregation(theAggregationLayer):
     """Set the aggregation combo to use the layer with the given name.

@@ -110,7 +110,6 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         mySettings.setValue('inasafe/baseDataDir',
                             self.leBaseDataDir.text())
 
-
     def populateTable(self):
         """ Populate table with files from folder 'script_runner' directory.
 
@@ -206,29 +205,31 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
             try:
                 if (self.on_btnRunSelected_clicked()):
                     # P for passed
-                    myReport.append('P: %s' % str(myItem))
+                    myReport.append('P: %s\n' % str(myItem))
                     myPassCount += 1
                 else:
-                    myReport.append('F: %s' % str(myItem))
+                    myReport.append('F: %s\n' % str(myItem))
                     myFailCount += 1
             except:
                 LOGGER.exception('Batch execution failed')
-                myReport.append('F: %s' % str(myItem))
+                myReport.append('F: %s\n' % str(myItem))
                 myFailCount += 1
 
         myPath = os.path.join(temp_dir(), 'batch-report.txt')
         myReportFile = file(myPath, 'wt')
-        myReportFile.write(' InaSAFE Batch Report File')
-        myReportFile.write('-----------------------------')
+        myReportFile.write(' InaSAFE Batch Report File\n')
+        myReportFile.write('-----------------------------\n')
         for myLine in myReport:
             myReportFile.write(myLine)
-        myReportFile.write('-----------------------------')
-        myReportFile.write('Total passed: %s' % myPassCount)
-        myReportFile.write('Total failed: %s' % myFailCount)
-        myReportFile.write('Total tasks: %s' % len(myReport))
-        myReportFile.write('-----------------------------')
+        myReportFile.write('-----------------------------\n')
+        myReportFile.write('Total passed: %s\n' % myPassCount)
+        myReportFile.write('Total failed: %s\n' % myFailCount)
+        myReportFile.write('Total tasks: %s\n' % len(myReport))
+        myReportFile.write('-----------------------------\n')
         myReportFile.close()
         LOGGER.info('Log written to %s' % myPath)
+        myUrl = QtCore.QUrl('file:///' + myPath)
+        QtGui.QDesktopServices.openUrl(myUrl)
 
     @pyqtSignature('')
     def on_btnRunSelected_clicked(self):
@@ -293,7 +294,6 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 LOGGER.exception('Loading layers failed: \nRoot: %s\n%s' % (
                     myRoot, myPaths))
                 return False
-
 
             # See if we have a preferred impact function
             if 'function' in myValue:
