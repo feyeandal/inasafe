@@ -64,6 +64,10 @@ from safe_qgis.utilities import (setRasterStyle,
 from safe.engine.impact_functions_for_testing import allen_fatality_model
 from safe.engine.impact_functions_for_testing import HKV_flood_study
 from safe.engine.impact_functions_for_testing import BNPB_earthquake_guidelines
+from safe.engine.impact_functions_for_testing import \
+    categorised_hazard_population
+from safe.engine.impact_functions_for_testing import \
+    categorised_hazard_building_impact
 #from safe.engine.impact_functions_for_testing import error_raising_functions
 # pylint: enable=W0611
 
@@ -1108,7 +1112,7 @@ class DockTest(unittest.TestCase):
         assert format_int(28) in myResult, myMessage
 
     def test_runVolcanoCirclePopulation(self):
-        """Volcano function runs in GUI with a circular evacutation zone
+        """Volcano function runs in GUI with a circular evacuation zone.
 
         Uses population density grid as exposure."""
 
@@ -1141,13 +1145,14 @@ class DockTest(unittest.TestCase):
             assert format_int(15000) in myResult, myMessage
             assert format_int(17000) in myResult, myMessage
             assert format_int(124000) in myResult, myMessage
-        except Exception, e:
-            LOGGER.debug(e)
-            # Not so good way catch error
-            if "MemoryError" in str(e):
-                pass
-            else:
-                raise Exception('Failed or Exception is not expected, %s' % e)
+        except MemoryError:
+            # We cant predictably check for mem errors
+            LOGGER.exception('Memory error occurred.')
+        #pylint: disable=W0703
+        except Exception as e:
+            LOGGER.exception('Failed or Exception is not expected')
+            raise e
+        #pylint: enable=W0703
 
     # disabled this test until further coding
     def Xtest_printMap(self):
