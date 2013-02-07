@@ -3160,11 +3160,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         except ValueError:
             myMessage = 'Could not determine free memory'
             LOGGER.exception(myMessage)
-<<<<<<< HEAD
-            return myMessage
-=======
             return None
->>>>>>> master
 
         # We work on the assumption that if more than 10% of the available
         # memory is occupied by a single layer we could run out of memory
