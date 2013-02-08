@@ -234,7 +234,8 @@ def setupScenario(theHazard, theExposure, theFunction, theFunctionId,
 
     if theAggregationEnabledFlag is not None:
         if DOCK.cboAggregation.isEnabled() != theAggregationEnabledFlag:
-            myMessage = ('The aggregation combobox should be %s' %
+            myMessage = (
+                'The aggregation combobox should be %s' %
                 ('enabled' if theAggregationEnabledFlag else 'disabled'))
             return False, myMessage
 
@@ -670,15 +671,16 @@ class DockTest(unittest.TestCase):
         DOCK.cboFunction.setCurrentIndex(myIndex)
 
         myDict = getUiState(DOCK)
-        myExpectedDict = {'Hazard': PADANG2009_title,
-                          'Exposure': 'Padang_WGS84',
-                          'Impact Function Id':
-                              'Earthquake Guidelines Function',
-                          'Impact Function Title':
-                              'Earthquake Guidelines Function',
-                          'Run Button Enabled': True}
+        myExpectedDict = {
+            'Hazard': PADANG2009_title,
+            'Exposure': 'Padang_WGS84',
+            'Impact Function Id':
+            'Earthquake Guidelines Function',
+            'Impact Function Title':
+            'Earthquake Guidelines Function',
+            'Run Button Enabled': True}
         myMessage = 'Got:\n %s\nExpected:\n%s\n%s' % (
-                        myDict, myExpectedDict, combosToString(DOCK))
+            myDict, myExpectedDict, combosToString(DOCK))
         assert myDict == myExpectedDict, myMessage
 
         QTest.mouseClick(myButton, QtCore.Qt.LeftButton)
@@ -692,9 +694,10 @@ class DockTest(unittest.TestCase):
         #High damage (50-100%):    3160
         # Post merge of clip on steoids branch:
         #High damage (50-100%):    2993
-        myMessage = ('Unexpected result returned for Earthquake guidelines'
-               'function. Expected:\n "All" count of 2993, '
-               'received: \n %s' % myResult)
+        myMessage = (
+            'Unexpected result returned for Earthquake guidelines'
+            'function. Expected:\n "All" count of 2993, '
+            'received: \n %s' % myResult)
         assert format_int(2993) in myResult, myMessage
 
     def test_runEarthquakeFatalityFunction_small(self):
@@ -728,14 +731,15 @@ class DockTest(unittest.TestCase):
         DOCK.cboFunction.setCurrentIndex(myIndex)
 
         myDict = getUiState(DOCK)
-        myExpectedDict = {'Hazard': PADANG2009_title,
-                          'Exposure': 'People',
-                          'Impact Function Id': 'Earthquake Fatality Function',
-                          'Impact Function Title':
-                              'Earthquake Fatality Function',
-                          'Run Button Enabled': True}
+        myExpectedDict = {
+            'Hazard': PADANG2009_title,
+            'Exposure': 'People',
+            'Impact Function Id': 'Earthquake Fatality Function',
+            'Impact Function Title':
+            'Earthquake Fatality Function',
+            'Run Button Enabled': True}
         myMessage = 'Got unexpected state: %s\nExpected: %s\n%s' % (
-                            myDict, myExpectedDict, combosToString(DOCK))
+            myDict, myExpectedDict, combosToString(DOCK))
         assert myDict == myExpectedDict, myMessage
 
         QTest.mouseClick(myButton, QtCore.Qt.LeftButton)
@@ -1150,7 +1154,6 @@ class DockTest(unittest.TestCase):
         assert format_int(15000) in myResult, myMessage
         assert format_int(17000) in myResult, myMessage
         assert format_int(124000) in myResult, myMessage
-
 
     # disabled this test until further coding
     def Xtest_printMap(self):
