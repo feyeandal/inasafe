@@ -118,6 +118,9 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
         Returns:
             None
+
+        Raises:
+            None
         """
 
         self.tblScript.clearContents()
@@ -163,11 +166,25 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 self.tblScript.setItem(myRow, 1, QtGui.QTableWidgetItem(''))
 
     def runScript(self, theFilename):
-        """ runs script in QGIS
+        """ Run a python script in QGIS to exercise InaSAFE functionality.
+
+        This functionality was originally intended for verifying that the key
+        elements are InaSAFE are loading correctly and available. However,
+        the utility of this function is such that you can run any arbitrary
+        python scripts with it. As such you can use it it automate
+        activities in QGIS, for example automatically running an impact
+        assessment in response to an event.
+
+        .. note:: This is a note.
+
+        .. warning:: This is a warning.
+
         Args:
-           * theFilename - the script filename
+           theFilename: str - the script filename.
+
         Returns:
            not applicable
+
         Raises:
            no exceptions explicitly raised
         """
@@ -341,7 +358,7 @@ def readScenarios(theFilename):
     """Read keywords dictionary from file
 
     Args:
-        * theFilename: Name of file holding scenarios - should be placed
+        theFilename: Name of file holding scenarios - should be placed
             in the script_runner directory.
 
     Returns:
@@ -424,6 +441,7 @@ def readScenarios(theFilename):
     # Write out any unfinalised block data
     if len(myKeys) > 0 and myBlock is not None:
         myBlocks[myBlock] = myKeys
+    # I think we can delete this? TS
     if myFirstKeys is None:
         myFirstKeys = myKeys
 
@@ -438,8 +456,14 @@ def readScenarios(theFilename):
 def getScriptPath():
     """ Get base path for directory that contains the script files
 
+    Args:
+        None
+
     Returns:
-    String containing absolute base path for script files
+        str: String containing absolute base path for script files
+
+    Raises:
+        None
     """
     myRoot = os.path.dirname(__file__)
     return os.path.abspath(os.path.join(myRoot, '..', 'script_runner'))
