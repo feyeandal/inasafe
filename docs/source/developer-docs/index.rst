@@ -17,6 +17,7 @@ Developer Documentation Contents:
    platform_linux
    platform_windows
    coding_standards
+   running_tests
    logging
    profiling
    i18n
