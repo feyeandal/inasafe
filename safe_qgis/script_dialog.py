@@ -23,9 +23,8 @@ import logging
 import re
 
 from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import pyqtSignature
-
-import qgis
+from PyQt4.QtCore import (pyqtSignature, QSettings, QVariant, QString, Qt)
+from PyQt4.QtGui import (QDialog, QFileDialog, QTableWidgetItem)
 
 from script_dialog_base import Ui_ScriptDialogBase
 
@@ -36,7 +35,7 @@ from safe_qgis.safe_interface import temp_dir
 LOGGER = logging.getLogger('InaSAFE')
 
 
-class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
+class ScriptDialog(QDialog, Ui_ScriptDialogBase):
     """Script Dialog for InaSAFE."""
 
     def __init__(self, theParent=None, theIface=None):
@@ -49,12 +48,13 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         Raises:
            no exceptions explicitly raised
         """
-        QtGui.QDialog.__init__(self, theParent)
+        QDialog.__init__(self, theParent)
         self.setupUi(self)
         self.setWindowTitle(self.tr('Script Dialog'))
         LOGGER.info('Script runner dialog started')
 
         self.iface = theIface
+        self.basePath = getScriptPath()
 
         myHeaderView = self.tblScript.horizontalHeader()
         myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch)
@@ -66,9 +66,9 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         self.gboOptions.setVisible(False)
 
         # Add script folder to sys.path.
-        sys.path.append(getScriptPath())
+        sys.path.append(self.basePath)
 
-        self.populateTable()
+        self.populateTable(self.basePath)
         self.adjustSize()
 
         # get the base data path from settings if available
@@ -86,9 +86,9 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         Raises:
             None
         """
-        mySettings = QtCore.QSettings()
+        mySettings = QSettings()
         mySettings.setValue('inasafe/baseDataDir',
-                            self.leBaseDataDir.text())
+                            theString)
 
     @pyqtSignature('')  # prevents actions being handled twice
     def on_tbBaseDataDir_clicked(self):
@@ -101,19 +101,19 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         Raises:
             None
         """
-        mySettings = QtCore.QSettings()
+        mySettings = QSettings()
         myPath = mySettings.value(
-            'inasafe/baseDataDir', QtCore.QString('')).toString()
-        myNewPath = QtGui.QFileDialog.getExistingDirectory(self,
-                   self.tr('Set the base directory for data packages'),
-                   myPath,
-                   QtGui.QFileDialog.ShowDirsOnly)
+            'inasafe/baseDataDir', QString('')).toString()
+        myNewPath = QFileDialog.getExistingDirectory(
+            self,
+            self.tr('Set the base directory for data packages'),
+            myPath,
+            QFileDialog.ShowDirsOnly)
         self.leBaseDataDir.setText(myNewPath)
-        mySettings.setValue('inasafe/baseDataDir',
-                            self.leBaseDataDir.text())
+        mySettings.setValue('inasafe/baseDataDir', myNewPath)
 
-    def populateTable(self):
-        """ Populate table with files from folder 'script_runner' directory.
+    def populateTable(self, theBasePath):
+        """ Populate table with files from theBasePath directory.
 
         Args:
             None
@@ -127,45 +127,21 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
         self.tblScript.clearContents()
 
-        # load the list of files in 'script_runner' folder
-        myPath = getScriptPath()
+        # only support .py and .txt files
+        for myFile in os.listdir(theBasePath):
+            myExt = os.path.splitext(myFile)[1]
+            myAbsPath = os.path.join(theBasePath, myFile)
 
-        # get '.py' files in folder
-        myFiles = [
-            x for x in os.listdir(myPath) if os.path.splitext(x)[1] == '.py']
-
-        # insert files to table widget
-        self.tblScript.setRowCount(len(myFiles))
-        for myIndex, myFilename in enumerate(myFiles):
-            self.tblScript.setItem(
-                myIndex, 0, QtGui.QTableWidgetItem(myFilename))
-            self.tblScript.setItem(
-                myIndex, 1, QtGui.QTableWidgetItem(''))
-
-        # get '.txt' files in folder
-        myFiles = [
-            x for x in os.listdir(myPath) if os.path.splitext(x)[1] == '.txt']
-
-        for myFile in myFiles:
-            LOGGER.info('looking for scenarios in %s' % myFile)
-            # insert scenarios from file into table widget
-            for myKey, myValue in readScenarios(myFile).iteritems():
-                LOGGER.info('Found scenario: %s:%s in %s' % (
-                    myKey, myValue, myFile
-                ))
-                self.tblScript.insertRow(self.tblScript.rowCount())
-                myRow = self.tblScript.rowCount() - 1
-                myItem = QtGui.QTableWidgetItem(myKey)
-                # see for details of why we follow this pattern
-                # http://stackoverflow.com/questions/9257422/
-                # how-to-get-the-original-python-data-from-qvariant
-                # Make the value immutable.
-                myVariant = QtCore.QVariant((myValue,))
-                # To retrieve it again you would need to do:
-                #myValue = myVariant.toPyObject()[0]
-                myItem.setData(QtCore.Qt.UserRole, myVariant)
-                self.tblScript.setItem(myRow, 0, myItem)
-                self.tblScript.setItem(myRow, 1, QtGui.QTableWidgetItem(''))
+            if myExt == '.py':
+                appendRow(self.tblScript, myFile, myAbsPath)
+            elif myExt == '.txt':
+                LOGGER.info('looking for scenarios in %s' % myAbsPath)
+                # insert scenarios from file into table widget
+                for myKey, myValue in readScenarios(myAbsPath).iteritems():
+                    LOGGER.info('Found scenario: %s:%s in %s' % (
+                        myKey, myValue, myAbsPath
+                    ))
+                    appendRow(self.tblScript, myKey, myValue)
 
     def runScript(self, theFilename, theCount=1):
         """ Run a python script in QGIS to exercise InaSAFE functionality.
@@ -296,11 +272,15 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         # set status to 'running'
         theStatusItem.setText(self.tr('Running'))
 
-        if theItem.data(QtCore.Qt.UserRole).isNull():
-            myFilename = theItem.text()
+        # .. seealso:: :func:`appendRow` to understand the next 2 lines
+        myVariant = theItem.data(QtCore.Qt.UserRole)
+        myValue = myVariant.toPyObject()[0]
+
+        if isinstance(myValue, str):
+            myFilename = myValue
             # run script
             try:
-                self.runScript(myFilename)
+                self.runScript(myFilename, self.sboCount.value())
                 # set status to 'OK'
                 theStatusItem.setText(self.tr('OK'))
             except Exception as ex:
@@ -309,17 +289,15 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
                 LOGGER.exception('Running macro failed')
                 return False
-        else:
+        elif isinstance(myValue, dict):
             # Its a dict containing files for a scenario
-            #myText = myItem.text()
-            # .. seealso:: :func:`populateTable` to understand the next 2 lines
-            myVariant = theItem.data(QtCore.Qt.UserRole)
-            myValue = myVariant.toPyObject()[0]
-
             myResult = self.runTextFile(myValue)
             if not myResult:
                 theStatusItem.setText(self.tr('Fail'))
                 return False
+        else:
+            LOGGER.exception('data type not supported: "%s"' % myValue)
+            return False
 
         return True
 
@@ -334,7 +312,7 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
     @pyqtSignature('')
     def on_btnRefresh_clicked(self):
-        self.populateTable()
+        self.populateTable(self.basePath)
 
     @pyqtSignature('bool')
     def on_pbnAdvanced_toggled(self, theFlag):
@@ -372,7 +350,7 @@ def readScenarios(theFilename):
     """
 
     # Input checks
-    myFilename = os.path.join(getScriptPath(), theFilename)
+    myFilename = os.path.abspath(theFilename)
     myBasename, myExtension = os.path.splitext(theFilename)
 
     myMessage = ('Unknown extension for file %s. '
@@ -462,3 +440,43 @@ def getScriptPath():
     """
     myRoot = os.path.dirname(__file__)
     return os.path.abspath(os.path.join(myRoot, '..', 'script_runner'))
+
+
+def appendRow(theTable, theLabel, theData):
+    """ Append new row to table widget.
+     Args:
+        * theTable - a QTable instance
+        * theLabel - label for the row.
+        * theData  - custom data associated with theLabel value.
+     Returns:
+        None
+     Raises:
+        None
+    """
+    myRow = theTable.rowCount()
+    theTable.insertRow(theTable.rowCount())
+
+    myItem = QTableWidgetItem(theLabel)
+
+    # see for details of why we follow this pattern
+    # http://stackoverflow.com/questions/9257422/
+    # how-to-get-the-original-python-data-from-qvariant
+    # Make the value immutable.
+    myVariant = QVariant((theData,))
+    # To retrieve it again you would need to do:
+    #myValue = myVariant.toPyObject()[0]
+    myItem.setData(Qt.UserRole, myVariant)
+
+    theTable.setItem(myRow, 0, myItem)
+    theTable.setItem(myRow, 1, QTableWidgetItem(''))
+
+
+if __name__ == '__main__':
+    from PyQt4.QtGui import QApplication
+    import sys
+
+    app = QApplication(sys.argv)
+    a = ScriptDialog()
+    a.show()
+    app.exec_()
+
