@@ -11,35 +11,73 @@ Contact : ole.moller.nielsen@gmail.com
 
 """
 
-__author__ = 'tim@linfiniti.com'
+__author__ = 'tim@linfiniti.com & bungcip@gmail.com'
 __date__ = '1/02/2013'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
 
+import os
 import unittest
+import logging
+
 # Needed though not used below
-from PyQt4.QtGui import QApplication  # pylint: disable=W0611
-from safe_qgis.utilities_test import getQgisTestApp
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QApplication, QTableWidget  # pylint: disable=W0611
+from safe_qgis.utilities_test import getQgisTestApp, unitTestDataPath
+from safe_qgis.script_dialog import (ScriptDialog, readScenarios, appendRow)
 
 QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
-
-from script_dialog import readScenarios
-
+LOGGER = logging.getLogger('InaSAFE')
+CONTROL_INPUT_DIR = os.path.join(os.path.dirname(__file__),
+                                 'test_data/test_files')
 
 class ScriptDialogTest(unittest.TestCase):
 
+    # def setUp(self):
+    #     self.scriptDialog = ScriptDialog(PARENT, IFACE)
+
     def testScenarioParser(self):
         """Test if we can load scenarios from a text file."""
-        myDictionary = readScenarios('test.txt')
+        myFile = os.path.join(CONTROL_INPUT_DIR, "test-scenario-input.txt")
+        myDictionary = readScenarios(myFile)
+
         myExpectedDictionary = {
-            'jakarta_flood_buildings':
-                    {'exposure': 'exposure/DKI_Buildings.shp',
-                     'hazard': 'hazard/Jakarta_RW_2007flood.shp'},
-            'jakarta_flood_people': {
-                      'exposure': 'test/Population_Jakarta_geographic.asc',
-                      'hazard': 'hazard/Jakarta_RW_2007flood.shp'}
+            'Merapi_volcano_osm_buildings': {
+                'exposure': 'Merapi/Data/bangunan.shp',
+                'hazard': 'Merapi/Data/merapi_krb.shp',
+                'function': 'Volcano Building Impact',
+                'extent': '110.13,-7.81,110.67,-7.50'
+            },
+            'Merapi_volcano_population': {
+                'exposure': 'Merapi/Data/jawa2_popmap10_all.tif',
+                'hazard': 'Merapi/Data/merapi_krb.shp',
+                'function': 'Volcano Polygon Hazard Population',
+                'extent': '110.13,-7.81,110.67,-7.50'
+            },
         }
         self.assertDictEqual(myExpectedDictionary, myDictionary)
+
+    def testAppendRow(self):
+        """Test appendRow() functionality"""
+        myTable = QTableWidget(PARENT)
+        myTable.clearContents()
+
+        appendRow(myTable, 'Foo1', 'bar.py')
+        appendRow(myTable, 'Foo2', {'number': 70})
+
+        self.assertEquals(myTable.rowCount(), 2, "row count don't match")
+
+        myItem = myTable.item(0, 0)
+        myVariant = myItem.data(Qt.UserRole)
+        myValue = myVariant.toPyObject()[0]
+
+        self.assertEquals(myValue, 'bar.py', " value dont' match")
+
+        # myItem = myTable.item(1, 0)
+        # myVariant = myItem.data(Qt.UserRole)
+        # myValue = myVariant.toPyObject()[0]
+        #
+        # self.assertDictEqual(myValue, {'number': 70})
 
 
 if __name__ == '__main__':
