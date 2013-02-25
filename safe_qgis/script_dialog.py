@@ -200,9 +200,8 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
 
         # run script
         for i in range(1, myCount + 1):
-            # run in blank project state if checkbox is checked
-            if self.cboNewProject.isChecked():
-                qgis.utils.iface.newProject()
+            # run as a new project
+            qgis.utils.iface.newProject()
 
             # run entry function
             myFunction = myScript.runScript
@@ -298,8 +297,9 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 myPaths.append(myValue['exposure'])
             if 'aggregation' in myValue:
                 myPaths.append(myValue['aggregation'])
-            if self.cboNewProject.isChecked():
-                qgis.utils.iface.newProject()
+
+            # always run in new project
+            qgis.utils.iface.newProject()
 
             LOGGER.info('Loading layers: \nRoot: %s\n%s' % (
                     myRoot, myPaths))
