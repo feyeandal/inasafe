@@ -549,6 +549,6 @@ class Plugin:
 
         myDialog = self.iface.mainWindow().findChild(ScriptDialog)
         if myDialog is None:
-            myDialog = ScriptDialog(self.iface.mainWindow())
+            myDialog = ScriptDialog(self.iface.mainWindow(), self.iface)
 
         myDialog.show()

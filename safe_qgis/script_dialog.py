@@ -39,7 +39,7 @@ LOGGER = logging.getLogger('InaSAFE')
 class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
     """Script Dialog for InaSAFE."""
 
-    def __init__(self, theParent=None):
+    def __init__(self, theParent=None, theIface=None):
         """Constructor for the dialog.
 
         Args:
@@ -53,6 +53,8 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         self.setupUi(self)
         self.setWindowTitle(self.tr('Script Dialog'))
         LOGGER.info('Script runner dialog started')
+
+        self.iface = theIface
 
         myHeaderView = self.tblScript.horizontalHeader()
         myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch)
@@ -147,7 +149,7 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         for myFile in myFiles:
             LOGGER.info('looking for scenarios in %s' % myFile)
             # insert scenarios from file into table widget
-            for myKey, myValue in readScenarios('test.txt').iteritems():
+            for myKey, myValue in readScenarios(myFile).iteritems():
                 LOGGER.info('Found scenario: %s:%s in %s' % (
                     myKey, myValue, myFile
                 ))
@@ -165,7 +167,7 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
                 self.tblScript.setItem(myRow, 0, myItem)
                 self.tblScript.setItem(myRow, 1, QtGui.QTableWidgetItem(''))
 
-    def runScript(self, theFilename):
+    def runScript(self, theFilename, theCount=1):
         """ Run a python script in QGIS to exercise InaSAFE functionality.
 
         This functionality was originally intended for verifying that the key
@@ -180,7 +182,8 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         .. warning:: This is a warning.
 
         Args:
-           theFilename: str - the script filename.
+           * theFilename: str - the script filename.
+           * theCount: int - the number of times the script must be run.
 
         Returns:
            not applicable
@@ -196,19 +199,56 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         else:
             myScript = __import__(myModule)
 
-        myCount = int(self.sboCount.value())
-
         # run script
-        for i in range(1, myCount + 1):
+        for i in range(1, theCount + 1):
             # run as a new project
-            qgis.utils.iface.newProject()
+            self.iface.newProject()
 
             # run entry function
             myFunction = myScript.runScript
             if myFunction.func_code.co_argcount == 1:
-                myFunction(qgis.utils.iface)
+                myFunction(self.iface)
             else:
                 myFunction()
+
+    def runTextFile(self, theItem):
+        """ FIXME:(gigih) change function name """
+        myRoot = str(self.leBaseDataDir.text())
+
+        myPaths = []
+        if 'hazard' in theItem:
+            myPaths.append(theItem['hazard'])
+        if 'exposure' in theItem:
+            myPaths.append(theItem['exposure'])
+        if 'aggregation' in theItem:
+            myPaths.append(theItem['aggregation'])
+
+        # always run in new project
+        self.iface.newProject()
+
+        LOGGER.info('Loading layers: \nRoot: %s\n%s' % (
+                    myRoot, myPaths))
+        try:
+            macro.addLayers(myRoot, myPaths)
+        except QgisPathError:
+            # set status to 'fail'
+            LOGGER.exception('Loading layers failed: \nRoot: %s\n%s' % (
+                myRoot, myPaths))
+            return False
+
+        # See if we have a preferred impact function
+        if 'function' in theItem:
+            myFunctionId = theItem['function']
+            myResult = macro.setFunctionId(myFunctionId)
+            if not myResult:
+                return False
+
+        if 'aggregation' in theItem:
+            myResult = macro.setAggregationLayer(theItem['aggregation'])
+            if not myResult:
+                return False
+
+        return True
 
     @pyqtSignature('')
     def on_pbnRunAll_clicked(self):
@@ -216,10 +256,12 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         myFailCount = 0
         myPassCount = 0
         for myRow in range(self.tblScript.rowCount()):
-            self.tblScript.selectRow(myRow)
-            myItem = self.tblScript.item(self.tblScript.currentRow(), 0).text()
+            myItem = self.tblScript.item(myRow, 0)
+            myStatusItem = self.tblScript.item(myRow, 1)
+
             try:
-                if (self.on_btnRunSelected_clicked()):
+                myResult = self.runRow(myItem, myStatusItem)
+                if myResult:
                     # P for passed
                     myReport.append('P: %s\n' % str(myItem))
                     myPassCount += 1
@@ -247,97 +289,48 @@ class ScriptDialog(QtGui.QDialog, Ui_ScriptDialogBase):
         myUrl = QtCore.QUrl('file:///' + myPath)
         QtGui.QDesktopServices.openUrl(myUrl)
 
-    @pyqtSignature('')
-    def on_btnRunSelected_clicked(self):
-        """Run the selected item.
+    def runRow(self, theItem, theStatusItem):
+        """ run row"""
+        # FIXME:(gigih) change function name
 
-        TODO: split the actual logic into its own function that can be shared
-         by this method and on_pbnRunAll_clicked.
+        # set status to 'running'
+        theStatusItem.setText(self.tr('Running'))
 
-        """
-        myCurrentRow = self.tblScript.currentRow()
-        # See if this is a python script or a scenario read from a text file
-        myItem = self.tblScript.item(myCurrentRow, 0)
-        if myItem.data(QtCore.Qt.UserRole).isNull():
-            # Its a python script
-            myFilename = myItem.text()
-
-            # set status to 'running'
-            myStatusItem = self.tblScript.item(myCurrentRow, 1)
-            myStatusItem.setText(self.tr('Running'))
-
+        if theItem.data(QtCore.Qt.UserRole).isNull():
+            myFilename = theItem.text()
             # run script
             try:
                 self.runScript(myFilename)
                 # set status to 'OK'
-                myStatusItem.setText(self.tr('OK'))
+                theStatusItem.setText(self.tr('OK'))
             except Exception as ex:
                 # set status to 'fail'
-                myStatusItem.setText(self.tr('Fail'))
+                theStatusItem.setText(self.tr('Fail'))
 
                 LOGGER.exception('Running macro failed')
                 return False
-
         else:
             # Its a dict containing files for a scenario
             #myText = myItem.text()
             # .. seealso:: :func:`populateTable` to understand the next 2 lines
-            myVariant = myItem.data(QtCore.Qt.UserRole)
+            myVariant = theItem.data(QtCore.Qt.UserRole)
             myValue = myVariant.toPyObject()[0]
-            # Set status to 'running'
-            myStatusItem = self.tblScript.item(myCurrentRow, 1)
-            myStatusItem.setText(self.tr('Running'))
 
-            myRoot = str(self.leBaseDataDir.text())
-
-            myPaths = []
-            if 'hazard' in myValue:
-                myPaths.append(myValue['hazard'])
-            if 'exposure' in myValue:
-                myPaths.append(myValue['exposure'])
-            if 'aggregation' in myValue:
-                myPaths.append(myValue['aggregation'])
-
-            # always run in new project
-            qgis.utils.iface.newProject()
-
-            LOGGER.info('Loading layers: \nRoot: %s\n%s' % (
-                    myRoot, myPaths))
-            try:
-                macro.addLayers(myRoot, myPaths)
-            except QgisPathError:
-                # set status to 'fail'
-                myStatusItem.setText(self.tr('Fail'))
-                LOGGER.exception('Loading layers failed: \nRoot: %s\n%s' % (
-                    myRoot, myPaths))
+            myResult = self.runTextFile(myValue)
+            if not myResult:
+                theStatusItem.setText(self.tr('Fail'))
                 return False
 
-            # See if we have a preferred impact function
-            if 'function' in myValue:
-                myFunctionId = myValue['function']
-                myResult = macro.setFunctionId(myFunctionId)
-                if not myResult:
-                    myStatusItem.setText(self.tr('Fail'))
-                    return False
+        return True
 
-            if 'aggregation' in myValue:
-                myResult = macro.setAggregationLayer(myValue['aggregation'])
-                if not myResult:
-                    myStatusItem.setText(self.tr('Fail'))
-                    return False
+    @pyqtSignature('')
+    def on_btnRunSelected_clicked(self):
+        """Run the selected item. """
+        myCurrentRow = self.tblScript.currentRow()
+        myItem = self.tblScript.item(myCurrentRow, 0)
+        myStatusItem = self.tblScript.item(myCurrentRow, 1)
 
-            # Run script
-            try:
-                LOGGER.info('Running scenario: %s' % myValue)
-                macro.runScenario()
-                # set status to 'OK'
-                myStatusItem.setText(self.tr('OK'))
-                return True
-            except Exception as ex:
-                # set status to 'fail'
-                myStatusItem.setText(self.tr('Fail'))
-                LOGGER.exception('Running macro failed')
-                return False
+        self.runRow(myItem, myStatusItem)
 
     @pyqtSignature('')
     def on_btnRefresh_clicked(self):
@@ -362,7 +355,9 @@ def readScenarios(theFilename):
             in the script_runner directory.
 
     Returns:
-        None
+        Dictionary of with structure like this
+        {{ 'foo' : { 'a': 'b', 'c': 'd'},
+            { 'bar' : { 'd': 'e', 'f': 'g'}}
 
     Raises: None
 

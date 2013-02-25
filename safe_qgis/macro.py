@@ -75,6 +75,7 @@ def addLayers(theDirectory, thePaths):
     Raises:
         * Exception - occurs when thePaths have illegal extension
         * TypeError - occurs when thePaths is not string or list
+        * QgisPathError - occurs when file not found
     """
 
     myPaths = []
@@ -95,7 +96,7 @@ def addLayers(theDirectory, thePaths):
         if myExt in ['.asc', '.tif']:
             LOGGER.debug("add raster layer %s" % myPath)
             iface.addRasterLayer(myPath, myBaseName)
-        elif myExt in ['.shp'] :
+        elif myExt in ['.shp']:
             LOGGER.debug("add vector layer %s" % myPath)
             iface.addVectorLayer(myPath, myBaseName, 'ogr')
         else:
