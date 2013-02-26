@@ -28,9 +28,12 @@ from PyQt4.QtGui import (QDialog, QFileDialog, QTableWidgetItem)
 
 from script_dialog_base import Ui_ScriptDialogBase
 
-from safe_qgis import macro
+from safe_qgis.map import Map
+from safe_qgis.html_renderer import HtmlRenderer
 from safe_qgis.exceptions import QgisPathError
 from safe_qgis.safe_interface import temp_dir
+
+from safe_qgis import macro
 
 LOGGER = logging.getLogger('InaSAFE')
 
@@ -236,7 +239,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
             myStatusItem = self.tblScript.item(myRow, 1)
 
             try:
-                myResult = self.runRow(myItem, myStatusItem)
+                myResult = self.runTask(myItem, myStatusItem)
                 if myResult:
                     # P for passed
                     myReport.append('P: %s\n' % str(myItem))
@@ -265,9 +268,8 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         myUrl = QtCore.QUrl('file:///' + myPath)
         QtGui.QDesktopServices.openUrl(myUrl)
 
-    def runRow(self, theItem, theStatusItem):
-        """ run row"""
-        # FIXME:(gigih) change function name
+    def runTask(self, theItem, theStatusItem):
+        """ run task """
 
         # set status to 'running'
         theStatusItem.setText(self.tr('Running'))
@@ -275,6 +277,8 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         # .. seealso:: :func:`appendRow` to understand the next 2 lines
         myVariant = theItem.data(QtCore.Qt.UserRole)
         myValue = myVariant.toPyObject()[0]
+
+        myResult = True
 
         if isinstance(myValue, str):
             myFilename = myValue
@@ -288,18 +292,52 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
                 theStatusItem.setText(self.tr('Fail'))
 
                 LOGGER.exception('Running macro failed')
-                return False
+                myResult = False
         elif isinstance(myValue, dict):
             # Its a dict containing files for a scenario
             myResult = self.runTextFile(myValue)
             if not myResult:
                 theStatusItem.setText(self.tr('Fail'))
-                return False
+                myResult = False
         else:
             LOGGER.exception('data type not supported: "%s"' % myValue)
-            return False
+            myResult = False
 
-        return True
+        ## save pdf
+        ##FIXME: not working....
+        if myResult:
+            myPath = str(self.leBaseDataDir.text())
+            myTitle = str(theItem.text())
+            self.createReport(myTitle, myPath)
+
+        return myResult
+
+    def createReport(self, theTitle, theBasePath):
+        """Create PDF report.
+        initial implementation of pdf report.
+
+        See also:
+            dock.printMap
+        """
+        myMap = Map(self.iface)
+        myMap.setImpactLayer(self.iface.activeLayer())
+
+        LOGGER.debug('Create Report: %s' % theTitle)
+
+        myFileName = theTitle + '.pdf'
+        myFileName = myFileName.replace(' ', '_')
+        myMapPdfFilePath = os.path.join(theBasePath, myFileName)
+
+        myTableFilename = os.path.splitext(myMapPdfFilePath)[0] + '_table.pdf'
+        myHtmlRenderer = HtmlRenderer(thePageDpi=myMap.pageDpi)
+        myKeywords = myMap.keywordIO.readKeywords(self.iface.activeLayer())
+        myHtmlRenderer.printImpactTable(
+            myKeywords, theFilename=myTableFilename)
+
+        myMap.printToPdf(myMapPdfFilePath)
+
+        LOGGER.debug('Report: %s Done' % theTitle)
+
 
     @pyqtSignature('')
     def on_btnRunSelected_clicked(self):
@@ -308,7 +346,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         myItem = self.tblScript.item(myCurrentRow, 0)
         myStatusItem = self.tblScript.item(myCurrentRow, 1)
 
-        self.runRow(myItem, myStatusItem)
+        self.runTask(myItem, myStatusItem)
 
     @pyqtSignature('')
     def on_btnRefresh_clicked(self):
