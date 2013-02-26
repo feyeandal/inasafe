@@ -7,52 +7,32 @@
     <x>0</x>
     <y>0</y>
     <width>515</width>
-    <height>514</height>
+    <height>661</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>InaSAFE Batch Runner</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout">
+   <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="QPushButton" name="btnRunSelected">
-       <property name="text">
-        <string>Run Selected</string>
+      <widget class="QLineEdit" name="leSourceDir">
+       <property name="enabled">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pbnRunAll">
+      <widget class="QToolButton" name="tbSourceDir">
        <property name="text">
-        <string>Run All</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnRefresh">
-       <property name="text">
-        <string>Refresh List</string>
+        <string>...</string>
        </property>
       </widget>
      </item>
     </layout>
    </item>
-   <item row="2" column="0">
-    <widget class="QPushButton" name="pbnAdvanced">
-     <property name="text">
-      <string>Show advanced options</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
+   <item row="1" column="0">
     <widget class="QTableWidget" name="tblScript">
      <property name="alternatingRowColors">
       <bool>false</bool>
@@ -81,7 +61,38 @@
      </column>
     </widget>
    </item>
+   <item row="2" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="btnRunSelected">
+       <property name="text">
+        <string>Run Selected</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbnRunAll">
+       <property name="text">
+        <string>Run All</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
    <item row="3" column="0">
+    <widget class="QPushButton" name="pbnAdvanced">
+     <property name="text">
+      <string>Show advanced options</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
     <widget class="QGroupBox" name="gboOptions">
      <property name="title">
       <string>Options</string>
@@ -139,6 +150,11 @@
     </widget>
    </item>
   </layout>
+  <zorder>pbnAdvanced</zorder>
+  <zorder>tblScript</zorder>
+  <zorder>gboOptions</zorder>
+  <zorder>layoutWidget</zorder>
+  <zorder>leSourceDir</zorder>
  </widget>
  <resources/>
  <connections/>

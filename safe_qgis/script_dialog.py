@@ -57,7 +57,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         LOGGER.info('Script runner dialog started')
 
         self.iface = theIface
-        self.basePath = getScriptPath()
+        self.defaultSourceDir = getScriptPath()
 
         myHeaderView = self.tblScript.horizontalHeader()
         myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch)
@@ -68,30 +68,52 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
 
         self.gboOptions.setVisible(False)
 
-        # Add script folder to sys.path.
-        sys.path.append(self.basePath)
-
-        self.populateTable(self.basePath)
         self.adjustSize()
 
+        # connect signal to slot
+        self.leBaseDataDir.textChanged.connect(self.saveState)
+
+        self.leSourceDir.textChanged.connect(self.saveState)
+        self.leSourceDir.textChanged.connect(self.populateTable)
+
+        self.restoreState()
+
+    def restoreState(self):
         # get the base data path from settings if available
         mySettings = QtCore.QSettings()
-        myPath = mySettings.value('inasafe/baseDataDir', QtCore.QString(''))
+
+        # restore last source path
+        myLastSourcePath = mySettings.value('inasafe/lastSourceDir',
+                                            self.defaultSourceDir)
+        self.leSourceDir.setText(myLastSourcePath.toString())
+
+        # restore path for layer data & pdf output
+        myPath = mySettings.value('inasafe/baseDataDir', QString(''))
         self.leBaseDataDir.setText(myPath.toString())
 
-    @pyqtSignature('QString')
-    def on_leBaseDataDir_changed(self, theString):
-        """Handler for when user changes data base path.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            None
+    def saveState(self):
+        # get the base data path from settings if available
+        mySettings = QtCore.QSettings()
+
+        mySettings.setValue('inasafe/lastSourceDir', self.leSourceDir.text())
+        mySettings.setValue('inasafe/baseDataDir', self.leBaseDataDir.text())
+
+    def showDirectoryDialog(self, theLineEdit, theTitle):
+        """ Show a directory selection dialog.
+        This function will show the dialog then set theLineEdit widget
+        text with output from the dialog.
+
+        Params:
+            theLineEdit : QLineEdit widget instance
         """
-        mySettings = QSettings()
-        mySettings.setValue('inasafe/baseDataDir',
-                            theString)
+        myPath = theLineEdit.text()
+        # myTitle = self.tr('Set the base directory for data packages')
+        myNewPath = QFileDialog.getExistingDirectory(
+            self,
+            theTitle,
+            myPath,
+            QFileDialog.ShowDirsOnly)
+        theLineEdit.setText(myNewPath)
 
     @pyqtSignature('')  # prevents actions being handled twice
     def on_tbBaseDataDir_clicked(self):
@@ -104,16 +126,16 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         Raises:
             None
         """
-        mySettings = QSettings()
-        myPath = mySettings.value(
-            'inasafe/baseDataDir', QString('')).toString()
-        myNewPath = QFileDialog.getExistingDirectory(
-            self,
-            self.tr('Set the base directory for data packages'),
-            myPath,
-            QFileDialog.ShowDirsOnly)
-        self.leBaseDataDir.setText(myNewPath)
-        mySettings.setValue('inasafe/baseDataDir', myNewPath)
+        myTitle = self.tr('Set the base directory for data packages')
+        self.showDirectoryDialog(self.leBaseDataDir, myTitle)
+
+
+    @pyqtSignature('')  # prevents actions being handled twice
+    def on_tbSourceDir_clicked(self):
+        """ Autoconnect slot activated when tbSourceDir is clicked """
+
+        myTitle = self.tr('Set the source directory for script and scenario')
+        self.showDirectoryDialog(self.leSourceDir, myTitle)
 
     def populateTable(self, theBasePath):
         """ Populate table with files from theBasePath directory.
@@ -128,22 +150,27 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
             None
         """
 
+        LOGGER.info("populateTable from %s" % theBasePath)
+
         self.tblScript.clearContents()
 
+        # NOTE(gigih): need this line to remove existing rows
+        self.tblScript.setRowCount(0)
+
+        myPath = str(theBasePath)
+
         # only support .py and .txt files
-        for myFile in os.listdir(theBasePath):
+        for myFile in os.listdir(myPath):
             myExt = os.path.splitext(myFile)[1]
-            myAbsPath = os.path.join(theBasePath, myFile)
+            myAbsPath = os.path.join(myPath, myFile)
+
+            print myFile, myExt
 
             if myExt == '.py':
                 appendRow(self.tblScript, myFile, myAbsPath)
             elif myExt == '.txt':
-                LOGGER.info('looking for scenarios in %s' % myAbsPath)
                 # insert scenarios from file into table widget
                 for myKey, myValue in readScenarios(myAbsPath).iteritems():
-                    LOGGER.info('Found scenario: %s:%s in %s' % (
-                        myKey, myValue, myAbsPath
-                    ))
                     appendRow(self.tblScript, myKey, myValue)
 
     def runScript(self, theFilename, theCount=1):
@@ -347,10 +374,6 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         myStatusItem = self.tblScript.item(myCurrentRow, 1)
 
         self.runTask(myItem, myStatusItem)
-
-    @pyqtSignature('')
-    def on_btnRefresh_clicked(self):
-        self.populateTable(self.basePath)
 
     @pyqtSignature('bool')
     def on_pbnAdvanced_toggled(self, theFlag):

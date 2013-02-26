@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'safe_qgis\script_dialog_base.ui'
+# Form implementation generated from reading ui file 'script_dialog_base.ui'
 #
-# Created: Mon Feb 25 11:22:28 2013
+# Created: Tue Feb 26 16:37:15 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,26 +17,19 @@ except AttributeError:
 class Ui_ScriptDialogBase(object):
     def setupUi(self, ScriptDialogBase):
         ScriptDialogBase.setObjectName(_fromUtf8("ScriptDialogBase"))
-        ScriptDialogBase.resize(515, 514)
+        ScriptDialogBase.resize(515, 661)
         self.gridLayout = QtGui.QGridLayout(ScriptDialogBase)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.horizontalLayout = QtGui.QHBoxLayout()
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.btnRunSelected = QtGui.QPushButton(ScriptDialogBase)
-        self.btnRunSelected.setObjectName(_fromUtf8("btnRunSelected"))
-        self.horizontalLayout.addWidget(self.btnRunSelected)
-        self.pbnRunAll = QtGui.QPushButton(ScriptDialogBase)
-        self.pbnRunAll.setObjectName(_fromUtf8("pbnRunAll"))
-        self.horizontalLayout.addWidget(self.pbnRunAll)
-        self.btnRefresh = QtGui.QPushButton(ScriptDialogBase)
-        self.btnRefresh.setObjectName(_fromUtf8("btnRefresh"))
-        self.horizontalLayout.addWidget(self.btnRefresh)
-        self.gridLayout.addLayout(self.horizontalLayout, 1, 0, 1, 1)
-        self.pbnAdvanced = QtGui.QPushButton(ScriptDialogBase)
-        self.pbnAdvanced.setCheckable(True)
-        self.pbnAdvanced.setChecked(False)
-        self.pbnAdvanced.setObjectName(_fromUtf8("pbnAdvanced"))
-        self.gridLayout.addWidget(self.pbnAdvanced, 2, 0, 1, 1)
+        self.horizontalLayout_4 = QtGui.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(_fromUtf8("horizontalLayout_4"))
+        self.leSourceDir = QtGui.QLineEdit(ScriptDialogBase)
+        self.leSourceDir.setEnabled(False)
+        self.leSourceDir.setObjectName(_fromUtf8("leSourceDir"))
+        self.horizontalLayout_4.addWidget(self.leSourceDir)
+        self.tbSourceDir = QtGui.QToolButton(ScriptDialogBase)
+        self.tbSourceDir.setObjectName(_fromUtf8("tbSourceDir"))
+        self.horizontalLayout_4.addWidget(self.tbSourceDir)
+        self.gridLayout.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
         self.tblScript = QtGui.QTableWidget(ScriptDialogBase)
         self.tblScript.setAlternatingRowColors(False)
         self.tblScript.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
@@ -50,7 +43,21 @@ class Ui_ScriptDialogBase(object):
         item = QtGui.QTableWidgetItem()
         self.tblScript.setHorizontalHeaderItem(1, item)
         self.tblScript.horizontalHeader().setDefaultSectionSize(100)
-        self.gridLayout.addWidget(self.tblScript, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.tblScript, 1, 0, 1, 1)
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.btnRunSelected = QtGui.QPushButton(ScriptDialogBase)
+        self.btnRunSelected.setObjectName(_fromUtf8("btnRunSelected"))
+        self.horizontalLayout.addWidget(self.btnRunSelected)
+        self.pbnRunAll = QtGui.QPushButton(ScriptDialogBase)
+        self.pbnRunAll.setObjectName(_fromUtf8("pbnRunAll"))
+        self.horizontalLayout.addWidget(self.pbnRunAll)
+        self.gridLayout.addLayout(self.horizontalLayout, 2, 0, 1, 1)
+        self.pbnAdvanced = QtGui.QPushButton(ScriptDialogBase)
+        self.pbnAdvanced.setCheckable(True)
+        self.pbnAdvanced.setChecked(False)
+        self.pbnAdvanced.setObjectName(_fromUtf8("pbnAdvanced"))
+        self.gridLayout.addWidget(self.pbnAdvanced, 3, 0, 1, 1)
         self.gboOptions = QtGui.QGroupBox(ScriptDialogBase)
         self.gboOptions.setCheckable(False)
         self.gboOptions.setObjectName(_fromUtf8("gboOptions"))
@@ -80,19 +87,19 @@ class Ui_ScriptDialogBase(object):
         self.tbBaseDataDir.setObjectName(_fromUtf8("tbBaseDataDir"))
         self.horizontalLayout_3.addWidget(self.tbBaseDataDir)
         self.gridLayout_2.addLayout(self.horizontalLayout_3, 1, 0, 1, 1)
-        self.gridLayout.addWidget(self.gboOptions, 3, 0, 1, 1)
+        self.gridLayout.addWidget(self.gboOptions, 4, 0, 1, 1)
 
         self.retranslateUi(ScriptDialogBase)
         QtCore.QMetaObject.connectSlotsByName(ScriptDialogBase)
 
     def retranslateUi(self, ScriptDialogBase):
         ScriptDialogBase.setWindowTitle(QtGui.QApplication.translate("ScriptDialogBase", "InaSAFE Batch Runner", None, QtGui.QApplication.UnicodeUTF8))
-        self.btnRunSelected.setText(QtGui.QApplication.translate("ScriptDialogBase", "Run Selected", None, QtGui.QApplication.UnicodeUTF8))
-        self.pbnRunAll.setText(QtGui.QApplication.translate("ScriptDialogBase", "Run All", None, QtGui.QApplication.UnicodeUTF8))
-        self.btnRefresh.setText(QtGui.QApplication.translate("ScriptDialogBase", "Refresh List", None, QtGui.QApplication.UnicodeUTF8))
-        self.pbnAdvanced.setText(QtGui.QApplication.translate("ScriptDialogBase", "Show advanced options", None, QtGui.QApplication.UnicodeUTF8))
+        self.tbSourceDir.setText(QtGui.QApplication.translate("ScriptDialogBase", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.tblScript.horizontalHeaderItem(0).setText(QtGui.QApplication.translate("ScriptDialogBase", "Task", None, QtGui.QApplication.UnicodeUTF8))
         self.tblScript.horizontalHeaderItem(1).setText(QtGui.QApplication.translate("ScriptDialogBase", "Status", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnRunSelected.setText(QtGui.QApplication.translate("ScriptDialogBase", "Run Selected", None, QtGui.QApplication.UnicodeUTF8))
+        self.pbnRunAll.setText(QtGui.QApplication.translate("ScriptDialogBase", "Run All", None, QtGui.QApplication.UnicodeUTF8))
+        self.pbnAdvanced.setText(QtGui.QApplication.translate("ScriptDialogBase", "Show advanced options", None, QtGui.QApplication.UnicodeUTF8))
         self.gboOptions.setTitle(QtGui.QApplication.translate("ScriptDialogBase", "Options", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("ScriptDialogBase", "Run selected script ", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("ScriptDialogBase", "times", None, QtGui.QApplication.UnicodeUTF8))
