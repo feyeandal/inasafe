@@ -60,9 +60,11 @@
           <div class="body">
             
   <h1>Source code for safe.impact_functions.inundation.flood_OSM_building_impact</h1><div class="highlight"><pre>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">FunctionProvider</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_hazard_layer</span><span class="p">,</span> <span class="n">get_exposure_layer</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_question</span>
+<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">FunctionProvider</span><span class="p">,</span>
+                                        <span class="n">get_hazard_layer</span><span class="p">,</span>
+                                        <span class="n">get_exposure_layer</span><span class="p">,</span>
+                                        <span class="n">get_question</span><span class="p">,</span>
+                                        <span class="n">format_int</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe.storage.vector</span> <span class="kn">import</span> <span class="n">Vector</span>
 <span class="kn">from</span> <span class="nn">safe.storage.utilities</span> <span class="kn">import</span> <span class="n">DEFAULT_ATTRIBUTE</span>
 <span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="n">ugettext</span> <span class="k">as</span> <span class="n">tr</span>
@@ -90,22 +92,43 @@
     <span class="c"># Function documentation</span>
     <span class="n">target_field</span> <span class="o">=</span> <span class="s">&#39;INUNDATED&#39;</span>
     <span class="n">title</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Be flooded&#39;</span><span class="p">)</span>
-    <span class="n">synopsis</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;To assess the impacts of inundation on building footprints &#39;</span>
-        <span class="s">&#39;originating from OpenStreetMap (OSM).&#39;</span><span class="p">)</span>
-    <span class="n">actions</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Provide details about where critical response areas are&#39;</span><span class="p">)</span>
+    <span class="n">synopsis</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;To assess the impacts of (flood or tsunami) inundation &#39;</span>
+                  <span class="s">&#39;on building footprints originating from OpenStreetMap &#39;</span>
+                  <span class="s">&#39;(OSM).&#39;</span><span class="p">)</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Provide details about where critical infrastructure might &#39;</span>
+                 <span class="s">&#39;be flooded&#39;</span><span class="p">)</span>
     <span class="c"># citations must be a list</span>
-    <span class="n">citations</span> <span class="o">=</span> <span class="p">[</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Hutchings, Field &amp; Parks. Assessment of Flood impacts on &#39;</span>
-        <span class="s">&#39;buildings. Impact. Vol 66(2). 2012&#39;</span><span class="p">)]</span>
-    <span class="n">detailed_description</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;This is an area for free form text where a&#39;</span>
-        <span class="s">&#39;detailed description of the methodology used is given.&#39;</span><span class="p">)</span>
-    <span class="n">permissible_hazard_input</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;A raster layer where each cell represents &#39;</span>
-        <span class="s">&#39;flood depth, or a vector polygon layer where each polygon represents &#39;</span>
-        <span class="s">&#39;an inundated area. The following attributes are recognised &#39;</span>
-        <span class="s">&#39;(in order): Flooded (True or False), FLOODPRONE (Yes or No) and &#39;</span>
-        <span class="s">&#39;Affected (True or False).&#39;</span><span class="p">)</span>
-    <span class="n">permissible_exposure_input</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;vector polygon layer extracted from OSM &#39;</span>
+    <span class="c"># FIXME (Ole): I don&#39;t think this citation is for real?</span>
+    <span class="c">#citations = [tr(&#39;Hutchings, Field &amp; Parks. Assessment of Flood impacts &#39;</span>
+    <span class="c">#    &#39;on buildings. Impact. Vol 66(2). 2012&#39;)]</span>
+    <span class="n">detailed_description</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;The inundation status is calculated for each &#39;</span>
+        <span class="s">&#39;building (using the centroid if it is a polygon) based on the hazard &#39;</span>
+        <span class="s">&#39;levels provided. if the hazard is given as a raster a threshold of &#39;</span>
+        <span class="s">&#39;1 meter is used. This is configurable through the InaSAFE interface. &#39;</span>
+        <span class="s">&#39;If the hazard is given as a vector polygon layer buildings are &#39;</span>
+        <span class="s">&#39;considered to be impacted depending on the value of hazard &#39;</span>
+        <span class="s">&#39;attributes (in order) &quot;affected&quot; or &quot;FLOODPRONE&quot;: If a building is in&#39;</span>
+        <span class="s">&#39; a region that has attribute &quot;affected&quot; set to True (or 1) it is &#39;</span>
+        <span class="s">&#39;impacted. If attribute &quot;affected&quot; does not exist but &quot;FLOODPRONE&quot; &#39;</span>
+        <span class="s">&#39;does, then the building is considered impacted if &quot;FLOODPRONE&quot; is &#39;</span>
+        <span class="s">&#39;&quot;yes&quot;. If neither &quot;affected&quot; nor &quot;FLOODPRONE&quot; is available, a &#39;</span>
+        <span class="s">&#39;building will be impacted if it belongs to any polygon. The latter &#39;</span>
+        <span class="s">&#39;behaviour is implemented through the attribute &quot;inapolygon&quot; which &#39;</span>
+        <span class="s">&#39;is automatically assigned.&#39;</span><span class="p">)</span>
+    <span class="n">permissible_hazard_input</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;A hazard raster layer where each cell &#39;</span>
+        <span class="s">&#39;represents flood depth (in meters), or a vector polygon layer &#39;</span>
+        <span class="s">&#39;where each polygon represents an inundated area. In the latter &#39;</span>
+        <span class="s">&#39;case, the following attributes are recognised &#39;</span>
+        <span class="s">&#39;(in order): &quot;affected&quot; (True or False) or &quot;FLOODPRONE&quot; (Yes or No). &#39;</span>
+        <span class="s">&#39;(True may be represented as 1, False as 0&#39;</span><span class="p">)</span>
+    <span class="n">permissible_exposure_input</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Vector polygon layer extracted from OSM &#39;</span>
         <span class="s">&#39;where each polygon represents the footprint of a building.&#39;</span><span class="p">)</span>
-    <span class="n">limitation</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Lorem ipsum limitation&#39;</span><span class="p">)</span>
+    <span class="n">limitation</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;This function only flags buildings as impacted or not &#39;</span>
+                    <span class="s">&#39;either based on a fixed threshold in case of raster &#39;</span>
+                    <span class="s">&#39;hazard or the the attributes mentioned under input &#39;</span>
+                    <span class="s">&#39;in case of vector hazard.&#39;</span><span class="p">)</span>
+
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;postprocessors&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;BuildingType&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}}}</span>
 
 <div class="viewcode-block" id="FloodBuildingImpactFunction.run"><a class="viewcode-back" href="../../../../api-docs/safe/impact_functions/inundation/flood_OSM_building_impact.html#safe.impact_functions.inundation.flood_OSM_building_impact.FloodBuildingImpactFunction.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Flood impact to buildings (e.g. from Open Street Map)</span>
@@ -262,7 +285,7 @@
                                 <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Number flooded&#39;</span><span class="p">),</span>
                                 <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Total&#39;</span><span class="p">)],</span>
                                <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;All&#39;</span><span class="p">),</span> <span class="n">count</span><span class="p">,</span> <span class="n">N</span><span class="p">])]</span>
+                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;All&#39;</span><span class="p">),</span> <span class="n">format_int</span><span class="p">(</span><span class="n">count</span><span class="p">),</span> <span class="n">format_int</span><span class="p">(</span><span class="n">N</span><span class="p">)])]</span>
 
 <span class="c">##        fid.write(&#39;%s, %s, %s\n&#39; % (tr(&#39;Building type&#39;),</span>
 <span class="c">##                                    tr(&#39;Temporarily closed&#39;),</span>
@@ -295,8 +318,8 @@
                 <span class="c"># FIXME (Sunni) : I change affected_buildings[usage] to string</span>
                 <span class="c"># because it will be replace with &amp;nbsp in html</span>
                 <span class="n">building_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">building_type</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span>
-                                      <span class="nb">str</span><span class="p">(</span><span class="n">affected_buildings</span><span class="p">[</span><span class="n">usage</span><span class="p">]),</span>
-                                      <span class="n">buildings</span><span class="p">[</span><span class="n">usage</span><span class="p">]])</span>
+                                      <span class="n">format_int</span><span class="p">(</span><span class="n">affected_buildings</span><span class="p">[</span><span class="n">usage</span><span class="p">]),</span>
+                                      <span class="n">format_int</span><span class="p">(</span><span class="n">buildings</span><span class="p">[</span><span class="n">usage</span><span class="p">])])</span>
                 <span class="k">if</span> <span class="n">building_type</span> <span class="o">==</span> <span class="s">&#39;school&#39;</span><span class="p">:</span>
                     <span class="n">school_closed</span> <span class="o">=</span> <span class="n">affected_buildings</span><span class="p">[</span><span class="n">usage</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">building_type</span> <span class="o">==</span> <span class="s">&#39;hospital&#39;</span><span class="p">:</span>
@@ -330,14 +353,14 @@
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Where will we locate warehouse and/or &#39;</span>
                                      <span class="s">&#39;distribution centres?&#39;</span><span class="p">)))</span>
         <span class="k">if</span> <span class="n">school_closed</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Where will the students from the </span><span class="si">%d</span><span class="s">&#39;</span>
+            <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Where will the students from the </span><span class="si">%s</span><span class="s">&#39;</span>
                                          <span class="s">&#39; closed schools go to study?&#39;</span><span class="p">)</span> <span class="o">%</span>
-                                         <span class="n">school_closed</span><span class="p">))</span>
+                                       <span class="n">format_int</span><span class="p">(</span><span class="n">school_closed</span><span class="p">)))</span>
         <span class="k">if</span> <span class="n">hospital_closed</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Where will the patients from the </span><span class="si">%d</span><span class="s">&#39;</span>
+            <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Where will the patients from the </span><span class="si">%s</span><span class="s">&#39;</span>
                                          <span class="s">&#39; closed hospitals go for treatment &#39;</span>
                                          <span class="s">&#39;and how will we transport them?&#39;</span><span class="p">)</span> <span class="o">%</span>
-                                         <span class="n">hospital_closed</span><span class="p">))</span>
+                                       <span class="n">format_int</span><span class="p">(</span><span class="n">hospital_closed</span><span class="p">)))</span>
 
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Notes&#39;</span><span class="p">),</span> <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
         <span class="n">assumption</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Buildings are said to be flooded when &#39;</span><span class="p">)</span>
@@ -418,7 +441,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

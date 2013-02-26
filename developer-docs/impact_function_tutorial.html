@@ -1,0 +1,350 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Impact Function Tutorial &mdash; InaSAFE 1.0.1-final documentation</title>
+    
+    <link rel="stylesheet" href="../_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Noticia+Text|Droid+Sans+Mono" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.1-final',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/jquery.cookie.js"></script>
+    <script type="text/javascript" src="../_static/toggle_sections.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../index.html" />
+    <link rel="up" title="InaSAFE developer documentation" href="index.html" />
+    <link rel="next" title="Postprocessors" href="postprocessors.html" />
+    <link rel="prev" title="Writing Impact Functions" href="writing_impact_functions.html" /> 
+  </head>
+  <body>
+    <div class="relbar-top">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="postprocessors.html" title="Postprocessors"
+             accesskey="N">next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="writing_impact_functions.html" title="Writing Impact Functions"
+             accesskey="P">previous</a> &nbsp; &nbsp;</li>
+    <li><a href="../index.html">Home</a> &raquo;</li>
+    <li><a href="../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="index.html" accesskey="U">InaSAFE developer documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="impact-function-tutorial">
+<h1>Impact Function Tutorial<a class="headerlink" href="#impact-function-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>This is a simple tutorial for writing of InaSAFE impact functions.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is an old text that needs to be verified, but it may be helpful and can serve as</p>
+</div>
+<p>a starting point for additional documentation.</p>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>InaSAFE contains a plugin system that allows complex impact functions to be implemented in Python (<a class="reference external" href="http://www.python.org">http://www.python.org</a>) whilst (ideally) minimizing
+the need to understand all the complexity of the handling the hazard and exposure layers. Features of the
+impact function system are:</p>
+<ul class="simple">
+<li>Auto registration of new impact functions after restart</li>
+<li>Derivation of more complex impact functions from simpler ones</li>
+<li>Auto hiding for impact functions that aren&#8217;t appropriate (depending on the requirements)</li>
+<li>Allow for additional functionality to be added easily</li>
+<li>Provide up-to-date documentation on impact functions functionality</li>
+</ul>
+</div>
+<div class="section" id="writing-a-simple-raster-impact-function-tutorial-01">
+<h2>Writing a Simple Raster impact function: Tutorial 01<a class="headerlink" href="#writing-a-simple-raster-impact-function-tutorial-01" title="Permalink to this headline">¶</a></h2>
+<p>This section provides a beginners tutorial on writing a simple earthquke impact function from scratch. You will need to be familiar with the basics of Python to be able to write and debug impact functions - if you are new to Python the standard Python tutorial is a great place to start (<a class="reference external" href="http://docs.python.org/tutorial/">http://docs.python.org/tutorial/</a>).</p>
+<p>For this impact function we want to calculate a simple impact by using the following function of
+the severity of hazard (i.e. the amount of ground shaking - H) by the exposure
+(i.e. the number of people in that area - P). e.g.:</p>
+<div class="highlight-python"><pre>Impact  = 10 ** (a * H - b) * P
+
+where
+      H: Raster layer of MMI ground shaking
+      P: Raster layer of population data on the same grid as H
+      a,b: Parameters that were tuned from real world data</pre>
+</div>
+<div class="section" id="defining-the-impact-class">
+<h3>Defining the impact class<a class="headerlink" href="#defining-the-impact-class" title="Permalink to this headline">¶</a></h3>
+<p>As the first step we need to define the impact function class.:</p>
+<div class="highlight-python"><pre>class SimpleImpactEarthquakeFunction(FunctionProvider)</pre>
+</div>
+<p>Every impact function must be subclassed from FunctionProvider. This is the
+method of registration for the impact function and allows the Risiko Plugin
+Manager to know what impact functions are available.</p>
+</div>
+<div class="section" id="impact-parameters">
+<h3>Impact Parameters<a class="headerlink" href="#impact-parameters" title="Permalink to this headline">¶</a></h3>
+<p>Each impact function needs to be used in the correct context. Using a flood impact function for earthquakes will likely yield misleading
+results at best! As such pugins may have a variety of conditions that need to be met before they can be run. Such conditions
+may include:</p>
+<ul class="simple">
+<li>The type of hazard</li>
+<li>The type of exposure</li>
+<li>The form of the layer data (raster or vector)</li>
+<li>The measure or unit type of a layer</li>
+<li>Any other meta data defined in the layer</li>
+</ul>
+<p>In the future impact functions may also support filtering by:
+* The geographic location
+* The avaliable layer meta data</p>
+<p>InaSAFE will try to show users only those impact functions that can be validly run.</p>
+<p>These parameters required to run the impact function, and indeed all specific parameters,
+are defined in the doc string of the class:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">SimpleImpactEarthquakeFunction</span><span class="p">(</span><span class="n">FunctionProvider</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;Simple impact function for earthquakes</span>
+
+<span class="sd">   :author Allen</span>
+<span class="sd">   :rating 1</span>
+<span class="sd">   :param requires category==&#39;hazard&#39; and \</span>
+<span class="sd">           subcategory.startswith(&#39;earthquake&#39;) and \</span>
+<span class="sd">           layer_type==&#39;raster&#39;</span>
+<span class="sd">   :param requires category==&#39;exposure&#39; and \</span>
+<span class="sd">           subcategory.startswith(&#39;population&#39;) and \</span>
+<span class="sd">           layer_type==&#39;raster&#39;</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>This tells InaSAFE that this impact function requires at a minimum inputs of</p>
+<ul class="simple">
+<li>category of &#8216;hazard&#8217;, with a layer subcategory of &#8216;earthquake&#8217; and it must be a layerType of &#8216;Raster&#8217;</li>
+<li>category of &#8216;exposure&#8217;, with a layer subcategory of &#8216;earthquake&#8217; and it must be a layerType of &#8216;Raster&#8217;</li>
+</ul>
+<p>The <cite>require</cite> expression can be any artibary python expression that can be evaluated.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<ol class="last arabic simple">
+<li>Lines can be broken using the line continuation character &#8216;\&#8217; at the end of a line</li>
+<li>If any one of the conditions is not met the plugin will not be visible from the impact selection box.</li>
+</ol>
+</div>
+</div>
+<div class="section" id="the-calculation-function">
+<h3>The calculation function<a class="headerlink" href="#the-calculation-function" title="Permalink to this headline">¶</a></h3>
+<p>Each impact function must then define a <cite>run</cite> method which contains the execution code:</p>
+<div class="highlight-python"><pre>def run(self, input):</pre>
+</div>
+<p>The parameters are passed in as a dictionary. It is up to the framework to populate the
+dictionary correctly in this case with keys containing relavent data for the exposure and hazard.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span>
+        <span class="n">a</span><span class="o">=</span><span class="mf">0.97429</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">11.037</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Risk plugin for earthquake fatalities</span>
+
+<span class="sd">    Input</span>
+<span class="sd">      layers: List of layers expected to contain</span>
+<span class="sd">          H: Raster layer of MMI ground shaking</span>
+<span class="sd">          P: Raster layer of population data on the same grid as H</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Identify input layers</span>
+    <span class="n">intensity</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">population</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c"># Extract data</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">intensity</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">nan</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">population</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">nan</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c"># Calculate impact</span>
+    <span class="n">F</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">H</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">*</span> <span class="n">P</span>
+
+    <span class="c"># Create new layer and return</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">Raster</span><span class="p">(</span><span class="n">F</span><span class="p">,</span>
+               <span class="n">projection</span><span class="o">=</span><span class="n">population</span><span class="o">.</span><span class="n">get_projection</span><span class="p">(),</span>
+               <span class="n">geotransform</span><span class="o">=</span><span class="n">population</span><span class="o">.</span><span class="n">get_geotransform</span><span class="p">(),</span>
+               <span class="n">name</span><span class="o">=</span><span class="s">&#39;Estimated fatalities&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">R</span>
+</pre></div>
+</div>
+<p>At the end of the function the calculated impact layer R is returned. This return layer
+in our example is a Raster layer the correct projection for this layer is ensured by passing
+in the input layer projections.</p>
+</div>
+<div class="section" id="installing-the-impact-function">
+<h3>Installing the impact function<a class="headerlink" href="#installing-the-impact-function" title="Permalink to this headline">¶</a></h3>
+<p>The whole impact function file will now read:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">impact.plugins.core</span> <span class="kn">import</span> <span class="n">FunctionProvider</span>
+<span class="kn">from</span> <span class="nn">impact.storage.raster</span> <span class="kn">import</span> <span class="n">Raster</span>
+
+<span class="k">class</span> <span class="nc">SimpleImpactEarthquakeFunction</span><span class="p">(</span><span class="n">FunctionProvider</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Simple plugin for earthquake damage</span>
+
+<span class="sd">        :author Allen</span>
+<span class="sd">        :rating 1</span>
+<span class="sd">        :param requires category==&#39;hazard&#39; and \</span>
+<span class="sd">                        subcategory.startswith(&#39;earthquake&#39;) and \</span>
+<span class="sd">                        layer_type==&#39;raster&#39;</span>
+<span class="sd">        :param requires category==&#39;exposure&#39; and \</span>
+<span class="sd">                        subcategory.startswith(&#39;population&#39;) and \</span>
+<span class="sd">                        layer_type==&#39;raster&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@staticmethod</span>
+        <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span>
+                <span class="n">a</span><span class="o">=</span><span class="mf">0.97429</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">11.037</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Risk plugin for earthquake fatalities</span>
+
+<span class="sd">            Input</span>
+<span class="sd">              layers: List of layers expected to contain</span>
+<span class="sd">                  H: Raster layer of MMI ground shaking</span>
+<span class="sd">                  P: Raster layer of population data on the same grid as H</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+
+            <span class="c"># Identify input layers</span>
+            <span class="n">intensity</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">population</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c"># Extract data</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">intensity</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">nan</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">population</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">nan</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="c"># Calculate impact</span>
+            <span class="n">F</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">H</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">*</span> <span class="n">P</span>
+
+            <span class="c"># Create new layer and return</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="n">Raster</span><span class="p">(</span><span class="n">F</span><span class="p">,</span>
+                       <span class="n">projection</span><span class="o">=</span><span class="n">population</span><span class="o">.</span><span class="n">get_projection</span><span class="p">(),</span>
+                       <span class="n">geotransform</span><span class="o">=</span><span class="n">population</span><span class="o">.</span><span class="n">get_geotransform</span><span class="p">(),</span>
+                       <span class="n">name</span><span class="o">=</span><span class="s">&#39;Estimated fatalities&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">R</span>
+</pre></div>
+</div>
+<p>Save this as SimpleImpactEarthquakeFunction.py into into the following directory:</p>
+<div class="highlight-python"><pre>[root InaSAFE dir]/safe/impact_functions/earthquake</pre>
+</div>
+<p>Then start QGis and activate InaSAFE.</p>
+</div>
+<div class="section" id="testing-the-plugin">
+<h3>Testing the plugin<a class="headerlink" href="#testing-the-plugin" title="Permalink to this headline">¶</a></h3>
+<p>Load the following data</p>
+<ul class="simple">
+<li>Earthquake ground shaking</li>
+<li>Glp10ag (Population for Indonesia)</li>
+</ul>
+<p>...</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+        <p class="logo"><a href="../contents.html">
+          <img class="logo" src="../_static/icon.png" alt="Logo"/>
+        </a></p>
+  <h3><a href="../contents.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Impact Function Tutorial</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#writing-a-simple-raster-impact-function-tutorial-01">Writing a Simple Raster impact function: Tutorial 01</a><ul>
+<li><a class="reference internal" href="#defining-the-impact-class">Defining the impact class</a></li>
+<li><a class="reference internal" href="#impact-parameters">Impact Parameters</a></li>
+<li><a class="reference internal" href="#the-calculation-function">The calculation function</a></li>
+<li><a class="reference internal" href="#installing-the-impact-function">Installing the impact function</a></li>
+<li><a class="reference internal" href="#testing-the-plugin">Testing the plugin</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="writing_impact_functions.html"
+                        title="previous chapter">Writing Impact Functions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="postprocessors.html"
+                        title="next chapter">Postprocessors</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/developer-docs/impact_function_tutorial.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="postprocessors.html" title="Postprocessors"
+             >next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="writing_impact_functions.html" title="Writing Impact Functions"
+             >previous</a> &nbsp; &nbsp;</li>
+    <li><a href="../index.html">Home</a> &raquo;</li>
+    <li><a href="../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="index.html" >InaSAFE developer documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
+      Last updated on Feb 26, 2013.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+    <!-- cloud_sptheme 1.3 -->
+  </body>
+</html>

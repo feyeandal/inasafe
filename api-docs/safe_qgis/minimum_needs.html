@@ -1,0 +1,204 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Module: safe_qgis.minimum_needs &mdash; InaSAFE 1.0.1-final documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Noticia+Text|Droid+Sans+Mono" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.1-final',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
+    <link rel="up" title="Package::safe_qgis" href="../safe_qgis.html" />
+    <link rel="next" title="Module: safe_qgis.impact_calculator_thread" href="impact_calculator_thread.html" />
+    <link rel="prev" title="Module: safe_qgis.options_dialog_base" href="options_dialog_base.html" /> 
+  </head>
+  <body>
+    <div class="relbar-top">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="impact_calculator_thread.html" title="Module: safe_qgis.impact_calculator_thread"
+             accesskey="N">next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="options_dialog_base.html" title="Module: safe_qgis.options_dialog_base"
+             accesskey="P">previous</a> &nbsp; &nbsp;</li>
+    <li><a href="../../index.html">Home</a> &raquo;</li>
+    <li><a href="../../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="../index.html" >InaSAFE&#8217;s API documentation</a> &raquo;</li>
+          <li><a href="../safe_qgis.html" accesskey="U">Package::safe_qgis</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-safe_qgis.minimum_needs">
+<span id="module-safe-qgis-minimum-needs"></span><h1>Module:  safe_qgis.minimum_needs<a class="headerlink" href="#module-safe_qgis.minimum_needs" title="Permalink to this headline">¶</a></h1>
+<p><strong>Minimum Needs Implementation.</strong></p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Provides minimum needs assessment for a polygon layer containing
+counts of people affected per polygon.</p>
+</div>
+<dl class="class">
+<dt id="safe_qgis.minimum_needs.MinimumNeeds">
+<em class="property">class </em><tt class="descclassname">safe_qgis.minimum_needs.</tt><tt class="descname">MinimumNeeds</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/minimum_needs.html#MinimumNeeds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.minimum_needs.MinimumNeeds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dialog implementation class for the InaSAFE keywords editor.</p>
+<dl class="method">
+<dt id="safe_qgis.minimum_needs.MinimumNeeds.accept">
+<tt class="descname">accept</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/minimum_needs.html#MinimumNeeds.accept"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.minimum_needs.MinimumNeeds.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>PRocess the layer and field and generate a new layer.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is called on ok click.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="safe_qgis.minimum_needs.MinimumNeeds.minimum_needs">
+<tt class="descname">minimum_needs</tt><big>(</big><em>input_layer</em>, <em>population_name</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/minimum_needs.html#MinimumNeeds.minimum_needs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.minimum_needs.MinimumNeeds.minimum_needs" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args</dt>
+<dd><dl class="first docutils">
+<dt>input_layer: InaSAFE layer object assumed to contain</dt>
+<dd>population counts</dd>
+</dl>
+<p class="last">population_name: Attribute name that holds population count</p>
+</dd>
+<dt>Returns</dt>
+<dd>InaSAFE layer with attributes for minimum needs as per Perka 7</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="safe_qgis.minimum_needs.MinimumNeeds.on_cboPolygonLayers_currentIndexChanged">
+<tt class="descname">on_cboPolygonLayers_currentIndexChanged</tt><big>(</big><em>theIndex=None</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/minimum_needs.html#MinimumNeeds.on_cboPolygonLayers_currentIndexChanged"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.minimum_needs.MinimumNeeds.on_cboPolygonLayers_currentIndexChanged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatic slot executed when the layer is changed to update fields.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>theIndex: int - passed by the signal that triggers this slot.</dd>
+<dt>Returns:</dt>
+<dd>None.</dd>
+<dt>Raises:</dt>
+<dd>no exceptions explicitly raised.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="safe_qgis.minimum_needs.MinimumNeeds.polygonLayersToCombo">
+<tt class="descname">polygonLayersToCombo</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/minimum_needs.html#MinimumNeeds.polygonLayersToCombo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.minimum_needs.MinimumNeeds.polygonLayersToCombo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Populate the combo with all polygon layers loaded in QGIS.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p>This module forms part of the <a class="reference external" href="http://inasafe.org">InaSAFE</a> tool.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+        <p class="logo"><a href="../../contents.html">
+          <img class="logo" src="../../_static/icon.png" alt="Logo"/>
+        </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="options_dialog_base.html"
+                        title="previous chapter">Module:  safe_qgis.options_dialog_base</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="impact_calculator_thread.html"
+                        title="next chapter">Module:  safe_qgis.impact_calculator_thread</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/api-docs/safe_qgis/minimum_needs.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="impact_calculator_thread.html" title="Module: safe_qgis.impact_calculator_thread"
+             >next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="options_dialog_base.html" title="Module: safe_qgis.options_dialog_base"
+             >previous</a> &nbsp; &nbsp;</li>
+    <li><a href="../../index.html">Home</a> &raquo;</li>
+    <li><a href="../../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="../index.html" >InaSAFE&#8217;s API documentation</a> &raquo;</li>
+          <li><a href="../safe_qgis.html" >Package::safe_qgis</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
+      Last updated on Feb 26, 2013.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+    <!-- cloud_sptheme 1.3 -->
+  </body>
+</html>

@@ -110,8 +110,10 @@
 
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
         <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s">&#39;..&#39;</span><span class="p">,</span> <span class="s">&#39;third_party&#39;</span><span class="p">)))</span>
+<span class="c"># pylint: disable=F0401</span>
 <span class="kn">from</span> <span class="nn">raven.handlers.logging</span> <span class="kn">import</span> <span class="n">SentryHandler</span>
 <span class="kn">from</span> <span class="nn">raven</span> <span class="kn">import</span> <span class="n">Client</span>
+<span class="c"># pylint: enable=F0401</span>
 
 <span class="c">#do not remove this even if it is marked as unused by your IDE</span>
 <span class="c">#resources are used by htmlfooter and header the comment will mark it unused</span>
@@ -1257,7 +1259,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

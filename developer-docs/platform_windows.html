@@ -290,6 +290,35 @@ and save it somewhere familiar e.g. <tt class="samp docutils literal"><span clas
 <p class="last">If you use windows 32bit, do not download the .exe file as said on
 <a class="reference external" href="http://pypi.python.org/pypi/setuptools#windows">the page</a>, but just download the ez_setup.py</p>
 </div>
+<div class="section" id="special-note-for-win64-bit-users">
+<h4>Special note for Win64 bit users<a class="headerlink" href="#special-note-for-win64-bit-users" title="Permalink to this headline">¶</a></h4>
+<p>If your Windows is 64bit, you need to do a little trick to install pip.
+There are two options for doing this:</p>
+<ul>
+<li><p class="first">Add the following line near the end of your command shell launcher (as
+described in <em class="xref std std-ref">windows_shell_launcher-label</em>):</p>
+<p><tt class="samp docutils literal"><span class="pre">set</span> <span class="pre">PATH=c:python27;%PATH%</span></tt></p>
+</li>
+<li><p class="first">First you have to install python 32bit and add its path to PATH variable in
+environment variable (on Windows 7: <em class="menuselection">System Properties ‣
+Advanced ‣ Environment Variables</em>).</p>
+</li>
+</ul>
+<p>To verify that you have the correct python in your path launch python and
+print sys.executable - is should show <tt class="samp docutils literal"><span class="pre">c:python27python.exe</span></tt> as per
+the demo session below:</p>
+<div class="highlight-python"><pre>C:\Users\inasafe\.qgis\python\plugins\inasafe&gt;python
+Python 2.7.3 (default, Apr 10 2012, 23:31:26) [MSC v.1500 32 bit (Intel)] on win
+32
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt; import sys
+&gt;&gt;&gt; print sys.executable
+c:\python27\python.exe
+&gt;&gt;&gt;</pre>
+</div>
+</div>
+<div class="section" id="for-both-32-and-64-bit">
+<h4>For both 32 and 64 bit<a class="headerlink" href="#for-both-32-and-64-bit" title="Permalink to this headline">¶</a></h4>
 <p>Next launch the shell (python-shell.bat as described in
 <a class="reference internal" href="#windows-commandline-setup"><em>Command line environment setup</em></a>) <strong>as administrator</strong> (by right clicking the
 file and choosing run as administrator). Then from the command line, launch
@@ -331,12 +360,6 @@ Installed c:\progra~2\quantu~1\apps\python25\lib\site-packages\pip-1.1-py2.5.egg
 Processing dependencies for pip
 Finished processing dependencies for pip</pre>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If your Windows is 64bit, you need to do a little trick to install pip.
-First you have to install python 32bit and add its path to PATH variable in
-environment variable (on Windows 7: <cite>System Properties &#8211;&gt; Advanced &#8211;&gt; Environment Variables</cite>).
-After that, run command prompt (as administrator if needed) and run <cite>easy_install pip</cite></p>
 </div>
 </div>
 <div class="section" id="installing-nose">
@@ -627,7 +650,11 @@ problem, so you need to install python in your windows machine.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#nose-testing-tools">Nose testing tools</a><ul>
-<li><a class="reference internal" href="#installing-pip">Installing pip</a></li>
+<li><a class="reference internal" href="#installing-pip">Installing pip</a><ul>
+<li><a class="reference internal" href="#special-note-for-win64-bit-users">Special note for Win64 bit users</a></li>
+<li><a class="reference internal" href="#for-both-32-and-64-bit">For both 32 and 64 bit</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#installing-nose">Installing nose</a></li>
 <li><a class="reference internal" href="#running-tests-using-nose">Running tests using nose</a></li>
 </ul>
@@ -710,7 +737,7 @@ problem, so you need to install python in your windows machine.</p>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Dec 19, 2012.
+      Last updated on Feb 25, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

@@ -1,0 +1,298 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>safe_qgis.minimum_needs &mdash; InaSAFE 1.0.1-final documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Noticia+Text|Droid+Sans+Mono" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.1-final',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.cookie.js"></script>
+    <script type="text/javascript" src="../../_static/toggle_sections.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="relbar-top">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+    <li><a href="../../index.html">Home</a> &raquo;</li>
+    <li><a href="../../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for safe_qgis.minimum_needs</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;**Minimum Needs Implementation.**</span>
+
+<span class="sd">.. tip:: Provides minimum needs assessment for a polygon layer containing</span>
+<span class="sd">    counts of people affected per polygon.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;tim@linfiniti.com, ole.moller.nielsen@gmail.com&#39;</span>
+<span class="n">__revision__</span> <span class="o">=</span> <span class="s">&#39;$Format:%H$&#39;</span>
+<span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;20/1/2013&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&#39;Copyright 2013, Australia Indonesia Facility for &#39;</span>
+<span class="n">__copyright__</span> <span class="o">+=</span> <span class="s">&#39;Disaster Reduction&#39;</span>
+
+<span class="kn">from</span> <span class="nn">safe.storage.core</span> <span class="kn">import</span> <span class="n">read_layer</span>
+<span class="kn">from</span> <span class="nn">safe.storage.vector</span> <span class="kn">import</span> <span class="n">Vector</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+<span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="kn">import</span> <span class="n">pyqtSignature</span>
+
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="n">QgsMapLayerRegistry</span><span class="p">,</span> <span class="n">QgsVectorLayer</span>
+
+<span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">get_version</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.minimum_needs_base</span> <span class="kn">import</span> <span class="n">Ui_MinimumNeedsBase</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.utilities</span> <span class="kn">import</span> <span class="p">(</span><span class="n">addComboItemInOrder</span><span class="p">,</span>
+                                 <span class="n">isLayerPolygonal</span><span class="p">,</span>
+                                 <span class="n">isLayerPoint</span><span class="p">)</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;InaSAFE&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="MinimumNeeds"><a class="viewcode-back" href="../../api-docs/safe_qgis/minimum_needs.html#safe_qgis.minimum_needs.MinimumNeeds">[docs]</a><span class="k">class</span> <span class="nc">MinimumNeeds</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="p">,</span> <span class="n">Ui_MinimumNeedsBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Dialog implementation class for the InaSAFE keywords editor.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor for the dialog.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">           * parent - parent widget of this dialog.</span>
+<span class="sd">           * iface - a Quantum GIS QGisAppInterface instance.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">           not applicable.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">           no exceptions explicitly raised.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span>
+            <span class="s">&#39;InaSAFE %1 Minimum Needs Tool&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span><span class="n">get_version</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">polygonLayersToCombo</span><span class="p">()</span>
+
+<div class="viewcode-block" id="MinimumNeeds.minimum_needs"><a class="viewcode-back" href="../../api-docs/safe_qgis/minimum_needs.html#safe_qgis.minimum_needs.MinimumNeeds.minimum_needs">[docs]</a>    <span class="k">def</span> <span class="nf">minimum_needs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_layer</span><span class="p">,</span> <span class="n">population_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Args</span>
+<span class="sd">                input_layer: InaSAFE layer object assumed to contain</span>
+<span class="sd">                             population counts</span>
+<span class="sd">                population_name: Attribute name that holds population count</span>
+<span class="sd">            Returns</span>
+<span class="sd">                InaSAFE layer with attributes for minimum needs as per Perka 7</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">needs_attributes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">attributes</span> <span class="ow">in</span> <span class="n">input_layer</span><span class="o">.</span><span class="n">get_data</span><span class="p">():</span>
+            <span class="n">attribute_dict</span> <span class="o">=</span> <span class="n">attributes</span>
+
+            <span class="c"># Get population count</span>
+            <span class="n">population</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">population_name</span><span class="p">]</span>
+            <span class="c"># Clean up and turn into integer</span>
+            <span class="k">if</span> <span class="n">population</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">]:</span>
+                <span class="n">displaced</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">population</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">population</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">displaced</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="n">QtGui</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Format error&#39;</span><span class="p">),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Please change the value of </span><span class="si">%s</span><span class="s"> in &#39;</span>
+                        <span class="s">&#39;attribute </span><span class="si">%s</span><span class="s"> to integer format&#39;</span><span class="p">)</span> <span class="o">%</span>
+                     <span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">population_name</span><span class="p">))</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span>
+
+            <span class="c"># Calculate estimated needs based on BNPB Perka 7/2008</span>
+            <span class="c"># minimum bantuan</span>
+
+            <span class="c"># 400g per person per day</span>
+            <span class="n">rice</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">displaced</span> <span class="o">*</span> <span class="mf">2.8</span><span class="p">)</span>
+            <span class="c"># 2.5L per person per day</span>
+            <span class="n">drinking_water</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">displaced</span> <span class="o">*</span> <span class="mf">17.5</span><span class="p">)</span>
+            <span class="c"># 15L per person per day</span>
+            <span class="n">water</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">displaced</span> <span class="o">*</span> <span class="mi">105</span><span class="p">)</span>
+            <span class="c"># assume 5 people per family (not in perka)</span>
+            <span class="n">family_kits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">displaced</span> <span class="o">/</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="c"># 20 people per toilet</span>
+            <span class="n">toilets</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">displaced</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span>
+
+            <span class="c"># Add to attributes</span>
+
+            <span class="n">attribute_dict</span><span class="p">[</span><span class="s">&#39;Beras&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rice</span>
+            <span class="n">attribute_dict</span><span class="p">[</span><span class="s">&#39;Air minum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">drinking_water</span>
+            <span class="n">attribute_dict</span><span class="p">[</span><span class="s">&#39;Air bersih&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">water</span>
+            <span class="n">attribute_dict</span><span class="p">[</span><span class="s">&#39;Kit keluarga&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">family_kits</span>
+            <span class="n">attribute_dict</span><span class="p">[</span><span class="s">&#39;Jamba&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">toilets</span>
+
+            <span class="c"># Record attributes for this feature</span>
+            <span class="n">needs_attributes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attribute_dict</span><span class="p">)</span>
+
+        <span class="n">output_layer</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">input_layer</span><span class="o">.</span><span class="n">get_geometry</span><span class="p">(),</span>
+                              <span class="n">data</span><span class="o">=</span><span class="n">needs_attributes</span><span class="p">,</span>
+                              <span class="n">projection</span><span class="o">=</span><span class="n">input_layer</span><span class="o">.</span><span class="n">get_projection</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">output_layer</span>
+</div>
+<div class="viewcode-block" id="MinimumNeeds.polygonLayersToCombo"><a class="viewcode-back" href="../../api-docs/safe_qgis/minimum_needs.html#safe_qgis.minimum_needs.MinimumNeeds.polygonLayersToCombo">[docs]</a>    <span class="k">def</span> <span class="nf">polygonLayersToCombo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Populate the combo with all polygon layers loaded in QGIS.&quot;&quot;&quot;</span>
+
+        <span class="n">myRegistry</span> <span class="o">=</span> <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+        <span class="n">myLayers</span> <span class="o">=</span> <span class="n">myRegistry</span><span class="o">.</span><span class="n">mapLayers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">myFoundFlag</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">myLayer</span> <span class="ow">in</span> <span class="n">myLayers</span><span class="p">:</span>
+            <span class="n">myName</span> <span class="o">=</span> <span class="n">myLayer</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+            <span class="n">mySource</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">myLayer</span><span class="o">.</span><span class="n">id</span><span class="p">())</span>
+            <span class="c">#check if layer is a vector polygon layer</span>
+            <span class="k">if</span> <span class="n">isLayerPolygonal</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span> <span class="ow">or</span> <span class="n">isLayerPoint</span><span class="p">(</span><span class="n">myLayer</span><span class="p">):</span>
+                <span class="n">myFoundFlag</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">addComboItemInOrder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cboPolygonLayers</span><span class="p">,</span> <span class="n">myName</span><span class="p">,</span> <span class="n">mySource</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">myFoundFlag</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cboPolygonLayers</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</div>
+    <span class="nd">@pyqtSignature</span><span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="MinimumNeeds.on_cboPolygonLayers_currentIndexChanged"><a class="viewcode-back" href="../../api-docs/safe_qgis/minimum_needs.html#safe_qgis.minimum_needs.MinimumNeeds.on_cboPolygonLayers_currentIndexChanged">[docs]</a>    <span class="k">def</span> <span class="nf">on_cboPolygonLayers_currentIndexChanged</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theIndex</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Automatic slot executed when the layer is changed to update fields.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">           theIndex: int - passed by the signal that triggers this slot.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">           None.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">           no exceptions explicitly raised.&quot;&quot;&quot;</span>
+        <span class="n">myLayerId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cboPolygonLayers</span><span class="o">.</span><span class="n">itemData</span><span class="p">(</span><span class="n">theIndex</span><span class="p">,</span>
+                        <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">UserRole</span><span class="p">)</span><span class="o">.</span><span class="n">toString</span><span class="p">()</span>
+        <span class="n">myLayer</span> <span class="o">=</span> <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">mapLayer</span><span class="p">(</span><span class="n">myLayerId</span><span class="p">)</span>
+        <span class="n">myFields</span> <span class="o">=</span> <span class="n">myLayer</span><span class="o">.</span><span class="n">dataProvider</span><span class="p">()</span><span class="o">.</span><span class="n">fieldNameMap</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cboFields</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">myField</span> <span class="ow">in</span> <span class="n">myFields</span><span class="p">:</span>
+            <span class="n">addComboItemInOrder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cboFields</span><span class="p">,</span> <span class="n">myField</span><span class="p">,</span> <span class="n">myField</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MinimumNeeds.accept"><a class="viewcode-back" href="../../api-docs/safe_qgis/minimum_needs.html#safe_qgis.minimum_needs.MinimumNeeds.accept">[docs]</a>    <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;PRocess the layer and field and generate a new layer.</span>
+
+<span class="sd">        .. note:: This is called on ok click.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">myIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cboFields</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">()</span>
+        <span class="n">myFieldName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cboFields</span><span class="o">.</span><span class="n">itemData</span><span class="p">(</span><span class="n">myIndex</span><span class="p">,</span>
+                                               <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">UserRole</span><span class="p">)</span><span class="o">.</span><span class="n">toString</span><span class="p">()</span>
+
+        <span class="n">myIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cboPolygonLayers</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">()</span>
+        <span class="n">myLayerId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cboPolygonLayers</span><span class="o">.</span><span class="n">itemData</span><span class="p">(</span><span class="n">myIndex</span><span class="p">,</span>
+                                                 <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">UserRole</span><span class="p">)</span><span class="o">.</span><span class="n">toString</span><span class="p">()</span>
+        <span class="n">myLayer</span> <span class="o">=</span> <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">mapLayer</span><span class="p">(</span><span class="n">myLayerId</span><span class="p">)</span>
+
+        <span class="n">myFileName</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">myLayer</span><span class="o">.</span><span class="n">source</span><span class="p">())</span>
+
+        <span class="n">myInputLayer</span> <span class="o">=</span> <span class="n">read_layer</span><span class="p">(</span><span class="n">myFileName</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">myOutputLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum_needs</span><span class="p">(</span><span class="n">myInputLayer</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">myFieldName</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">myNewFile</span> <span class="o">=</span> <span class="n">myFileName</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;_perka7&#39;</span> <span class="o">+</span> <span class="s">&#39;.shp&#39;</span>
+
+        <span class="n">myOutputLayer</span><span class="o">.</span><span class="n">write_to_file</span><span class="p">(</span><span class="n">myNewFile</span><span class="p">)</span>
+
+        <span class="n">myNewLayer</span> <span class="o">=</span> <span class="n">QgsVectorLayer</span><span class="p">(</span><span class="n">myNewFile</span><span class="p">,</span> <span class="s">&#39;Minimum Needs&#39;</span><span class="p">,</span> <span class="s">&#39;ogr&#39;</span><span class="p">)</span>
+        <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayers</span><span class="p">([</span><span class="n">myNewLayer</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">done</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="o">.</span><span class="n">Accepted</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+        <p class="logo"><a href="../../contents.html">
+          <img class="logo" src="../../_static/icon.png" alt="Logo"/>
+        </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+    <li><a href="../../index.html">Home</a> &raquo;</li>
+    <li><a href="../../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
+      Last updated on Feb 26, 2013.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+    <!-- cloud_sptheme 1.3 -->
+  </body>
+</html>

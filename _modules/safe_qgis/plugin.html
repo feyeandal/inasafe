@@ -91,8 +91,16 @@
                           <span class="n">Qt</span><span class="p">,</span>
                           <span class="n">QSettings</span><span class="p">,</span>
                           <span class="n">QVariant</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">PyQt4.QtGui</span> <span class="kn">import</span> <span class="n">QAction</span><span class="p">,</span> <span class="n">QIcon</span><span class="p">,</span> <span class="n">QApplication</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="n">TranslationLoadError</span>
+<span class="kn">from</span> <span class="nn">PyQt4.QtGui</span> <span class="kn">import</span> <span class="n">QAction</span><span class="p">,</span> <span class="n">QIcon</span><span class="p">,</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QMessageBox</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c"># When upgrading, using the plugin manager, you may get an error when</span>
+    <span class="c"># doing the following import, so we wrap it in a try except</span>
+    <span class="c"># block and then display a friendly message to restart QGIS</span>
+    <span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="n">TranslationLoadError</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c"># Note these strings cant be translated.</span>
+    <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;InaSAFE&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;Please restart QGIS to use this plugin.&#39;</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">utilities</span>
 
 
@@ -128,6 +136,7 @@
         <span class="c">#print self.tr(&#39;InaSAFE&#39;)</span>
         <span class="n">utilities</span><span class="o">.</span><span class="n">setupLogger</span><span class="p">()</span>
 
+    <span class="c">#noinspection PyArgumentList</span>
 <div class="viewcode-block" id="Plugin.setupI18n"><a class="viewcode-back" href="../../api-docs/safe_qgis/plugin.html#safe_qgis.plugin.Plugin.setupI18n">[docs]</a>    <span class="k">def</span> <span class="nf">setupI18n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">thePreferredLocale</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Setup internationalisation for the plugin.</span>
 
@@ -145,7 +154,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">myOverrideFlag</span> <span class="o">=</span> <span class="n">QSettings</span><span class="p">()</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s">&#39;locale/overrideFlag&#39;</span><span class="p">,</span>
                                             <span class="n">QVariant</span><span class="p">(</span><span class="bp">False</span><span class="p">))</span><span class="o">.</span><span class="n">toBool</span><span class="p">()</span>
-        <span class="n">myLocaleName</span> <span class="o">=</span> <span class="bp">None</span>
+
         <span class="k">if</span> <span class="n">thePreferredLocale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">myLocaleName</span> <span class="o">=</span> <span class="n">thePreferredLocale</span>
         <span class="k">elif</span> <span class="n">myOverrideFlag</span><span class="p">:</span>
@@ -162,7 +171,7 @@
         <span class="c"># .. see:: :py:func:`common.utilities`</span>
         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;LANG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">myLocaleName</span><span class="p">)</span>
 
-        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">((</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">thePreferredLocale</span> <span class="p">,</span> <span class="n">myOverrideFlag</span><span class="p">,</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">thePreferredLocale</span> <span class="p">,</span> <span class="n">myOverrideFlag</span><span class="p">,</span>
                                         <span class="n">QLocale</span><span class="o">.</span><span class="n">system</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
                                         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;LANG&#39;</span><span class="p">]))</span>
         <span class="n">myRoot</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s">&#39;..&#39;</span><span class="p">))</span>
@@ -175,7 +184,7 @@
                 <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Failed to load translation for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myLocaleName</span>
                 <span class="k">raise</span> <span class="n">TranslationLoadError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
             <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">installTranslator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">translator</span><span class="p">)</span>
-        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">((</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">myTranslationPath</span><span class="p">,</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">myTranslationPath</span><span class="p">,</span>
                                   <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">myTranslationPath</span><span class="p">)))</span>
 </div>
 <div class="viewcode-block" id="Plugin.tr"><a class="viewcode-back" href="../../api-docs/safe_qgis/plugin.html#safe_qgis.plugin.Plugin.tr">[docs]</a>    <span class="k">def</span> <span class="nf">tr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theString</span><span class="p">):</span>
@@ -189,7 +198,8 @@
 <span class="sd">           no exceptions explicitly raised.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="s">&#39;Plugin&#39;</span><span class="p">,</span> <span class="n">theString</span><span class="p">)</span>
-</div>
+
+    <span class="c">#noinspection PyCallByClass</span></div>
 <div class="viewcode-block" id="Plugin.initGui"><a class="viewcode-back" href="../../api-docs/safe_qgis/plugin.html#safe_qgis.plugin.Plugin.initGui">[docs]</a>    <span class="k">def</span> <span class="nf">initGui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Gui initialisation procedure (for QGIS plugin api).</span>
 
@@ -570,7 +580,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

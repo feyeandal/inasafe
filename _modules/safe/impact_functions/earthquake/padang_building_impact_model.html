@@ -81,9 +81,11 @@
 <span class="sd">9     Timber frame residential                        10.5     0.15</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">FunctionProvider</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_hazard_layer</span><span class="p">,</span> <span class="n">get_exposure_layer</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_question</span>
+<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">FunctionProvider</span><span class="p">,</span>
+                                        <span class="n">get_hazard_layer</span><span class="p">,</span>
+                                        <span class="n">get_exposure_layer</span><span class="p">,</span>
+                                        <span class="n">get_question</span><span class="p">,</span>
+                                        <span class="n">format_int</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe.storage.vector</span> <span class="kn">import</span> <span class="n">Vector</span>
 <span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="n">ugettext</span> <span class="k">as</span> <span class="n">tr</span>
 <span class="kn">from</span> <span class="nn">safe.common.numerics</span> <span class="kn">import</span> <span class="n">lognormal_cdf</span>
@@ -186,10 +188,11 @@
                       <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Buildings&#39;</span><span class="p">),</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Total&#39;</span><span class="p">)],</span>
                                <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
                       <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;All&#39;</span><span class="p">),</span> <span class="n">N</span><span class="p">]),</span>
-                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;No damage&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_none</span><span class="p">)]),</span>
-                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Low damage&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_low</span><span class="p">)]),</span>
-                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Medium damage&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_medium</span><span class="p">)]),</span>
-                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;High damage&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_high</span><span class="p">)])]</span>
+                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;No damage&#39;</span><span class="p">),</span> <span class="n">format_int</span><span class="p">(</span><span class="n">count_none</span><span class="p">)]),</span>
+                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Low damage&#39;</span><span class="p">),</span> <span class="n">format_int</span><span class="p">(</span><span class="n">count_low</span><span class="p">)]),</span>
+                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Medium damage&#39;</span><span class="p">),</span>
+                                <span class="n">format_int</span><span class="p">(</span><span class="n">count_medium</span><span class="p">)]),</span>
+                      <span class="n">TableRow</span><span class="p">([</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;High damage&#39;</span><span class="p">),</span> <span class="n">format_int</span><span class="p">(</span><span class="n">count_high</span><span class="p">)])]</span>
 
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Notes&#39;</span><span class="p">),</span> <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
         <span class="n">table_body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Levels of impact are defined by post 2009 &#39;</span>
@@ -273,7 +276,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

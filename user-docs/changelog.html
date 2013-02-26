@@ -69,6 +69,30 @@
             
   <div class="section" id="whats-new">
 <h1>Whats new?<a class="headerlink" href="#whats-new" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="changelog-for-version-1-1-0">
+<h2>Changelog for version 1.1.0<a class="headerlink" href="#changelog-for-version-1-1-0" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Flood assessment using polygons now generates evacuation totals based
+on percent of affected people (defaults to 1%).</li>
+<li>Improvements to error handling with more informative messages to user.</li>
+<li>Memory requirements prediction to try to warn a user when they might not
+have enough RAM. See <a class="reference external" href="https://github.com/AIFDR/inasafe/issues/476">https://github.com/AIFDR/inasafe/issues/476</a>.</li>
+<li>Remote logging support. This <strong>opt in</strong> feature lets you submit useful
+diagnostic information to our fault logger at <a class="reference external" href="http://sentry.linfiniti.com">http://sentry.linfiniti.com</a>.</li>
+<li>Support for automatic creation of packages in a test repository for
+early adopters to test with.</li>
+<li>Fix for 2D geometries - closes <a class="reference external" href="https://github.com/AIFDR/inasafe/issues/471">https://github.com/AIFDR/inasafe/issues/471</a></li>
+<li>Default dock panel to right of QGIS. Closes
+<a class="reference external" href="https://github.com/AIFDR/inasafe/issues/326">https://github.com/AIFDR/inasafe/issues/326</a></li>
+<li>Fix <a class="reference external" href="https://github.com/AIFDR/inasafe/issues/358">https://github.com/AIFDR/inasafe/issues/358</a></li>
+<li>Many small &#8216;under the hood&#8217; improvements.</li>
+<li>Realtime quake mapping support. This is available in source tree only
+and is a server side installable application. Indonesia specific.</li>
+<li>Realtime flood mapping support. This is available in source tree only
+and provides an experimental implementation for production of floodmaps.
+Jakarta specific.</li>
+</ul>
+</div>
 <div class="section" id="changelog-for-version-1-0-1">
 <h2>Changelog for version 1.0.1<a class="headerlink" href="#changelog-for-version-1-0-1" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -254,6 +278,7 @@ Note that OSX users should upgrade to GDAL 1.9 available here:
   <h3><a href="../contents.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Whats new?</a><ul>
+<li><a class="reference internal" href="#changelog-for-version-1-1-0">Changelog for version 1.1.0</a></li>
 <li><a class="reference internal" href="#changelog-for-version-1-0-1">Changelog for version 1.0.1</a></li>
 <li><a class="reference internal" href="#changelog-for-version-1-0-0">Changelog for version 1.0.0</a></li>
 <li><a class="reference internal" href="#changelog-for-version-0-5-2">Changelog for version 0.5.2</a></li>
@@ -326,7 +351,7 @@ Note that OSX users should upgrade to GDAL 1.9 available here:
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Dec 19, 2012.
+      Last updated on Feb 25, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

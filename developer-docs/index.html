@@ -194,6 +194,30 @@
 <li class="toctree-l2"><a class="reference internal" href="maintaining_documentation.html#initial-gh-pages-setup">Initial gh-pages setup</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="writing_impact_functions.html">Writing Impact Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="writing_impact_functions.html#what-is-an-impact-function">What is an impact function?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="writing_impact_functions.html#creating-impact-functions">Creating impact functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="writing_impact_functions.html#import-section">Import section</a></li>
+<li class="toctree-l3"><a class="reference internal" href="writing_impact_functions.html#impact-function-class">Impact function class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="writing_impact_functions.html#impact-function-algorithm">Impact function algorithm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="writing_impact_functions.html#output">Output</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="writing_impact_functions.html#controlling-which-layer-types-impact-functions-work-with">Controlling which layer types impact functions work with</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="impact_function_tutorial.html">Impact Function Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="impact_function_tutorial.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impact_function_tutorial.html#writing-a-simple-raster-impact-function-tutorial-01">Writing a Simple Raster impact function: Tutorial 01</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="impact_function_tutorial.html#defining-the-impact-class">Defining the impact class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="impact_function_tutorial.html#impact-parameters">Impact Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="impact_function_tutorial.html#the-calculation-function">The calculation function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="impact_function_tutorial.html#installing-the-impact-function">Installing the impact function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="impact_function_tutorial.html#testing-the-plugin">Testing the plugin</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="postprocessors.html">Postprocessors</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="postprocessors.html#what-is-a-postprocessor">What is a postprocessor?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="postprocessors.html#creating-postprocessors">Creating postprocessors</a></li>
@@ -208,7 +232,6 @@
 <li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#release-numbering">Release numbering</a></li>
 <li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#issue-completion">Issue completion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#branching">Branching</a></li>
-<li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#updating-the-source-version-number">Updating the source version number</a></li>
 <li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#pep8-and-pep257-compliance">PEP8 and PEP257 compliance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#check-for-assert-statements">Check for assert statements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#compile-qt-resources-and-user-interface-files">Compile Qt resources and user interface files</a></li>
@@ -222,12 +245,30 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#finalise-translations">Finalise translations</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="preparing_a_release.html#compile-the-sphinx-documentation">Compile the sphinx documentation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="preparing_a_release.html#update-plugin-metadata">Update plugin metadata</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#update-plugin-metadata-and-version-number">Update plugin metadata and version number</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="preparing_a_release.html#generate-a-test-package">Generate a test package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="preparing_a_release.html#branch-the-release">Branch the release</a></li>
 <li class="toctree-l3"><a class="reference internal" href="preparing_a_release.html#tag-the-release">Tag the release</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#prerequisite">Prerequisite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preparing_a_release.html#tagging">Tagging</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="preparing_a_release.html#upload-the-package">Upload the package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="preparing_a_release.html#press-announcements">Press announcements</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="preparing_test_builds.html">Test builds</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="preparing_test_builds.html#configuring-qgis-to-use-test-builds-from-linfiniti-server">Configuring QGIS to use test builds (from Linfiniti server).</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preparing_test_builds.html#configuring-the-hosting-of-the-test-build-repo">Configuring the hosting of the test build repo.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="preparing_test_builds.html#register-a-sub-domain">Register a (sub)domain:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="preparing_test_builds.html#prepare-a-server-name-mapping">Prepare a server/name mapping:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="preparing_test_builds.html#prepare-your-server">Prepare your server:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="preparing_test_builds.html#create-a-package">Create a package:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="preparing_test_builds.html#version-number-increments">Version number increments:</a></li>
 </ul>
 </li>
 </ul>
@@ -252,6 +293,25 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jenkins_ci.html#further-reading">Further Reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="jenkins_ci_windows_slave.html">Set up of Windows &#8216;slave&#8217; builds for Jenkins</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="jenkins_ci_windows_slave.html#outline-of-procedure">Outline of procedure:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jenkins_ci_windows_slave.html#vm-configuration">VM Configuration:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jenkins_ci_windows_slave.html#software-installation">Software Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jenkins_ci_windows_slave.html#qgis-install">QGIS Install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="jenkins_ci_windows_slave.html#github-for-windows-install">GitHub for Windows Install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="jenkins_ci_windows_slave.html#python-install">Python Install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="jenkins_ci_windows_slave.html#net-3-5-install">.net 3.5 Install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="jenkins_ci_windows_slave.html#jenkins-install">Jenkins Install</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jenkins_ci_windows_slave.html#jenkins-configuration">Jenkins Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jenkins_ci_windows_slave.html#plugins">Plugins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="jenkins_ci_windows_slave.html#system-configuration">System configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="jenkins_ci_windows_slave.html#job-configuration">Job Configuration</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="irc.html">IRC Notes for InaSAFE</a></li>
@@ -353,7 +413,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Dec 19, 2012.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

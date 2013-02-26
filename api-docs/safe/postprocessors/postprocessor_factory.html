@@ -32,8 +32,8 @@
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../index.html" />
     <link rel="up" title="Package::safe.postprocessors" href="../postprocessors.html" />
-    <link rel="next" title="Authors, Contributors and Funders" href="../../../authors.html" />
-    <link rel="prev" title="Module: safe.postprocessors.age_postprocessor" href="age_postprocessor.html" /> 
+    <link rel="next" title="Module: safe.postprocessors.aggregation_categorical_postprocessor" href="aggregation_categorical_postprocessor.html" />
+    <link rel="prev" title="Module: safe.postprocessors.gender_postprocessor" href="gender_postprocessor.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -48,10 +48,10 @@
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="../../../authors.html" title="Authors, Contributors and Funders"
+          <a href="aggregation_categorical_postprocessor.html" title="Module: safe.postprocessors.aggregation_categorical_postprocessor"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="age_postprocessor.html" title="Module: safe.postprocessors.age_postprocessor"
+          <a href="gender_postprocessor.html" title="Module: safe.postprocessors.gender_postprocessor"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../../index.html">Home</a> &raquo;</li>
     <li><a href="../../../contents.html">Contents</a> &raquo;</li>
@@ -78,8 +78,23 @@
 then call get_post_processors(requested_postprocessors)</p>
 </div>
 <dl class="function">
-<dt id="safe.postprocessors.postprocessor_factory.get_post_processors">
-<tt class="descclassname">safe.postprocessors.postprocessor_factory.</tt><tt class="descname">get_post_processors</tt><big>(</big><em>requested_postprocessors</em><big>)</big><a class="reference internal" href="../../../_modules/safe/postprocessors/postprocessor_factory.html#get_post_processors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.postprocessors.postprocessor_factory.get_post_processors" title="Permalink to this definition">¶</a></dt>
+<dt id="safe.postprocessors.postprocessor_factory.get_postprocessor_human_name">
+<tt class="descclassname">safe.postprocessors.postprocessor_factory.</tt><tt class="descname">get_postprocessor_human_name</tt><big>(</big><em>postprocesor</em><big>)</big><a class="reference internal" href="../../../_modules/safe/postprocessors/postprocessor_factory.html#get_postprocessor_human_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.postprocessors.postprocessor_factory.get_postprocessor_human_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the human readable name of  post processor</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>postprocessor: Machine name of the postprocessor</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd>str with the human readable name</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="safe.postprocessors.postprocessor_factory.get_postprocessors">
+<tt class="descclassname">safe.postprocessors.postprocessor_factory.</tt><tt class="descname">get_postprocessors</tt><big>(</big><em>requested_postprocessors</em><big>)</big><a class="reference internal" href="../../../_modules/safe/postprocessors/postprocessor_factory.html#get_postprocessors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.postprocessors.postprocessor_factory.get_postprocessors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a dictionary of applicable postprocessor instances</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -120,21 +135,6 @@ skip it returning the valid ones</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="safe.postprocessors.postprocessor_factory.get_postprocessor_human_name">
-<tt class="descclassname">safe.postprocessors.postprocessor_factory.</tt><tt class="descname">get_postprocessor_human_name</tt><big>(</big><em>postprocesor</em><big>)</big><a class="reference internal" href="../../../_modules/safe/postprocessors/postprocessor_factory.html#get_postprocessor_human_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.postprocessors.postprocessor_factory.get_postprocessor_human_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the human readable name of  post processor</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><ul class="first last simple">
-<li>postprocessor: Machine name of the postprocessor</li>
-</ul>
-</dd>
-<dt>Returns:</dt>
-<dd>str with the human readable name</dd>
-</dl>
-</dd></dl>
-
 <p>This module forms part of the <a class="reference external" href="http://inasafe.org">InaSAFE</a> tool.</p>
 </div>
 
@@ -148,11 +148,11 @@ skip it returning the valid ones</p>
           <img class="logo" src="../../../_static/icon.png" alt="Logo"/>
         </a></p>
   <h4>Previous topic</h4>
-  <p class="topless"><a href="age_postprocessor.html"
-                        title="previous chapter">Module:  safe.postprocessors.age_postprocessor</a></p>
+  <p class="topless"><a href="gender_postprocessor.html"
+                        title="previous chapter">Module:  safe.postprocessors.gender_postprocessor</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="../../../authors.html"
-                        title="next chapter">Authors, Contributors and Funders</a></p>
+  <p class="topless"><a href="aggregation_categorical_postprocessor.html"
+                        title="next chapter">Module:  safe.postprocessors.aggregation_categorical_postprocessor</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../../_sources/api-docs/safe/postprocessors/postprocessor_factory.txt"
@@ -187,10 +187,10 @@ skip it returning the valid ones</p>
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="../../../authors.html" title="Authors, Contributors and Funders"
+          <a href="aggregation_categorical_postprocessor.html" title="Module: safe.postprocessors.aggregation_categorical_postprocessor"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="age_postprocessor.html" title="Module: safe.postprocessors.age_postprocessor"
+          <a href="gender_postprocessor.html" title="Module: safe.postprocessors.gender_postprocessor"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../../index.html">Home</a> &raquo;</li>
     <li><a href="../../../contents.html">Contents</a> &raquo;</li>
@@ -204,7 +204,7 @@ skip it returning the valid ones</p>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

@@ -32,8 +32,8 @@
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../index.html" />
     <link rel="up" title="Package::safe.storage" href="../storage.html" />
-    <link rel="next" title="Package::safe.postprocessors" href="../postprocessors.html" />
-    <link rel="prev" title="Module: safe.storage.utilities_test" href="utilities_test.html" /> 
+    <link rel="next" title="Module: safe.storage.utilities_test" href="utilities_test.html" />
+    <link rel="prev" title="Module: safe.storage.layer" href="layer.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -48,10 +48,10 @@
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="../postprocessors.html" title="Package::safe.postprocessors"
+          <a href="utilities_test.html" title="Module: safe.storage.utilities_test"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="utilities_test.html" title="Module: safe.storage.utilities_test"
+          <a href="layer.html" title="Module: safe.storage.layer"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../../index.html">Home</a> &raquo;</li>
     <li><a href="../../../contents.html">Contents</a> &raquo;</li>
@@ -85,6 +85,22 @@
 <dt id="safe.storage.test_io.Test_IO.Xtest_reading_and_writing_of_sqlite_vector_data">
 <tt class="descname">Xtest_reading_and_writing_of_sqlite_vector_data</tt><big>(</big><big>)</big><a class="reference internal" href="../../../_modules/safe/storage/test_io.html#Test_IO.Xtest_reading_and_writing_of_sqlite_vector_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.storage.test_io.Test_IO.Xtest_reading_and_writing_of_sqlite_vector_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>SQLite vector data can be read and written correctly</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="safe.storage.test_io.Test_IO.test_3d_polygon">
+<tt class="descname">test_3d_polygon</tt><big>(</big><big>)</big><a class="reference internal" href="../../../_modules/safe/storage/test_io.html#Test_IO.test_3d_polygon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.storage.test_io.Test_IO.test_3d_polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>3D polygons can be read correctly with z component dismissed</p>
+<p>3D polygons are a specialisation of &#8216;2d&#8217; polygons which assigns
+a &#8216;z&#8217; to each vertex (wkbPolygon25D in ogr parlance).
+It&#8217;s normally referred to as 2.5D since the format does not
+truly represent volumetric spaces</p>
+<p>This test verifies that such polygons can be read as 2d - i.e.
+with the third dimension removed.</p>
+<p>ogrinfo reports this for 25d polygons:
+INFO: Open of <a href="#id1"><span class="problematic" id="id2">`</span></a>../inasafe_data/test/25dpolygon.shp&#8217;
+using driver <a href="#id3"><span class="problematic" id="id4">`</span></a>ESRI Shapefile&#8217; successful.
+1: 25dpolygon (3D Polygon)</p>
 </dd></dl>
 
 <dl class="method">
@@ -432,11 +448,11 @@ translatable strings.
           <img class="logo" src="../../../_static/icon.png" alt="Logo"/>
         </a></p>
   <h4>Previous topic</h4>
-  <p class="topless"><a href="utilities_test.html"
-                        title="previous chapter">Module:  safe.storage.utilities_test</a></p>
+  <p class="topless"><a href="layer.html"
+                        title="previous chapter">Module:  safe.storage.layer</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="../postprocessors.html"
-                        title="next chapter">Package::safe.postprocessors</a></p>
+  <p class="topless"><a href="utilities_test.html"
+                        title="next chapter">Module:  safe.storage.utilities_test</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../../_sources/api-docs/safe/storage/test_io.txt"
@@ -471,10 +487,10 @@ translatable strings.
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="../postprocessors.html" title="Package::safe.postprocessors"
+          <a href="utilities_test.html" title="Module: safe.storage.utilities_test"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="utilities_test.html" title="Module: safe.storage.utilities_test"
+          <a href="layer.html" title="Module: safe.storage.layer"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../../index.html">Home</a> &raquo;</li>
     <li><a href="../../../contents.html">Contents</a> &raquo;</li>
@@ -488,7 +504,7 @@ translatable strings.
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

@@ -32,8 +32,8 @@
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Package::safe_qgis_tests" href="../safe_qgis_tests.html" />
-    <link rel="next" title="Module: safe_qgis.test_keyword_io" href="test_keyword_io.html" />
-    <link rel="prev" title="Module: safe_qgis.test_html_renderer" href="test_html_renderer.html" /> 
+    <link rel="next" title="Module: safe_qgis.test_map_legend" href="test_map_legend.html" />
+    <link rel="prev" title="Module: safe_qgis.test_clipper" href="test_clipper.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -48,10 +48,10 @@
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="test_keyword_io.html" title="Module: safe_qgis.test_keyword_io"
+          <a href="test_map_legend.html" title="Module: safe_qgis.test_map_legend"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="test_html_renderer.html" title="Module: safe_qgis.test_html_renderer"
+          <a href="test_clipper.html" title="Module: safe_qgis.test_clipper"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -85,6 +85,12 @@ the Free Software Foundation; either version 2 of the License, or
 <em class="property">class </em><tt class="descclassname">safe_qgis.test_dock.</tt><tt class="descname">DockTest</tt><big>(</big><em>methodName='runTest'</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/test_dock.html#DockTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.test_dock.DockTest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test the InaSAFE GUI</p>
 <dl class="method">
+<dt id="safe_qgis.test_dock.DockTest.Xtest_extentsChanged">
+<tt class="descname">Xtest_extentsChanged</tt><big>(</big><big>)</big><a class="headerlink" href="#safe_qgis.test_dock.DockTest.Xtest_extentsChanged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Memory requirements are calculated correctly when extents change.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="safe_qgis.test_dock.DockTest.Xtest_printMap">
 <tt class="descname">Xtest_printMap</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/test_dock.html#DockTest.Xtest_printMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.test_dock.DockTest.Xtest_printMap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test print map, especially on Windows.</p>
@@ -112,6 +118,13 @@ the Free Software Foundation; either version 2 of the License, or
 <dt id="safe_qgis.test_dock.DockTest.tearDown">
 <tt class="descname">tearDown</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/test_dock.html#DockTest.tearDown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.test_dock.DockTest.tearDown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fixture run after each test</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="safe_qgis.test_dock.DockTest.test_InsufficientOverlapIssue372">
+<tt class="descname">test_InsufficientOverlapIssue372</tt><big>(</big><big>)</big><a class="headerlink" href="#safe_qgis.test_dock.DockTest.test_InsufficientOverlapIssue372" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test Insufficient overlap errors are caught as per issue #372.
+..note:: See <a class="reference external" href="https://github.com/AIFDR/inasafe/issues/372">https://github.com/AIFDR/inasafe/issues/372</a></p>
 </dd></dl>
 
 <dl class="method">
@@ -194,6 +207,12 @@ kezwords</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="safe_qgis.test_dock.DockTest.test_checkPostProcessingLayersVisibility">
+<tt class="descname">test_checkPostProcessingLayersVisibility</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/test_dock.html#DockTest.test_checkPostProcessingLayersVisibility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.test_dock.DockTest.test_checkPostProcessingLayersVisibility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generated layers are not added to the map registry.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="safe_qgis.test_dock.DockTest.test_defaults">
 <tt class="descname">test_defaults</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/test_dock.html#DockTest.test_defaults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.test_dock.DockTest.test_defaults" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test the GUI in its default state</p>
@@ -249,6 +268,18 @@ See also
 <dt id="safe_qgis.test_dock.DockTest.test_newLayersShowInCanvas">
 <tt class="descname">test_newLayersShowInCanvas</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/test_dock.html#DockTest.test_newLayersShowInCanvas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.test_dock.DockTest.test_newLayersShowInCanvas" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check that when we add a layer we can see it in the canvas list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="safe_qgis.test_dock.DockTest.test_postProcessorOutput">
+<tt class="descname">test_postProcessorOutput</tt><big>(</big><big>)</big><a class="headerlink" href="#safe_qgis.test_dock.DockTest.test_postProcessorOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that the post processor does not add spurious report rows.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="safe_qgis.test_dock.DockTest.test_preprocessing">
+<tt class="descname">test_preprocessing</tt><big>(</big><big>)</big><a class="headerlink" href="#safe_qgis.test_dock.DockTest.test_preprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>preprocessing results are correct.</p>
 </dd></dl>
 
 <dl class="method">
@@ -327,7 +358,7 @@ hazard data uses OSM Building Polygons exposure data.</p>
 <dl class="method">
 <dt id="safe_qgis.test_dock.DockTest.test_runVolcanoCirclePopulation">
 <tt class="descname">test_runVolcanoCirclePopulation</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/test_dock.html#DockTest.test_runVolcanoCirclePopulation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.test_dock.DockTest.test_runVolcanoCirclePopulation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volcano function runs in GUI with a circular evacutation zone</p>
+<dd><p>Volcano function runs in GUI with a circular evacuation zone.</p>
 <p>Uses population density grid as exposure.</p>
 </dd></dl>
 
@@ -446,11 +477,11 @@ sure we have the right one.</p>
           <img class="logo" src="../../_static/icon.png" alt="Logo"/>
         </a></p>
   <h4>Previous topic</h4>
-  <p class="topless"><a href="test_html_renderer.html"
-                        title="previous chapter">Module:  safe_qgis.test_html_renderer</a></p>
+  <p class="topless"><a href="test_clipper.html"
+                        title="previous chapter">Module:  safe_qgis.test_clipper</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="test_keyword_io.html"
-                        title="next chapter">Module:  safe_qgis.test_keyword_io</a></p>
+  <p class="topless"><a href="test_map_legend.html"
+                        title="next chapter">Module:  safe_qgis.test_map_legend</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../_sources/api-docs/safe_qgis_tests/test_dock.txt"
@@ -485,10 +516,10 @@ sure we have the right one.</p>
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="test_keyword_io.html" title="Module: safe_qgis.test_keyword_io"
+          <a href="test_map_legend.html" title="Module: safe_qgis.test_map_legend"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="test_html_renderer.html" title="Module: safe_qgis.test_html_renderer"
+          <a href="test_clipper.html" title="Module: safe_qgis.test_clipper"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -501,7 +532,7 @@ sure we have the right one.</p>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

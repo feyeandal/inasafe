@@ -32,8 +32,8 @@
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Package::safe_qgis" href="../safe_qgis.html" />
-    <link rel="next" title="Module: safe_qgis.impact_functions_doc_base" href="impact_functions_doc_base.html" />
-    <link rel="prev" title="Module: safe_qgis.help" href="help.html" /> 
+    <link rel="next" title="Module: safe_qgis.options_dialog_base" href="options_dialog_base.html" />
+    <link rel="prev" title="Module: safe_qgis.impact_functions_doc_base" href="impact_functions_doc_base.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -48,10 +48,10 @@
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="impact_functions_doc_base.html" title="Module: safe_qgis.impact_functions_doc_base"
+          <a href="options_dialog_base.html" title="Module: safe_qgis.options_dialog_base"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="help.html" title="Module: safe_qgis.help"
+          <a href="impact_functions_doc_base.html" title="Module: safe_qgis.impact_functions_doc_base"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -107,6 +107,29 @@ the Free Software Foundation; either version 2 of the License, or
 </dd></dl>
 
 <dl class="function">
+<dt id="safe_qgis.utilities.addComboItemInOrder">
+<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">addComboItemInOrder</tt><big>(</big><em>theCombo</em>, <em>theItemText</em>, <em>theItemData=None</em><big>)</big><a class="headerlink" href="#safe_qgis.utilities.addComboItemInOrder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Although QComboBox allows you to set an InsertAlphabetically enum
+this only has effect when a user interactively adds combo items to
+an editable combo. This we have this little function to ensure that
+combos are always sorted alphabetically.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>theCombo - combo box receiving the new item</li>
+<li>theItemText - display text for the combo</li>
+<li>theItemData - optional UserRole data to be associated with
+the item</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd>None</dd>
+</dl>
+<p>Raises:</p>
+<p>..todo:: Move this to utilities</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="safe_qgis.utilities.addLoggingHanderOnce">
 <tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">addLoggingHanderOnce</tt><big>(</big><em>theLogger</em>, <em>theHandler</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/utilities.html#addLoggingHanderOnce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.utilities.addLoggingHanderOnce" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to add a handler to a logger, ensuring there are no duplicates.</p>
@@ -127,6 +150,19 @@ the Free Software Foundation; either version 2 of the License, or
 <dd>bool: True if the logging handler was added</dd>
 <dt>Raises:</dt>
 <dd>None</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="safe_qgis.utilities.copyInMemory">
+<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">copyInMemory</tt><big>(</big><em>vLayer</em>, <em>copyName=''</em><big>)</big><a class="headerlink" href="#safe_qgis.utilities.copyInMemory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a memory copy of a layer</p>
+<dl class="docutils">
+<dt>Input</dt>
+<dd>origLayer: layer
+copyName: the name of the copy</dd>
+<dt>Output</dt>
+<dd>memory copy of a layer</dd>
 </dl>
 </dd></dl>
 
@@ -300,6 +336,24 @@ present, None is returned.</dd>
 </dd>
 <dt>Raises:</dt>
 <dd>None</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="safe_qgis.utilities.isLayerPoint">
+<tt class="descclassname">safe_qgis.utilities.</tt><tt class="descname">isLayerPoint</tt><big>(</big><em>theLayer</em><big>)</big><a class="headerlink" href="#safe_qgis.utilities.isLayerPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tell if a QGIS layer is vector and its geometries are polygons.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><blockquote class="first">
+<div>the theLayer</div></blockquote>
+<dl class="last docutils">
+<dt>Returns:</dt>
+<dd>bool - true if the theLayer contains polygons</dd>
+<dt>Raises:</dt>
+<dd>None</dd>
+</dl>
+</dd>
 </dl>
 </dd></dl>
 
@@ -540,11 +594,11 @@ the original string.</dd>
           <img class="logo" src="../../_static/icon.png" alt="Logo"/>
         </a></p>
   <h4>Previous topic</h4>
-  <p class="topless"><a href="help.html"
-                        title="previous chapter">Module:  safe_qgis.help</a></p>
-  <h4>Next topic</h4>
   <p class="topless"><a href="impact_functions_doc_base.html"
-                        title="next chapter">Module:  safe_qgis.impact_functions_doc_base</a></p>
+                        title="previous chapter">Module:  safe_qgis.impact_functions_doc_base</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="options_dialog_base.html"
+                        title="next chapter">Module:  safe_qgis.options_dialog_base</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../_sources/api-docs/safe_qgis/utilities.txt"
@@ -579,10 +633,10 @@ the original string.</dd>
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="impact_functions_doc_base.html" title="Module: safe_qgis.impact_functions_doc_base"
+          <a href="options_dialog_base.html" title="Module: safe_qgis.options_dialog_base"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="help.html" title="Module: safe_qgis.help"
+          <a href="impact_functions_doc_base.html" title="Module: safe_qgis.impact_functions_doc_base"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -595,7 +649,7 @@ the original string.</dd>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

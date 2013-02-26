@@ -324,7 +324,14 @@
     <span class="k">if</span> <span class="n">myCount</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;No features fall within the clip extents. &#39;</span>
                        <span class="s">&#39;Try panning / zooming to an area containing data &#39;</span>
-                       <span class="s">&#39;and then try to run your analysis again.&#39;</span><span class="p">)</span>
+                       <span class="s">&#39;and then try to run your analysis again.&#39;</span>
+                       <span class="s">&#39;If hazard and exposure data doesn</span><span class="se">\&#39;</span><span class="s">t overlap &#39;</span>
+                       <span class="s">&#39;at all, it is not possible to do an analysis.&#39;</span>
+                       <span class="s">&#39;Another possibility is that the layers do overlap &#39;</span>
+                       <span class="s">&#39;but because they may have different spatial &#39;</span>
+                       <span class="s">&#39;references, they appear to be disjoint. &#39;</span>
+                       <span class="s">&#39;If this is the case, try to turn on reproject &#39;</span>
+                       <span class="s">&#39;on-the-fly in QGIS.&#39;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">NoFeaturesInExtentError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="n">myKeywordIO</span> <span class="o">=</span> <span class="n">KeywordIO</span><span class="p">()</span>
@@ -391,23 +398,22 @@
 <span class="sd">       None</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">myMultiGeometry</span> <span class="o">=</span> <span class="n">QgsGeometry</span><span class="p">()</span>
     <span class="n">myParts</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">if</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QGis</span><span class="o">.</span><span class="n">Point</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">isMultipart</span><span class="p">():</span>
             <span class="n">myMultiGeometry</span> <span class="o">=</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">asMultiPoint</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">myMultiGeometry</span><span class="p">:</span>
                 <span class="n">myParts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">QgsGeometry</span><span class="p">()</span><span class="o">.</span><span class="n">fromPoint</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">myParts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">theGeom</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QGis</span><span class="o">.</span><span class="n">Line</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">isMultipart</span><span class="p">():</span>
             <span class="n">myMultiGeometry</span> <span class="o">=</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">asMultiPolyline</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">myMultiGeometry</span><span class="p">:</span>
                 <span class="n">myParts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">QgsGeometry</span><span class="p">()</span><span class="o">.</span><span class="n">fromPolyline</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">myParts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">theGeom</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QGis</span><span class="o">.</span><span class="n">Polygon</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">isMultipart</span><span class="p">():</span>
             <span class="n">myMultiGeometry</span> <span class="o">=</span> <span class="n">theGeom</span><span class="o">.</span><span class="n">asMultiPolygon</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">myMultiGeometry</span><span class="p">:</span>
@@ -472,7 +478,7 @@
     <span class="c"># in its keywords.</span>
     <span class="n">myKeywords</span> <span class="o">=</span> <span class="n">readKeywordsFromFile</span><span class="p">(</span><span class="n">myKeywordsPath</span><span class="p">)</span>
     <span class="k">if</span> <span class="s">&#39;datatype&#39;</span> <span class="ow">in</span> <span class="n">myKeywords</span> <span class="ow">and</span> <span class="n">myKeywords</span><span class="p">[</span><span class="s">&#39;datatype&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;density&#39;</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">theLayer</span><span class="o">.</span><span class="n">srs</span><span class="p">()</span><span class="o">.</span><span class="n">authid</span><span class="p">())</span> <span class="o">!=</span> <span class="s">&#39;EPSG:4326&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">theLayer</span><span class="o">.</span><span class="n">crs</span><span class="p">()</span><span class="o">.</span><span class="n">authid</span><span class="p">())</span> <span class="o">!=</span> <span class="s">&#39;EPSG:4326&#39;</span><span class="p">:</span>
 
             <span class="c"># This layer is not WGS84 geographic</span>
             <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Layer </span><span class="si">%s</span><span class="s"> represents density but has spatial &#39;</span>
@@ -480,7 +486,7 @@
                          <span class="s">&#39;WGS84 geographic coordinates, so please reproject &#39;</span>
                          <span class="s">&#39;and try again. For more information, see issue &#39;</span>
                          <span class="s">&#39;https://github.com/AIFDR/inasafe/issues/123&#39;</span>
-                         <span class="o">%</span> <span class="p">(</span><span class="n">myWorkingLayer</span><span class="p">,</span> <span class="n">theLayer</span><span class="o">.</span><span class="n">srs</span><span class="p">()</span><span class="o">.</span><span class="n">toProj4</span><span class="p">()))</span>
+                         <span class="o">%</span> <span class="p">(</span><span class="n">myWorkingLayer</span><span class="p">,</span> <span class="n">theLayer</span><span class="o">.</span><span class="n">crs</span><span class="p">()</span><span class="o">.</span><span class="n">toProj4</span><span class="p">()))</span>
             <span class="k">raise</span> <span class="n">InvalidProjectionError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
 
     <span class="c"># We need to provide gdalwarp with a dataset for the clip</span>
@@ -660,7 +666,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

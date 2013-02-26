@@ -60,10 +60,11 @@
           <div class="body">
             
   <h1>Source code for safe.impact_functions.earthquake.itb_earthquake_fatality_model</h1><div class="highlight"><pre>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">FunctionProvider</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_hazard_layer</span><span class="p">,</span> <span class="n">get_exposure_layer</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_question</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">format_int</span>
+<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">FunctionProvider</span><span class="p">,</span>
+                                        <span class="n">get_hazard_layer</span><span class="p">,</span>
+                                        <span class="n">get_exposure_layer</span><span class="p">,</span>
+                                        <span class="n">get_question</span><span class="p">,</span>
+                                        <span class="n">format_int</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe.storage.raster</span> <span class="kn">import</span> <span class="n">Raster</span>
 <span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ugettext</span> <span class="k">as</span> <span class="n">tr</span><span class="p">,</span>
                                    <span class="n">get_defaults</span><span class="p">)</span>
@@ -171,6 +172,11 @@
 <span class="sd">        :param x: model coefficient.</span>
 <span class="sd">        :param y: model coefficient.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># As per email discussion with Ole, Trevor, Hadi, mmi &lt; 4 will have</span>
+        <span class="c"># a fatality rate of 0 - Tim</span>
+        <span class="k">if</span> <span class="n">mmi</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">]</span>
         <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;y&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">x</span> <span class="o">*</span> <span class="n">mmi</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span>
@@ -216,12 +222,11 @@
         <span class="n">R</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">mmi</span> <span class="ow">in</span> <span class="n">mmi_range</span><span class="p">:</span>
 
-            <span class="c"># Identify cells where MMI is in class i</span>
-            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">H</span> <span class="o">&gt;</span> <span class="n">mmi</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;step&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span>
-                        <span class="n">H</span> <span class="o">&lt;=</span> <span class="n">mmi</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;step&#39;</span><span class="p">])</span>
-
-            <span class="c"># Count population affected by this shake level</span>
-            <span class="n">I</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="c"># Identify cells where MMI is in class i and</span>
+            <span class="c"># count population affected by this shake level</span>
+            <span class="n">I</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">H</span> <span class="o">&gt;</span> <span class="n">mmi</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;step&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span>
+                    <span class="n">H</span> <span class="o">&lt;=</span> <span class="n">mmi</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;step&#39;</span><span class="p">]),</span> <span class="n">P</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
             <span class="c"># Calculate expected number of fatalities per level</span>
             <span class="n">fatality_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fatality_rate</span><span class="p">(</span><span class="n">mmi</span><span class="p">)</span>
@@ -258,6 +263,10 @@
         <span class="c"># Compute number of fatalities</span>
         <span class="n">fatalities</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">number_of_fatalities</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
                                <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span> <span class="o">*</span> <span class="mi">1000</span>
+        <span class="c"># As per email discussion with Ole, Trevor, Hadi, total fatalities &lt; 50</span>
+        <span class="c"># will be rounded down to 0 - Tim</span>
+        <span class="k">if</span> <span class="n">fatalities</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
+            <span class="n">fatalities</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="c"># Compute number of people displaced due to building collapse</span>
         <span class="n">displaced</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">number_of_displaced</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
@@ -331,12 +340,16 @@
 
         <span class="c"># Extend impact report for on-screen display</span>
         <span class="n">table_body</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">TableRow</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Notes&#39;</span><span class="p">),</span> <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-                           <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Total population: </span><span class="si">%i</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">total</span><span class="p">,</span>
+                           <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Total population: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">format_int</span><span class="p">(</span><span class="n">total</span><span class="p">),</span>
                            <span class="n">tr</span><span class="p">(</span><span class="s">&#39;People are considered to be displaced if &#39;</span>
                               <span class="s">&#39;they experience and survive a shake level&#39;</span>
                               <span class="s">&#39;of more than 5 on the MMI scale &#39;</span><span class="p">),</span>
                            <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Minimum needs are defined in BNPB &#39;</span>
-                             <span class="s">&#39;regulation 7/2008&#39;</span><span class="p">)])</span>
+                             <span class="s">&#39;regulation 7/2008&#39;</span><span class="p">),</span>
+                           <span class="n">tr</span><span class="p">(</span><span class="s">&#39;The fatality calculation assumes that &#39;</span>
+                             <span class="s">&#39;no fatalities occur for shake levels below 4 &#39;</span>
+                             <span class="s">&#39;and fatality counts of less than 50 are &#39;</span>
+                             <span class="s">&#39;disregarded.&#39;</span><span class="p">)])</span>
 
         <span class="n">impact_summary</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">table_body</span><span class="p">)</span><span class="o">.</span><span class="n">toNewlineFreeString</span><span class="p">()</span>
         <span class="n">map_title</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;People in need of evacuation&#39;</span><span class="p">)</span>
@@ -435,7 +448,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

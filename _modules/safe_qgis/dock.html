@@ -125,6 +125,7 @@
                                       <span class="n">getBufferedExtent</span><span class="p">,</span>
                                       <span class="n">getSafeImpactFunctions</span><span class="p">,</span>
                                       <span class="n">safeTr</span><span class="p">,</span>
+                                      <span class="n">get_free_memory</span><span class="p">,</span>
                                       <span class="n">get_version</span><span class="p">,</span>
                                       <span class="n">temp_dir</span><span class="p">,</span>
                                       <span class="n">ReadLayerError</span><span class="p">,</span>
@@ -132,6 +133,7 @@
 <span class="kn">from</span> <span class="nn">safe_qgis.keyword_io</span> <span class="kn">import</span> <span class="n">KeywordIO</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.clipper</span> <span class="kn">import</span> <span class="n">clipLayer</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">KeywordNotFoundError</span><span class="p">,</span>
+                                  <span class="n">KeywordDbError</span><span class="p">,</span>
                                   <span class="n">InsufficientOverlapError</span><span class="p">,</span>
                                   <span class="n">InvalidParameterError</span><span class="p">,</span>
                                   <span class="n">InsufficientParametersError</span><span class="p">,</span>
@@ -240,6 +242,16 @@
         <span class="c">#            port=53100,</span>
         <span class="c">#            stdoutToServer=True,</span>
         <span class="c">#            stderrToServer=True)</span>
+
+        <span class="n">myCanvas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iface</span><span class="o">.</span><span class="n">mapCanvas</span><span class="p">()</span>
+
+        <span class="c"># Enable on the fly projection by default</span>
+        <span class="n">myCanvas</span><span class="o">.</span><span class="n">mapRenderer</span><span class="p">()</span><span class="o">.</span><span class="n">setProjectionsEnabled</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># Listen for changes in canvas extent so we can</span>
+        <span class="c"># check if the analysis is feasible as the extent changes</span>
+        <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">myCanvas</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">SIGNAL</span><span class="p">(</span><span class="s">&#39;extentsChanged()&#39;</span><span class="p">),</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">checkMemoryUsage</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Dock.readSettings"><a class="viewcode-back" href="../../api-docs/safe_qgis/dock.html#safe_qgis.dock.Dock.readSettings">[docs]</a>    <span class="k">def</span> <span class="nf">readSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the dock state from QSettings. Do this on init and after</span>
@@ -978,7 +990,8 @@
 <span class="sd">            Propagates any error from :func:optimalClip()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">myHazardFilename</span><span class="p">,</span> <span class="n">myExposureFilename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimalClip</span><span class="p">()</span>
+            <span class="c"># _ = syntactic trick to ignore returned var</span>
+            <span class="n">myHazardFilename</span><span class="p">,</span> <span class="n">myExposureFilename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimalClip</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">CallGDALError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">QtGui</span><span class="o">.</span><span class="n">qApp</span><span class="o">.</span><span class="n">restoreOverrideCursor</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hideBusy</span><span class="p">()</span>
@@ -1039,7 +1052,7 @@
             <span class="c"># information</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">doZonalAggregation</span> <span class="o">=</span> <span class="bp">False</span>
             <span class="n">myGeoCrs</span> <span class="o">=</span> <span class="n">QgsCoordinateReferenceSystem</span><span class="p">()</span>
-            <span class="n">myGeoCrs</span><span class="o">.</span><span class="n">createFromEpsg</span><span class="p">(</span><span class="mi">4326</span><span class="p">)</span>
+            <span class="n">myGeoCrs</span><span class="o">.</span><span class="n">createFromId</span><span class="p">(</span><span class="mi">4326</span><span class="p">,</span> <span class="n">QgsCoordinateReferenceSystem</span><span class="o">.</span><span class="n">EpsgCrsId</span><span class="p">)</span>
             <span class="n">crs</span> <span class="o">=</span> <span class="n">myGeoCrs</span><span class="o">.</span><span class="n">authid</span><span class="p">()</span><span class="o">.</span><span class="n">toLower</span><span class="p">()</span>
             <span class="n">myUUID</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
             <span class="n">myUri</span> <span class="o">=</span> <span class="s">&#39;Polygon?crs=</span><span class="si">%s</span><span class="s">&amp;index=yes&amp;uuid=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">crs</span><span class="p">,</span> <span class="n">myUUID</span><span class="p">)</span>
@@ -1060,9 +1073,15 @@
             <span class="n">myLayer</span><span class="o">.</span><span class="n">commitChanges</span><span class="p">()</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">postProcessingLayer</span> <span class="o">=</span> <span class="n">myLayer</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">keywordIO</span><span class="o">.</span><span class="n">appendKeywords</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">postProcessingLayer</span><span class="p">,</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span>
-                <span class="s">&#39;AGGR_ATTR_KEY&#39;</span><span class="p">]:</span> <span class="n">myAttrName</span><span class="p">})</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">keywordIO</span><span class="o">.</span><span class="n">appendKeywords</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">postProcessingLayer</span><span class="p">,</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span>
+                    <span class="s">&#39;AGGR_ATTR_KEY&#39;</span><span class="p">]:</span> <span class="n">myAttrName</span><span class="p">})</span>
+            <span class="k">except</span> <span class="n">KeywordDbError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">myMessage</span> <span class="o">=</span> <span class="n">getExceptionWithStacktrace</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">theHtml</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">displayHtml</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hideBusy</span><span class="p">()</span>
+                <span class="k">return</span>
 
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Do zonal aggregation: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doZonalAggregation</span><span class="p">))</span>
 
@@ -1186,10 +1205,19 @@
                                                    <span class="n">theContext</span><span class="o">=</span><span class="n">myMessage</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">displayHtml</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
             <span class="k">return</span>
-
+        <span class="k">except</span> <span class="ne">MemoryError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spawnError</span><span class="p">(</span><span class="n">e</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;An error occurred because it appears that your &#39;</span>
+                    <span class="s">&#39;system does not have sufficient memory. Upgrading &#39;</span>
+                    <span class="s">&#39;your computer so that it has more memory may help. &#39;</span>
+                    <span class="s">&#39;Alternatively, consider using a smaller geographical &#39;</span>
+                    <span class="s">&#39;area for your analysis, or using rasters with a larger &#39;</span>
+                    <span class="s">&#39;cell size.&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkMemoryUsage</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">analysisDone</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">return</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculator</span><span class="o">.</span><span class="n">getRunner</span><span class="p">()</span>
-        <span class="k">except</span> <span class="n">InsufficientParametersError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">InsufficientParametersError</span><span class="p">,</span> <span class="n">ReadLayerError</span><span class="p">),</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">QtGui</span><span class="o">.</span><span class="n">qApp</span><span class="o">.</span><span class="n">restoreOverrideCursor</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hideBusy</span><span class="p">()</span>
             <span class="n">myMessage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;An exception occurred when setting up the &#39;</span>
@@ -1255,7 +1283,7 @@
             <span class="n">myException</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">lastException</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">myException</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">myContext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;An exception occurred when calculating &#39;</span>
-                                    <span class="s">&#39;the results&#39;</span><span class="p">)</span>
+                                    <span class="s">&#39;the results. </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
                 <span class="n">myMessage</span> <span class="o">=</span> <span class="n">getExceptionWithStacktrace</span><span class="p">(</span><span class="n">myException</span><span class="p">,</span>
                     <span class="n">theHtml</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                     <span class="n">theContext</span><span class="o">=</span><span class="n">myContext</span><span class="p">)</span>
@@ -2007,6 +2035,135 @@
         <span class="sd">&quot;&quot;&quot;Disable the hourglass cursor&quot;&quot;&quot;</span>
         <span class="n">QtGui</span><span class="o">.</span><span class="n">qApp</span><span class="o">.</span><span class="n">restoreOverrideCursor</span><span class="p">()</span>
 </div>
+<div class="viewcode-block" id="Dock.getClipParameters"><a class="viewcode-back" href="../../api-docs/safe_qgis/dock.html#safe_qgis.dock.Dock.getClipParameters">[docs]</a>    <span class="k">def</span> <span class="nf">getClipParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the best extents to use for the assessment.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * myExtraExposureKeywords: dict - any additional keywords that</span>
+<span class="sd">                should be written to the exposure layer. For example if</span>
+<span class="sd">                rescaling is required for a raster, the original resolution</span>
+<span class="sd">                can be added to the keywords file.</span>
+<span class="sd">            * myBufferedGeoExtent: list - [xmin, ymin, xmax, ymax] - the best</span>
+<span class="sd">                extent that can be used given the input datasets and the</span>
+<span class="sd">                current viewport extents.</span>
+<span class="sd">            * myCellSize: float - the cell size that is the best of the</span>
+<span class="sd">                hazard and exposure rasters.</span>
+<span class="sd">            * myExposureLayer: QgsMapLayer - layer representing exposure.</span>
+<span class="sd">            * myGeoExtent: list - [xmin, ymin, xmax, ymax] - the unbuffered</span>
+<span class="sd">                intersection of the two input layers extents and the viewport.</span>
+<span class="sd">            * myHazardLayer: QgsMapLayer - layer representing hazard.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            InsufficientOverlapError, RuntimeError</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">myHazardLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getHazardLayer</span><span class="p">()</span>
+        <span class="n">myExposureLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getExposureLayer</span><span class="p">()</span>
+        <span class="c"># Reproject all extents to EPSG:4326 if needed</span>
+        <span class="n">myGeoCrs</span> <span class="o">=</span> <span class="n">QgsCoordinateReferenceSystem</span><span class="p">()</span>
+        <span class="n">myGeoCrs</span><span class="o">.</span><span class="n">createFromId</span><span class="p">(</span><span class="mi">4326</span><span class="p">,</span> <span class="n">QgsCoordinateReferenceSystem</span><span class="o">.</span><span class="n">EpsgCrsId</span><span class="p">)</span>
+        <span class="c"># Get the current viewport extent as an array in EPSG:4326</span>
+        <span class="n">myViewportGeoExtent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewportGeoArray</span><span class="p">()</span>
+        <span class="c"># Get the Hazard extents as an array in EPSG:4326</span>
+        <span class="n">myHazardGeoExtent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extentToGeoArray</span><span class="p">(</span><span class="n">myHazardLayer</span><span class="o">.</span><span class="n">extent</span><span class="p">(),</span>
+                                                  <span class="n">myHazardLayer</span><span class="o">.</span><span class="n">crs</span><span class="p">())</span>
+        <span class="c"># Get the Exposure extents as an array in EPSG:4326</span>
+        <span class="n">myExposureGeoExtent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extentToGeoArray</span><span class="p">(</span><span class="n">myExposureLayer</span><span class="o">.</span><span class="n">extent</span><span class="p">(),</span>
+                                                    <span class="n">myExposureLayer</span><span class="o">.</span><span class="n">crs</span><span class="p">())</span>
+        <span class="c"># Now work out the optimal extent between the two layers and</span>
+        <span class="c"># the current view extent. The optimal extent is the intersection</span>
+        <span class="c"># between the two layers and the viewport.</span>
+        <span class="n">myGeoExtent</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># Extent is returned as an array [xmin,ymin,xmax,ymax]</span>
+            <span class="c"># We will convert it to a QgsRectangle afterwards.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clipToViewport</span><span class="p">:</span>
+                <span class="n">myGeoExtent</span> <span class="o">=</span> <span class="n">getOptimalExtent</span><span class="p">(</span><span class="n">myHazardGeoExtent</span><span class="p">,</span>
+                                               <span class="n">myExposureGeoExtent</span><span class="p">,</span>
+                                               <span class="n">myViewportGeoExtent</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">myGeoExtent</span> <span class="o">=</span> <span class="n">getOptimalExtent</span><span class="p">(</span><span class="n">myHazardGeoExtent</span><span class="p">,</span>
+                                               <span class="n">myExposureGeoExtent</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">InsufficientOverlapError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c"># FIXME (MB): This branch is not covered by the tests</span>
+            <span class="n">myMessage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;&lt;p&gt;There &#39;</span>
+                                <span class="s">&#39;was insufficient overlap between the input &#39;</span>
+                                <span class="s">&#39;layers &#39;</span>
+                                <span class="s">&#39;and / or the layers and the viewable area. &#39;</span>
+                                <span class="s">&#39;Please select &#39;</span>
+                                <span class="s">&#39;two overlapping layers and zoom or pan to &#39;</span>
+                                <span class="s">&#39;them or disable&#39;</span>
+                                <span class="s">&#39; viewable area clipping in the options dialog&#39;</span>
+                                <span class="s">&#39;. Full details follow:&lt;/p&gt;&#39;</span>
+                                <span class="s">&#39;&lt;p&gt;Failed to obtain the optimal extent &#39;</span>
+                                <span class="s">&#39;given:&lt;/p&gt;&#39;</span>
+                                <span class="s">&#39;&lt;p&gt;Hazard: %1&lt;/p&gt;&#39;</span>
+                                <span class="s">&#39;&lt;p&gt;Exposure: %2&lt;/p&gt;&#39;</span>
+                                <span class="s">&#39;&lt;p&gt;Viewable area Geo Extent: %3&lt;/p&gt;&#39;</span>
+                                <span class="s">&#39;&lt;p&gt;Hazard Geo Extent: %4&lt;/p&gt;&#39;</span>
+                                <span class="s">&#39;&lt;p&gt;Exposure Geo Extent: %5&lt;/p&gt;&#39;</span>
+                                <span class="s">&#39;&lt;p&gt;Viewable area clipping enabled: %6&lt;/p&gt;&#39;</span>
+                                <span class="s">&#39;&lt;p&gt;Details: %7&lt;/p&gt;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
+                <span class="n">myHazardLayer</span><span class="o">.</span><span class="n">source</span><span class="p">())</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
+                <span class="n">myExposureLayer</span><span class="o">.</span><span class="n">source</span><span class="p">())</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
+                <span class="n">QtCore</span><span class="o">.</span><span class="n">QString</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">myViewportGeoExtent</span><span class="p">)))</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
+                <span class="n">QtCore</span><span class="o">.</span><span class="n">QString</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">myHazardGeoExtent</span><span class="p">)))</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
+                <span class="n">QtCore</span><span class="o">.</span><span class="n">QString</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">myExposureGeoExtent</span><span class="p">)))</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
+                <span class="n">QtCore</span><span class="o">.</span><span class="n">QString</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clipToViewport</span><span class="p">)))</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">InsufficientOverlapError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+
+        <span class="c"># Next work out the ideal spatial resolution for rasters</span>
+        <span class="c"># in the analysis. If layers are not native WGS84, we estimate</span>
+        <span class="c"># this based on the geographic extents</span>
+        <span class="c"># rather than the layers native extents so that we can pass</span>
+        <span class="c"># the ideal WGS84 cell size and extents to the layer prep routines</span>
+        <span class="c"># and do all preprocessing in a single operation.</span>
+        <span class="c"># All this is done in the function getWGS84resolution</span>
+        <span class="n">myBufferedGeoExtent</span> <span class="o">=</span> <span class="n">myGeoExtent</span>  <span class="c"># Bbox to use for hazard layer</span>
+        <span class="n">myCellSize</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">myExtraExposureKeywords</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">myHazardLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QgsMapLayer</span><span class="o">.</span><span class="n">RasterLayer</span><span class="p">:</span>
+            <span class="c"># Hazard layer is raster</span>
+            <span class="n">myHazardGeoCellSize</span> <span class="o">=</span> <span class="n">getWGS84resolution</span><span class="p">(</span><span class="n">myHazardLayer</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">myExposureLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QgsMapLayer</span><span class="o">.</span><span class="n">RasterLayer</span><span class="p">:</span>
+                <span class="c"># In case of two raster layers establish common resolution</span>
+                <span class="n">myExposureGeoCellSize</span> <span class="o">=</span> <span class="n">getWGS84resolution</span><span class="p">(</span><span class="n">myExposureLayer</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">myHazardGeoCellSize</span> <span class="o">&lt;</span> <span class="n">myExposureGeoCellSize</span><span class="p">:</span>
+                    <span class="n">myCellSize</span> <span class="o">=</span> <span class="n">myHazardGeoCellSize</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">myCellSize</span> <span class="o">=</span> <span class="n">myExposureGeoCellSize</span>
+
+                <span class="c"># Record native resolution to allow rescaling of exposure data</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">myCellSize</span><span class="p">,</span> <span class="n">myExposureGeoCellSize</span><span class="p">):</span>
+                    <span class="n">myExtraExposureKeywords</span><span class="p">[</span><span class="s">&#39;resolution&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">myExposureGeoCellSize</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># If exposure is vector data grow hazard raster layer to</span>
+                <span class="c"># ensure there are enough pixels for points at the edge of</span>
+                <span class="c"># the view port to be interpolated correctly. This requires</span>
+                <span class="c"># resolution to be available</span>
+                <span class="k">if</span> <span class="n">myExposureLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">!=</span> <span class="n">QgsMapLayer</span><span class="o">.</span><span class="n">VectorLayer</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span>
+                <span class="n">myBufferedGeoExtent</span> <span class="o">=</span> <span class="n">getBufferedExtent</span><span class="p">(</span><span class="n">myGeoExtent</span><span class="p">,</span>
+                                                        <span class="n">myHazardGeoCellSize</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Hazard layer is vector</span>
+
+            <span class="c"># In case hazard data is a point data set, we will not clip the</span>
+            <span class="c"># exposure data to it. The reason being that points may be used</span>
+            <span class="c"># as centers for evacuation circles: See issue #285</span>
+            <span class="k">if</span> <span class="n">myHazardLayer</span><span class="o">.</span><span class="n">geometryType</span><span class="p">()</span> <span class="o">==</span> <span class="n">QGis</span><span class="o">.</span><span class="n">Point</span><span class="p">:</span>
+                <span class="n">myGeoExtent</span> <span class="o">=</span> <span class="n">myExposureGeoExtent</span>
+
+        <span class="k">return</span> <span class="n">myExtraExposureKeywords</span><span class="p">,</span> <span class="n">myBufferedGeoExtent</span><span class="p">,</span> <span class="n">myCellSize</span><span class="p">,</span> \
+               <span class="n">myExposureLayer</span><span class="p">,</span> <span class="n">myGeoExtent</span><span class="p">,</span> <span class="n">myHazardLayer</span>
+</div>
 <div class="viewcode-block" id="Dock.optimalClip"><a class="viewcode-back" href="../../api-docs/safe_qgis/dock.html#safe_qgis.dock.Dock.optimalClip">[docs]</a>    <span class="k">def</span> <span class="nf">optimalClip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; A helper function to perform an optimal clip of the input data.</span>
 <span class="sd">        Optimal extent should be considered as the intersection between</span>
@@ -2029,111 +2186,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Get the hazard and exposure layers selected in the combos</span>
-        <span class="n">myHazardLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getHazardLayer</span><span class="p">()</span>
-        <span class="n">myExposureLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getExposureLayer</span><span class="p">()</span>
-
-        <span class="c"># Reproject all extents to EPSG:4326 if needed</span>
-        <span class="n">myGeoCrs</span> <span class="o">=</span> <span class="n">QgsCoordinateReferenceSystem</span><span class="p">()</span>
-        <span class="n">myGeoCrs</span><span class="o">.</span><span class="n">createFromEpsg</span><span class="p">(</span><span class="mi">4326</span><span class="p">)</span>
-
-        <span class="c"># Get the current viewport extent as an array in EPSG:4326</span>
-        <span class="n">myViewportGeoExtent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewportGeoArray</span><span class="p">()</span>
-
-        <span class="c"># Get the Hazard extents as an array in EPSG:4326</span>
-        <span class="n">myHazardGeoExtent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extentToGeoArray</span><span class="p">(</span><span class="n">myHazardLayer</span><span class="o">.</span><span class="n">extent</span><span class="p">(),</span>
-                                                  <span class="n">myHazardLayer</span><span class="o">.</span><span class="n">crs</span><span class="p">())</span>
-
-        <span class="c"># Get the Exposure extents as an array in EPSG:4326</span>
-        <span class="n">myExposureGeoExtent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extentToGeoArray</span><span class="p">(</span><span class="n">myExposureLayer</span><span class="o">.</span><span class="n">extent</span><span class="p">(),</span>
-                                                    <span class="n">myExposureLayer</span><span class="o">.</span><span class="n">crs</span><span class="p">())</span>
-
-        <span class="c"># Now work out the optimal extent between the two layers and</span>
-        <span class="c"># the current view extent. The optimal extent is the intersection</span>
-        <span class="c"># between the two layers and the viewport.</span>
-        <span class="n">myGeoExtent</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c"># and other related parameters needed for clipping.</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="c"># Extent is returned as an array [xmin,ymin,xmax,ymax]</span>
-            <span class="c"># We will convert it to a QgsRectangle afterwards.</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clipToViewport</span><span class="p">:</span>
-                <span class="n">myGeoExtent</span> <span class="o">=</span> <span class="n">getOptimalExtent</span><span class="p">(</span><span class="n">myHazardGeoExtent</span><span class="p">,</span>
-                                               <span class="n">myExposureGeoExtent</span><span class="p">,</span>
-                                               <span class="n">myViewportGeoExtent</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">myGeoExtent</span> <span class="o">=</span> <span class="n">getOptimalExtent</span><span class="p">(</span><span class="n">myHazardGeoExtent</span><span class="p">,</span>
-                    <span class="n">myExposureGeoExtent</span><span class="p">)</span>
-
-        <span class="k">except</span> <span class="n">InsufficientOverlapError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="c"># FIXME (MB): This branch is not covered by the tests</span>
-            <span class="n">myMessage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;&lt;p&gt;There &#39;</span>
-                   <span class="s">&#39;was insufficient overlap between the input layers &#39;</span>
-                   <span class="s">&#39;and / or the layers and the viewable area. Please select &#39;</span>
-                   <span class="s">&#39;two overlapping layers and zoom or pan to them or disable&#39;</span>
-                   <span class="s">&#39; viewable area clipping in the options dialog&#39;</span>
-                   <span class="s">&#39;. Full details follow:&lt;/p&gt;&#39;</span>
-                   <span class="s">&#39;&lt;p&gt;Failed to obtain the optimal extent given:&lt;/p&gt;&#39;</span>
-                   <span class="s">&#39;&lt;p&gt;Hazard: %1&lt;/p&gt;&#39;</span>
-                   <span class="s">&#39;&lt;p&gt;Exposure: %2&lt;/p&gt;&#39;</span>
-                   <span class="s">&#39;&lt;p&gt;Viewable area Geo Extent: %3&lt;/p&gt;&#39;</span>
-                   <span class="s">&#39;&lt;p&gt;Hazard Geo Extent: %4&lt;/p&gt;&#39;</span>
-                   <span class="s">&#39;&lt;p&gt;Exposure Geo Extent: %5&lt;/p&gt;&#39;</span>
-                   <span class="s">&#39;&lt;p&gt;Viewable area clipping enabled: %6&lt;/p&gt;&#39;</span>
-                   <span class="s">&#39;&lt;p&gt;Details: %7&lt;/p&gt;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
-                        <span class="n">myHazardLayer</span><span class="o">.</span><span class="n">source</span><span class="p">())</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
-                        <span class="n">myExposureLayer</span><span class="o">.</span><span class="n">source</span><span class="p">())</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
-                        <span class="n">QtCore</span><span class="o">.</span><span class="n">QString</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">myViewportGeoExtent</span><span class="p">)))</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
-                        <span class="n">QtCore</span><span class="o">.</span><span class="n">QString</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">myHazardGeoExtent</span><span class="p">)))</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
-                        <span class="n">QtCore</span><span class="o">.</span><span class="n">QString</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">myExposureGeoExtent</span><span class="p">)))</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
-                        <span class="n">QtCore</span><span class="o">.</span><span class="n">QString</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clipToViewport</span><span class="p">)))</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span>
-                        <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-            <span class="k">raise</span> <span class="n">InsufficientOverlapError</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
-
-        <span class="c"># Next work out the ideal spatial resolution for rasters</span>
-        <span class="c"># in the analysis. If layers are not native WGS84, we estimate</span>
-        <span class="c"># this based on the geographic extents</span>
-        <span class="c"># rather than the layers native extents so that we can pass</span>
-        <span class="c"># the ideal WGS84 cell size and extents to the layer prep routines</span>
-        <span class="c"># and do all preprocessing in a single operation.</span>
-        <span class="c"># All this is done in the function getWGS84resolution</span>
-        <span class="n">myBufferedGeoExtent</span> <span class="o">=</span> <span class="n">myGeoExtent</span>  <span class="c"># Bbox to use for hazard layer</span>
-        <span class="n">myCellSize</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">extraExposureKeywords</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">myHazardLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QgsMapLayer</span><span class="o">.</span><span class="n">RasterLayer</span><span class="p">:</span>
-
-            <span class="c"># Hazard layer is raster</span>
-            <span class="n">myHazardGeoCellSize</span> <span class="o">=</span> <span class="n">getWGS84resolution</span><span class="p">(</span><span class="n">myHazardLayer</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">myExposureLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QgsMapLayer</span><span class="o">.</span><span class="n">RasterLayer</span><span class="p">:</span>
-
-                <span class="c"># In case of two raster layers establish common resolution</span>
-                <span class="n">myExposureGeoCellSize</span> <span class="o">=</span> <span class="n">getWGS84resolution</span><span class="p">(</span><span class="n">myExposureLayer</span><span class="p">)</span>
-
-                <span class="k">if</span> <span class="n">myHazardGeoCellSize</span> <span class="o">&lt;</span> <span class="n">myExposureGeoCellSize</span><span class="p">:</span>
-                    <span class="n">myCellSize</span> <span class="o">=</span> <span class="n">myHazardGeoCellSize</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">myCellSize</span> <span class="o">=</span> <span class="n">myExposureGeoCellSize</span>
-
-                <span class="c"># Record native resolution to allow rescaling of exposure data</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">myCellSize</span><span class="p">,</span> <span class="n">myExposureGeoCellSize</span><span class="p">):</span>
-                    <span class="n">extraExposureKeywords</span><span class="p">[</span><span class="s">&#39;resolution&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">myExposureGeoCellSize</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c"># If exposure is vector data grow hazard raster layer to</span>
-                <span class="c"># ensure there are enough pixels for points at the edge of</span>
-                <span class="c"># the view port to be interpolated correctly. This requires</span>
-                <span class="c"># resolution to be available</span>
-                <span class="k">if</span> <span class="n">myExposureLayer</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">!=</span> <span class="n">QgsMapLayer</span><span class="o">.</span><span class="n">VectorLayer</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">RuntimeError</span>
-                <span class="n">myBufferedGeoExtent</span> <span class="o">=</span> <span class="n">getBufferedExtent</span><span class="p">(</span><span class="n">myGeoExtent</span><span class="p">,</span>
-                                                        <span class="n">myHazardGeoCellSize</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c"># Hazard layer is vector</span>
-
-            <span class="c"># In case hazad data is a point dataset, we will not clip the</span>
-            <span class="c"># exposure data to it. The reason being that points may be used</span>
-            <span class="c"># as centers for evacuation cirles: See issue #285</span>
-            <span class="k">if</span> <span class="n">myHazardLayer</span><span class="o">.</span><span class="n">geometryType</span><span class="p">()</span> <span class="o">==</span> <span class="n">QGis</span><span class="o">.</span><span class="n">Point</span><span class="p">:</span>
-                <span class="n">myGeoExtent</span> <span class="o">=</span> <span class="n">myExposureGeoExtent</span>
-
-        <span class="c"># Make sure that we have EPSG:4326 versions of the input layers</span>
+            <span class="n">myExtraExposureKeywords</span><span class="p">,</span> <span class="n">myBufferedGeoExtent</span><span class="p">,</span> <span class="n">myCellSize</span><span class="p">,</span> \
+                <span class="n">myExposureLayer</span><span class="p">,</span> <span class="n">myGeoExtent</span><span class="p">,</span> <span class="n">myHazardLayer</span> <span class="o">=</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">getClipParameters</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span>
+            <span class="c"># Make sure that we have EPSG:4326 versions of the input layers</span>
         <span class="c"># that are clipped and (in the case of two raster inputs) resampled to</span>
         <span class="c"># the best resolution.</span>
         <span class="n">myTitle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Preparing hazard data...&#39;</span><span class="p">)</span>
@@ -2156,16 +2216,44 @@
         <span class="n">myMessage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;We are resampling and clipping the exposure&#39;</span>
                             <span class="s">&#39;layer to match the intersection of the hazard&#39;</span>
                             <span class="s">&#39;layer and the current view extents.&#39;</span><span class="p">)</span>
-        <span class="n">myProgress</span> <span class="o">=</span> <span class="mi">44</span>
+        <span class="n">myProgress</span> <span class="o">=</span> <span class="mi">33</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">showBusy</span><span class="p">(</span><span class="n">myTitle</span><span class="p">,</span> <span class="n">myMessage</span><span class="p">,</span> <span class="n">myProgress</span><span class="p">)</span>
         <span class="n">myClippedExposurePath</span> <span class="o">=</span> <span class="n">clipLayer</span><span class="p">(</span>
             <span class="n">theLayer</span><span class="o">=</span><span class="n">myExposureLayer</span><span class="p">,</span>
             <span class="n">theExtent</span><span class="o">=</span><span class="n">myGeoExtent</span><span class="p">,</span>
             <span class="n">theCellSize</span><span class="o">=</span><span class="n">myCellSize</span><span class="p">,</span>
-            <span class="n">theExtraKeywords</span><span class="o">=</span><span class="n">extraExposureKeywords</span><span class="p">,</span>
+            <span class="n">theExtraKeywords</span><span class="o">=</span><span class="n">myExtraExposureKeywords</span><span class="p">,</span>
             <span class="n">theHardClipFlag</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">clipHard</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">myClippedHazardPath</span><span class="p">,</span> <span class="n">myClippedExposurePath</span>
+        <span class="n">myTitle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Preparing aggregation layer...&#39;</span><span class="p">)</span>
+        <span class="n">myMessage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;We are clipping the aggregation&#39;</span>
+                            <span class="s">&#39;layer to match the intersection of the hazard&#39;</span>
+                            <span class="s">&#39;and exposure layer extents.&#39;</span><span class="p">)</span>
+        <span class="n">myProgress</span> <span class="o">=</span> <span class="mi">39</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">showBusy</span><span class="p">(</span><span class="n">myTitle</span><span class="p">,</span> <span class="n">myMessage</span><span class="p">,</span> <span class="n">myProgress</span><span class="p">)</span>
+        <span class="c">#If doing entire area, create a fake feature that covers the whole</span>
+        <span class="c">#myGeoExtent</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">doZonalAggregation</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">postProcessingLayer</span><span class="o">.</span><span class="n">startEditing</span><span class="p">()</span>
+            <span class="n">myProvider</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">postProcessingLayer</span><span class="o">.</span><span class="n">dataProvider</span><span class="p">()</span>
+            <span class="c"># add a feature the size of the impact layer bounding box</span>
+            <span class="n">myFeature</span> <span class="o">=</span> <span class="n">QgsFeature</span><span class="p">()</span>
+            <span class="n">myFeature</span><span class="o">.</span><span class="n">setGeometry</span><span class="p">(</span><span class="n">QgsGeometry</span><span class="o">.</span><span class="n">fromRect</span><span class="p">(</span><span class="n">QgsRectangle</span><span class="p">(</span>
+                <span class="n">QgsPoint</span><span class="p">(</span><span class="n">myGeoExtent</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">myGeoExtent</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">QgsPoint</span><span class="p">(</span><span class="n">myGeoExtent</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">myGeoExtent</span><span class="p">[</span><span class="mi">3</span><span class="p">]))))</span>
+            <span class="n">myFeature</span><span class="o">.</span><span class="n">setAttributeMap</span><span class="p">({</span><span class="mi">0</span><span class="p">:</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QVariant</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Entire area&#39;</span><span class="p">))})</span>
+            <span class="n">myProvider</span><span class="o">.</span><span class="n">addFeatures</span><span class="p">([</span><span class="n">myFeature</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">postProcessingLayer</span><span class="o">.</span><span class="n">commitChanges</span><span class="p">()</span>
+
+        <span class="n">myClippedAggregationPath</span> <span class="o">=</span> <span class="n">clipLayer</span><span class="p">(</span>
+            <span class="n">theLayer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">postProcessingLayer</span><span class="p">,</span>
+            <span class="n">theExtent</span><span class="o">=</span><span class="n">myGeoExtent</span><span class="p">,</span>
+            <span class="n">theExplodeFlag</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+            <span class="n">theHardClipFlag</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">clipHard</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">myClippedHazardPath</span><span class="p">,</span> <span class="n">myClippedExposurePath</span><span class="p">,</span> \
+               <span class="n">myClippedAggregationPath</span>
 
         <span class="c">############################################################</span>
         <span class="c"># logic checked to here..............</span>
@@ -2217,7 +2305,7 @@
         <span class="c"># FIXME (Ole): As there is no reference to self, this function</span>
         <span class="c">#              should be a general helper outside the class</span>
         <span class="n">myGeoCrs</span> <span class="o">=</span> <span class="n">QgsCoordinateReferenceSystem</span><span class="p">()</span>
-        <span class="n">myGeoCrs</span><span class="o">.</span><span class="n">createFromEpsg</span><span class="p">(</span><span class="mi">4326</span><span class="p">)</span>
+        <span class="n">myGeoCrs</span><span class="o">.</span><span class="n">createFromId</span><span class="p">(</span><span class="mi">4326</span><span class="p">,</span> <span class="n">QgsCoordinateReferenceSystem</span><span class="o">.</span><span class="n">EpsgCrsId</span><span class="p">)</span>
         <span class="n">myXForm</span> <span class="o">=</span> <span class="n">QgsCoordinateTransform</span><span class="p">(</span>
                             <span class="n">theSourceCrs</span><span class="p">,</span>
                             <span class="n">myGeoCrs</span><span class="p">)</span>
@@ -2528,7 +2616,106 @@
             <span class="n">myIndex</span> <span class="o">=</span> <span class="n">theIndex</span>
         <span class="n">myItemData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cboFunction</span><span class="o">.</span><span class="n">itemData</span><span class="p">(</span><span class="n">myIndex</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">UserRole</span><span class="p">)</span>
         <span class="n">myFunctionID</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">myItemData</span><span class="o">.</span><span class="n">toString</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">myFunctionID</span></div></div>
+        <span class="k">return</span> <span class="n">myFunctionID</span>
+</div>
+    <span class="nd">@pyqtSlot</span><span class="p">()</span>
+<div class="viewcode-block" id="Dock.checkMemoryUsage"><a class="viewcode-back" href="../../api-docs/safe_qgis/dock.html#safe_qgis.dock.Dock.checkMemoryUsage">[docs]</a>    <span class="k">def</span> <span class="nf">checkMemoryUsage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Slot to check if analysis is feasible when extents change.</span>
+
+<span class="sd">        For simplicity, we will do all our calcs in geocrs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: A string containing notes about how much memory is needed</span>
+<span class="sd">                for a single raster and if this is likely to result in an</span>
+<span class="sd">                error.</span>
+
+<span class="sd">        .. note:: The dock is also updated with a message indicating if the</span>
+<span class="sd">            memory usage is likely to be too much for the current system.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Extents changed!&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">myBufferedGeoExtent</span><span class="p">,</span> <span class="n">myCellSize</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> \
+            <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getClipParameters</span><span class="p">()</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="n">InsufficientOverlapError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Error calculating extents. </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">))</span>
+            <span class="k">return</span>  <span class="c"># ignore any error</span>
+
+        <span class="n">myWidth</span> <span class="o">=</span> <span class="n">myBufferedGeoExtent</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">myBufferedGeoExtent</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">myHeight</span> <span class="o">=</span> <span class="n">myBufferedGeoExtent</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">myBufferedGeoExtent</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">myWidth</span> <span class="o">=</span> <span class="n">myWidth</span> <span class="o">/</span> <span class="n">myCellSize</span>
+            <span class="n">myHeight</span> <span class="o">=</span> <span class="n">myHeight</span> <span class="o">/</span> <span class="n">myCellSize</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="c"># Could have been a vector layer for example</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Error: Computed cellsize was None.&#39;</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">myReadyMessage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">displayHtml</span><span class="p">(</span><span class="n">myReadyMessage</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Width: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myWidth</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Height: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myHeight</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Pixel Size: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myCellSize</span><span class="p">)</span>
+
+        <span class="c"># Compute mem requirement in MB (assuming numpy uses 8bytes by per</span>
+        <span class="c"># cell) see this link:</span>
+        <span class="c"># http://stackoverflow.com/questions/11784329/</span>
+        <span class="c">#      python-memory-usage-of-numpy-arrays</span>
+        <span class="c"># Also note that the on-disk requirement of the clipped tifs is about</span>
+        <span class="c"># half this since the tifs as in single precision,</span>
+        <span class="c"># whereas numpy arrays are in double precision.</span>
+        <span class="n">myRequirement</span> <span class="o">=</span> <span class="p">((</span><span class="n">myWidth</span> <span class="o">*</span> <span class="n">myHeight</span> <span class="o">*</span> <span class="mi">8</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1024</span> <span class="o">/</span> <span class="mi">1024</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">myFreeMemory</span> <span class="o">=</span> <span class="n">get_free_memory</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Could not determine free memory&#39;</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">myMessage</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">myMessage</span>
+
+        <span class="c"># We work on the assumption that if more than 10% of the available</span>
+        <span class="c"># memory is occupied by a single layer we could run out of memory</span>
+        <span class="c"># (depending on the impact function). This is because multiple</span>
+        <span class="c"># in memory copies of the layer are often made during processing.</span>
+        <span class="n">myWarningLimit</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">myUsageIndicator</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">myRequirement</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">myFreeMemory</span><span class="p">))</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="n">myCountsMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Memory requirement: about </span><span class="si">%i</span><span class="s">mb per raster layer (&#39;</span>
+                           <span class="s">&#39;</span><span class="si">%i</span><span class="s">mb available). </span><span class="si">%.2f</span><span class="s"> / </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
+                           <span class="p">(</span><span class="n">myRequirement</span><span class="p">,</span> <span class="n">myFreeMemory</span><span class="p">,</span> <span class="n">myUsageIndicator</span><span class="p">,</span>
+                            <span class="n">myWarningLimit</span><span class="p">))</span>
+        <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">myWarningLimit</span> <span class="o">&lt;=</span> <span class="n">myUsageIndicator</span><span class="p">:</span>
+            <span class="n">myMessage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;There may not be enough free memory to &#39;</span>
+                <span class="s">&#39;run this analysis. You can attempt to run the &#39;</span>
+                <span class="s">&#39;analysis anyway, but note that your computer may &#39;</span>
+                <span class="s">&#39;become unresponsive during execution, &#39;</span>
+                <span class="s">&#39;and / or the analysis may fail due to insufficient &#39;</span>
+                <span class="s">&#39;memory. Proceed at your own risk.&#39;</span><span class="p">)</span>
+            <span class="n">mySuggestion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Try zooming in to a smaller area or using &#39;</span>
+                <span class="s">&#39;a raster layer with a coarser resolution &#39;</span>
+                <span class="s">&#39;to speed up execution and reduce memory &#39;</span>
+                <span class="s">&#39;requirements. You could also try adding &#39;</span>
+                <span class="s">&#39;more RAM to your computer.&#39;</span><span class="p">)</span>
+            <span class="n">myHtmlMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;&lt;table class=&quot;condensed&quot;&gt;&#39;</span>
+                             <span class="s">&#39;&lt;tr&gt;&lt;th class=&quot;warning &#39;</span>
+                             <span class="s">&#39;button-cell&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/th&gt;&lt;/tr&gt;</span><span class="se">\n</span><span class="s">&#39;</span>
+                             <span class="s">&#39;&lt;tr&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s">&lt;/td&gt;&lt;/tr&gt;</span><span class="se">\n</span><span class="s">&#39;</span>
+                             <span class="s">&#39;&lt;tr&gt;&lt;th class=&quot;problem &#39;</span>
+                             <span class="s">&#39;button-cell&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/th&gt;&lt;/tr&gt;</span><span class="se">\n</span><span class="s">&#39;</span>
+                             <span class="s">&#39;&lt;tr&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s">&lt;/td&gt;&lt;/tr&gt;</span><span class="se">\n</span><span class="s">&lt;/table&gt;&#39;</span> <span class="o">%</span>
+                             <span class="p">(</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Memory usage:&#39;</span><span class="p">),</span>
+                                 <span class="n">myMessage</span><span class="p">,</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s">&#39;Suggestion&#39;</span><span class="p">),</span>
+                                 <span class="n">mySuggestion</span><span class="p">))</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">myReadyMessage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+            <span class="n">myReadyMessage</span> <span class="o">+=</span> <span class="n">myHtmlMessage</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">displayHtml</span><span class="p">(</span><span class="n">myReadyMessage</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">myCountsMessage</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">myMessage</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">myCountsMessage</span></div></div>
 </pre></div>
 
           </div>
@@ -2577,7 +2764,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

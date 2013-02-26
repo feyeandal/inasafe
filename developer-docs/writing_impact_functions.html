@@ -1,0 +1,523 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Writing Impact Functions &mdash; InaSAFE 1.0.1-final documentation</title>
+    
+    <link rel="stylesheet" href="../_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Noticia+Text|Droid+Sans+Mono" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.1-final',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/jquery.cookie.js"></script>
+    <script type="text/javascript" src="../_static/toggle_sections.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../index.html" />
+    <link rel="up" title="InaSAFE developer documentation" href="index.html" />
+    <link rel="next" title="Impact Function Tutorial" href="impact_function_tutorial.html" />
+    <link rel="prev" title="Maintaining the documentation" href="maintaining_documentation.html" /> 
+  </head>
+  <body>
+    <div class="relbar-top">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="impact_function_tutorial.html" title="Impact Function Tutorial"
+             accesskey="N">next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="maintaining_documentation.html" title="Maintaining the documentation"
+             accesskey="P">previous</a> &nbsp; &nbsp;</li>
+    <li><a href="../index.html">Home</a> &raquo;</li>
+    <li><a href="../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="index.html" accesskey="U">InaSAFE developer documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="writing-impact-functions">
+<span id="id1"></span><h1>Writing Impact Functions<a class="headerlink" href="#writing-impact-functions" title="Permalink to this headline">¶</a></h1>
+<p>This document explains the purpose of impact functions and shows how to
+write them. Some familiarity with the Python programming language will
+be helpful to fully appreciate this section. See also <a class="reference internal" href="../user-docs/impact_functions.html#impact-functions"><em>Impact Functions</em></a>
+for information about existing impact functions in InaSAFE.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This section is still work in progress</p>
+</div>
+<div class="section" id="what-is-an-impact-function">
+<h2>What is an impact function?<a class="headerlink" href="#what-is-an-impact-function" title="Permalink to this headline">¶</a></h2>
+<p>An impact function is a short Python code that InaSAFE calls to make
+a specific analyses. All impact functions take as inputs one hazard layer
+and one exposure layer. All impact functions return</p>
+<ul class="simple">
+<li>a layer that represents he result of the calculation (the impact layer).</li>
+<li>style information for the impact layer.</li>
+<li>a textual report typically summarising statistical information about the
+impact such as estimated fatilities or number of buildings affected.</li>
+</ul>
+<p>Layers can be either raster or vector types. See <a class="reference internal" href="../user-docs/data_types.html#data-types"><em>Data Types</em></a>
+for a complete list of admissible layer types that can be sensibly handled by
+impact functions.</p>
+<p>Impact functions also specify which layer types they can work with and thus
+directly control under which circumstances they are made available to the
+user in the impact function menu. See <a class="reference internal" href="#requires"><em>Controlling which layer types impact functions work with</em></a> for more details.</p>
+</div>
+<div class="section" id="creating-impact-functions">
+<h2>Creating impact functions<a class="headerlink" href="#creating-impact-functions" title="Permalink to this headline">¶</a></h2>
+<p>All impact functions follow a particular structure as outlined through example below.
+The example is a simple impact function that calculates an expected number of people
+in need of evacuation in a flood event as well as an estimate of supplies required.</p>
+<div class="section" id="import-section">
+<h3>Import section<a class="headerlink" href="#import-section" title="Permalink to this headline">¶</a></h3>
+<p>This section identifies functionality that is needed for the impact function in question.
+As a minimum, one must import functionality specific to the impact function framework, but
+in this case we also need <tt class="docutils literal"><span class="pre">numpy</span></tt> for computations, <tt class="docutils literal"><span class="pre">tables</span></tt> for reporting and <tt class="docutils literal"><span class="pre">raster</span></tt>
+to form the resulting impact layer:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">FunctionProvider</span><span class="p">,</span>
+                                        <span class="n">get_hazard_layer</span><span class="p">,</span>
+                                        <span class="n">get_exposure_layer</span><span class="p">,</span>
+                                        <span class="n">get_question</span><span class="p">,</span>
+                                        <span class="n">get_function_title</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">safe.common.tables</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">TableRow</span>
+<span class="kn">from</span> <span class="nn">safe.storage.raster</span> <span class="kn">import</span> <span class="n">Raster</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="impact-function-class">
+<h3>Impact function class<a class="headerlink" href="#impact-function-class" title="Permalink to this headline">¶</a></h3>
+<p>The impact function itself is embodied in a Python class with a doc string:</p>
+<div class="highlight-python"><pre>class FloodPopulationEvacuationFunction(FunctionProvider):
+    """Impact function for flood evacuation (tutorial)
+
+    :author AIFDR
+    :rating 4
+    :param requires category=='hazard' and \
+                    subcategory in ['flood', 'tsunami'] and \
+                    layertype=='raster' and \
+                    unit=='m'
+
+    :param requires category=='exposure' and \
+                    subcategory=='population' and \
+                    layertype=='raster'
+    """
+
+    title = 'be evacuated'
+
+    synopsis = ('To assess the impacts of (flood or tsunami) inundation '
+                'on population.')
+    actions = ('Provide details about how many people would likely need '
+               'to be evacuated, where they are located and what resources '
+               'would be required to support them.')
+    detailed_description = ('The population subject to inundation '
+                            'exceeding a threshold (default 1m) is '
+                            'calculated and returned as a raster layer.'
+                            'In addition the total number and the required '
+                            'needs in terms of the BNPB (Perka 7) ')
+
+    permissible_hazard_input = ('A hazard raster layer where each cell '
+                                'represents flood depth (in meters).')
+    permissible_exposure_input = ('An exposure raster layer where each '
+                                  'cell '
+                                  'represent population count.')
+    limitation = ('The default threshold of 1 meter was selected based on '
+                  'consensus, not hard evidence.')
+
+    parameters = {'threshold': 1.0}
+"""</pre>
+</div>
+<p>The class name <tt class="docutils literal"><span class="pre">FloodPopulationEvacuationFunction</span></tt> is used to uniquely identify
+this impact function
+and it is important to make sure that no two impact functions share the same class name.
+If they do, one of them will be ignored.</p>
+<p>The impact function class must inherit by the class <tt class="docutils literal"><span class="pre">FunctionProvider</span></tt> which is what will
+make it part of the InaSAFE system.</p>
+<p>The doc string can contain any text documenting the impact function, but it must contain
+some special symbols recognised by InaSAFE. They are</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Name of the individual or organisation who wrote the impact function</td>
+</tr>
+<tr class="field-even field"><th class="field-name">rating:</th><td class="field-body">A numeric rating from 1 to 4 signifying a quality rating of the function. This is used in conjunction with similar ratings of input layers and combined into a rating of the resulting impact layer. The idea is that a final result is never better than the worst of the inputs and the calculation.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">param requires:</th><td class="field-body">This is a list of keyword value pairs that input layers must fulfil for this impact function. In this case, there must be a hazard layer with subcategory of either &#8216;flood&#8217; or &#8216;tsunami&#8217;, with layertype being &#8216;raster&#8217; and unit of meters. The other input must be tagged as &#8216;exposure&#8217; with subcategory &#8216;population&#8217; and also having layertype &#8216;raster&#8217;. Except for layertype which is automatically inferred by InaSAFE all other keywords must be specified with each layer e.g. by using the InaSAFE keyword editor or by manually editing the keywords file. For more information about keywords please refer to <a class="reference internal" href="../user-docs/keywords.html#keywords-system"><em>Keywords System</em></a>.</td>
+</tr>
+</tbody>
+</table>
+<p>Following the docstrings are a collection of variables that define and document the impact function. They are</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">title:</th><td class="field-body">Specifies the title of the impact function as displayed in the InaSAFE user interface</td>
+</tr>
+<tr class="field-even field"><th class="field-name">parameters:</th><td class="field-body">A (possibly ordered) dictionary of parameters that can be configured from the
+user interface. Anything listed here can be modified at runtime by clicking the pencil
+symbol next to the impact function. In this case it is the threshold used to define
+what water level signals evacuation.</td>
+</tr>
+</tbody>
+</table>
+<p>In addition, there is a collection of text variables used for various levels of documentation of this impact function.</p>
+</div>
+<div class="section" id="impact-function-algorithm">
+<h3>Impact function algorithm<a class="headerlink" href="#impact-function-algorithm" title="Permalink to this headline">¶</a></h3>
+<p>The actual calculation of the impact function is specified as a method call called <tt class="docutils literal"><span class="pre">run</span></tt>. This
+method will be called by InaSAFE with a list of the 2 selected layers:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Impact function for flood population evacuation</span>
+
+<span class="sd">    Input</span>
+<span class="sd">      layers: List of layers expected to contain</span>
+<span class="sd">          H: Raster layer of flood depth</span>
+<span class="sd">          P: Raster layer of population data on the same grid as H</span>
+
+<span class="sd">    Counts number of people exposed to flood levels exceeding</span>
+<span class="sd">    specified threshold.</span>
+
+<span class="sd">    Return</span>
+<span class="sd">      Map of population exposed to flood levels exceeding the threshold</span>
+<span class="sd">      Table with number of people evacuated and supplies required</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Identify hazard and exposure layers</span>
+    <span class="n">inundation</span> <span class="o">=</span> <span class="n">get_hazard_layer</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>  <span class="c"># Flood inundation [m]</span>
+    <span class="n">population</span> <span class="o">=</span> <span class="n">get_exposure_layer</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
+
+    <span class="n">question</span> <span class="o">=</span> <span class="n">get_question</span><span class="p">(</span><span class="n">inundation</span><span class="o">.</span><span class="n">get_name</span><span class="p">(),</span>
+                            <span class="n">population</span><span class="o">.</span><span class="n">get_name</span><span class="p">(),</span>
+                            <span class="bp">self</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The typical way to start the calculation is to explicitly get a handle to the hazard
+layer and the exposure layer. In this case we name them as <tt class="docutils literal"><span class="pre">inundation</span></tt> and <tt class="docutils literal"><span class="pre">population</span></tt>
+respectively.</p>
+<p>We also use a built-in function <tt class="docutils literal"><span class="pre">get_question</span></tt> to paraphrase the selected scenario based on titles of hazard, exposure and impact function. For example, if the hazard and exposure layers had titles &#8220;A flood in Jakarta like in 2007&#8221; and &#8220;People&#8221;, then the paraphrased question for this impact function would become:</p>
+<blockquote>
+<div>In the event of <em>a flood in Jakarta like in 2007</em> how many <em>people</em> might <em>be evacuated</em>.</div></blockquote>
+<p>The next typical step is to extract the numerical data to be used. In this case we
+assign the configurable parameter <tt class="docutils literal"><span class="pre">threshold</span></tt> to a variable of the same name, and because
+both input layers are raster data (we know this because of the requirements section) we take the
+numerical data as arrays. InaSAFE has a preprocessing step that automatically reprojects, aligns,
+resamples and possibly rescales data so that the impact function can assume the two arrays are
+compatible and be used safely in numerical calculations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Determine depths above which people are regarded affected [m]</span>
+<span class="c"># Use thresholds from inundation layer if specified</span>
+<span class="n">threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;threshold&#39;</span><span class="p">]</span>
+
+<span class="c"># Extract data as numeric arrays</span>
+<span class="n">D</span> <span class="o">=</span> <span class="n">inundation</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">nan</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>  <span class="c"># Depth</span>
+
+<span class="c"># Calculate impact as population exposed to depths &gt; max threshold</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">population</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">nan</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scaling</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The method <tt class="docutils literal"><span class="pre">get_data()</span></tt> returns an array if the layer is raster and takes two arguments:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">nan:</th><td class="field-body">Specify the value to use where nodata is available. In this case we use 0.0 as we only want to count hazard pixels with flooding and exposure pixels with non-zero population.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">scaling:</th><td class="field-body">Optional argument controlling if data is to be scaled. In this case we set it to True which means that if the corresponding raster layer was resampled by InaSAFE, the values will be correctly scaled by the squared ratio between its current and native resolution.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"># FIXME (Ole): Tim - how do we cross reference docstrings?</p>
+</div>
+<p>See :ref:/api-docs/safe/storage/raster.html#safe.storage.raster.Raster.get_data for more details on
+the <tt class="docutils literal"><span class="pre">get_data()</span></tt> method.</p>
+<p>Now we are ready to implement the desired calculation. In this case it is very simple as
+we just want to sum over population pixels where the inundation depth exceeds the threshold.
+As both inundation and population are numpy arrays, this is achieved by the code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Create new array with positive population counts only for</span>
+<span class="c"># pixels where inundation exceeds threshold.</span>
+<span class="n">I</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">D</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="c"># Count population thus exposed to inundation</span>
+<span class="n">evacuated</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">I</span><span class="p">))</span>
+
+<span class="c"># Count total population</span>
+<span class="n">total</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">P</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We can now use this estimate to calculate the needs required. In this case
+it is based on an Indonesian standard:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Calculate estimated needs based on BNPB Perka 7/2008 minimum bantuan</span>
+
+<span class="c"># 400g per person per day</span>
+<span class="n">rice</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">evacuated</span> <span class="o">*</span> <span class="mf">2.8</span><span class="p">)</span>
+
+<span class="c"># 2.5L per person per day</span>
+<span class="n">drinking_water</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">evacuated</span> <span class="o">*</span> <span class="mf">17.5</span><span class="p">)</span>
+
+<span class="c"># 15L per person per day</span>
+<span class="n">water</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">evacuated</span> <span class="o">*</span> <span class="mi">105</span><span class="p">)</span>
+
+<span class="c"># assume 5 people per family (not in perka)</span>
+<span class="n">family_kits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">evacuated</span> <span class="o">/</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="c"># 20 people per toilet</span>
+<span class="n">toilets</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">evacuated</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With all calculations complete, we can now generate a report. This usually takes
+the form of a table and InaSAFE provide some primitives for generating table rows etc.
+InaSAFE operates with two tables, impact_table which is put on the printable map and
+impact_summary which is shown on the screen. They can be identical but are usually slightly
+different. We also define a title for the generated map:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Generate impact report for the pdf map</span>
+<span class="n">table_body</span> <span class="o">=</span> <span class="p">[</span><span class="n">question</span><span class="p">,</span>
+              <span class="n">TableRow</span><span class="p">([(</span><span class="s">&#39;People in </span><span class="si">%.1f</span><span class="s"> m of water&#39;</span> <span class="o">%</span>
+                         <span class="n">threshold</span><span class="p">),</span>
+                        <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">evacuated</span><span class="p">],</span>
+                       <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+              <span class="n">TableRow</span><span class="p">(</span><span class="s">&#39;Map shows population density needing &#39;</span>
+                       <span class="s">&#39;evacuation&#39;</span><span class="p">),</span>
+              <span class="n">TableRow</span><span class="p">([</span><span class="s">&#39;Needs per week&#39;</span><span class="p">,</span> <span class="s">&#39;Total&#39;</span><span class="p">],</span>
+                       <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+    <span class="p">[</span><span class="s">&#39;Rice [kg]&#39;</span><span class="p">,</span> <span class="n">rice</span><span class="p">],</span>
+    <span class="p">[</span><span class="s">&#39;Drinking Water [l]&#39;</span><span class="p">,</span> <span class="n">drinking_water</span><span class="p">],</span>
+    <span class="p">[</span><span class="s">&#39;Clean Water [l]&#39;</span><span class="p">,</span> <span class="n">water</span><span class="p">],</span>
+    <span class="p">[</span><span class="s">&#39;Family Kits&#39;</span><span class="p">,</span> <span class="n">family_kits</span><span class="p">],</span>
+    <span class="p">[</span><span class="s">&#39;Toilets&#39;</span><span class="p">,</span> <span class="n">toilets</span><span class="p">]]</span>
+<span class="n">impact_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">table_body</span><span class="p">)</span><span class="o">.</span><span class="n">toNewlineFreeString</span><span class="p">()</span>
+
+<span class="c"># Extend impact report for on-screen display</span>
+<span class="n">table_body</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">TableRow</span><span class="p">(</span><span class="s">&#39;Notes&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+                   <span class="s">&#39;Total population: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">total</span><span class="p">,</span>
+                   <span class="s">&#39;People need evacuation if flood levels &#39;</span>
+                   <span class="s">&#39;exceed </span><span class="si">%(eps).1f</span><span class="s"> m&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="s">&#39;eps&#39;</span><span class="p">:</span> <span class="n">threshold</span><span class="p">},</span>
+                   <span class="s">&#39;Minimum needs are defined in BNPB &#39;</span>
+                   <span class="s">&#39;regulation 7/2008&#39;</span><span class="p">])</span>
+<span class="n">impact_summary</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">table_body</span><span class="p">)</span><span class="o">.</span><span class="n">toNewlineFreeString</span><span class="p">()</span>
+
+<span class="n">map_title</span> <span class="o">=</span> <span class="s">&#39;People in need of evacuation&#39;</span>
+</pre></div>
+</div>
+<p>The impact grid calculated above must be displayed as a layer so needs some appropriate colouring.
+In this case we define 8 classes and assign a colour for each. We set the lowest class to be
+transparent and the others solid as that will give a nice visual appearance showing only areas
+that are impacted. We label class 1 as low,
+class 4 as medium and class 7 as high:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Generate 8 equidistant classes across the range of flooded population</span>
+<span class="c"># 8 is the number of classes in the predefined flood population style</span>
+<span class="c"># as imported</span>
+<span class="n">classes</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">I</span><span class="o">.</span><span class="n">flat</span><span class="p">[:]),</span>
+                         <span class="n">numpy</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">I</span><span class="o">.</span><span class="n">flat</span><span class="p">[:]),</span> <span class="mi">8</span><span class="p">)</span>
+
+<span class="c"># Define 8 colours - on for each class</span>
+<span class="n">colours</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;#FFFFFF&#39;</span><span class="p">,</span> <span class="s">&#39;#38A800&#39;</span><span class="p">,</span> <span class="s">&#39;#79C900&#39;</span><span class="p">,</span> <span class="s">&#39;#CEED00&#39;</span><span class="p">,</span>
+           <span class="s">&#39;#FFCC00&#39;</span><span class="p">,</span> <span class="s">&#39;#FF6600&#39;</span><span class="p">,</span> <span class="s">&#39;#FF0000&#39;</span><span class="p">,</span> <span class="s">&#39;#7A0000&#39;</span><span class="p">]</span>
+
+<span class="c"># Create style associating each class with a colour and transparency.</span>
+<span class="n">style_classes</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cls</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">classes</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># Smallest class has 100% transparency</span>
+        <span class="n">transparency</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># All the others are solid</span>
+        <span class="n">transparency</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c"># Create labels for three of the classes</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Low [</span><span class="si">%.2f</span><span class="s"> people/cell]&#39;</span> <span class="o">%</span> <span class="n">cls</span>
+    <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Medium [</span><span class="si">%.2f</span><span class="s"> people/cell]&#39;</span> <span class="o">%</span> <span class="n">cls</span>
+    <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;High [</span><span class="si">%.2f</span><span class="s"> people/cell]&#39;</span> <span class="o">%</span> <span class="n">cls</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+    <span class="c"># Style dictionary for this class</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">colour</span><span class="o">=</span><span class="n">colours</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+             <span class="n">quantity</span><span class="o">=</span><span class="n">cls</span><span class="p">,</span>
+             <span class="n">transparency</span><span class="o">=</span><span class="n">transparency</span><span class="p">,</span>
+             <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">style_classes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+<span class="c"># Create style info for impact layer</span>
+<span class="n">style_info</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">target_field</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>  <span class="c"># Only for vector data</span>
+                  <span class="n">legend_title</span><span class="o">=</span><span class="s">&#39;Population Density&#39;</span><span class="p">,</span>
+                  <span class="n">style_classes</span><span class="o">=</span><span class="n">style_classes</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, we create and return a new raster object based on the calculated impact grid <tt class="docutils literal"><span class="pre">I</span></tt>.
+We also assign
+the same projection and geotransform as the hazard layer, give it a suitable name, pass the tables and title as keywords and provide the generated style.</p>
+<p>InaSAFE assumes that every impact function returns a raster or vector layer.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Create raster object and return</span>
+<span class="n">R</span> <span class="o">=</span> <span class="n">Raster</span><span class="p">(</span><span class="n">I</span><span class="p">,</span>
+           <span class="n">projection</span><span class="o">=</span><span class="n">inundation</span><span class="o">.</span><span class="n">get_projection</span><span class="p">(),</span>
+           <span class="n">geotransform</span><span class="o">=</span><span class="n">inundation</span><span class="o">.</span><span class="n">get_geotransform</span><span class="p">(),</span>
+           <span class="n">name</span><span class="o">=</span><span class="s">&#39;Population which </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">get_function_title</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span>
+           <span class="n">keywords</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;impact_summary&#39;</span><span class="p">:</span> <span class="n">impact_summary</span><span class="p">,</span>
+                     <span class="s">&#39;impact_table&#39;</span><span class="p">:</span> <span class="n">impact_table</span><span class="p">,</span>
+                     <span class="s">&#39;map_title&#39;</span><span class="p">:</span> <span class="n">map_title</span><span class="p">},</span>
+           <span class="n">style_info</span><span class="o">=</span><span class="n">style_info</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">R</span>
+</pre></div>
+</div>
+<p>This function is available in full at <a class="reference download internal" href="../_downloads/flood_population_evacuation_impact_function.py"><tt class="xref download docutils literal"><span class="pre">../static/flood_population_evacuation_impact_function.py</span></tt></a></p>
+</div>
+<div class="section" id="output">
+<h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
+<p>The output of this function looks like this:</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/flood_population_evacuation_result.png"><img alt="../_images/flood_population_evacuation_result.png" src="../_images/flood_population_evacuation_result.png" style="width: 576.0px; height: 360.0px;" /></a>
+</div>
+<p>and the legend defined in the style_info section is available in the layer view</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/flood_population_evacuation_legend.png"><img alt="../_images/flood_population_evacuation_legend.png" src="../_images/flood_population_evacuation_legend.png" style="width: 576.0px; height: 360.0px;" /></a>
+</div>
+</div>
+</div>
+<div class="section" id="controlling-which-layer-types-impact-functions-work-with">
+<span id="requires"></span><h2>Controlling which layer types impact functions work with<a class="headerlink" href="#controlling-which-layer-types-impact-functions-work-with" title="Permalink to this headline">¶</a></h2>
+<p>Each impact function has a requirements section embedded in its doc string
+that specifies which
+type of input layers it can work with. The requirements take the form of one or more
+statements that specify which keywords and values input layers must have for the
+impact function to run. InaSAFE uses this mechanism to determine which impact
+functions appear in the menu for a given selection of hazard and exposure layers.</p>
+<p>For example, the impact function for earthquake fatality estimation which works
+with two raster input layers has the requirements section</p>
+<div class="highlight-python"><pre>:param requires category=='hazard' and \
+                subcategory=='earthquake' and \
+                layertype=='raster' and \
+                unit=='MMI'
+
+:param requires category=='exposure' and \
+                subcategory=='population' and \
+                layertype=='raster'</pre>
+</div>
+<p>This means that the impact function will only be selected if it is presented with two input layers
+whose associated keywords match these requirements. For more information about keywords please refer to <a class="reference internal" href="../user-docs/keywords.html#keywords-system"><em>Keywords System</em></a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+        <p class="logo"><a href="../contents.html">
+          <img class="logo" src="../_static/icon.png" alt="Logo"/>
+        </a></p>
+  <h3><a href="../contents.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Writing Impact Functions</a><ul>
+<li><a class="reference internal" href="#what-is-an-impact-function">What is an impact function?</a></li>
+<li><a class="reference internal" href="#creating-impact-functions">Creating impact functions</a><ul>
+<li><a class="reference internal" href="#import-section">Import section</a></li>
+<li><a class="reference internal" href="#impact-function-class">Impact function class</a></li>
+<li><a class="reference internal" href="#impact-function-algorithm">Impact function algorithm</a></li>
+<li><a class="reference internal" href="#output">Output</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#controlling-which-layer-types-impact-functions-work-with">Controlling which layer types impact functions work with</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="maintaining_documentation.html"
+                        title="previous chapter">Maintaining the documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="impact_function_tutorial.html"
+                        title="next chapter">Impact Function Tutorial</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/developer-docs/writing_impact_functions.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="impact_function_tutorial.html" title="Impact Function Tutorial"
+             >next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="maintaining_documentation.html" title="Maintaining the documentation"
+             >previous</a> &nbsp; &nbsp;</li>
+    <li><a href="../index.html">Home</a> &raquo;</li>
+    <li><a href="../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="index.html" >InaSAFE developer documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
+      Last updated on Feb 26, 2013.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+    <!-- cloud_sptheme 1.3 -->
+  </body>
+</html>

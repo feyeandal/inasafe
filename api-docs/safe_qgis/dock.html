@@ -32,8 +32,8 @@
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../index.html" />
     <link rel="up" title="Package::safe_qgis" href="../safe_qgis.html" />
-    <link rel="next" title="Module: safe_qgis.options_dialog" href="options_dialog.html" />
-    <link rel="prev" title="Package::safe_qgis" href="../safe_qgis.html" /> 
+    <link rel="next" title="Module: safe_qgis.keyword_io" href="keyword_io.html" />
+    <link rel="prev" title="Module: safe_qgis.html_renderer" href="html_renderer.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -48,10 +48,10 @@
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="options_dialog.html" title="Module: safe_qgis.options_dialog"
+          <a href="keyword_io.html" title="Module: safe_qgis.keyword_io"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="../safe_qgis.html" title="Package::safe_qgis"
+          <a href="html_renderer.html" title="Module: safe_qgis.html_renderer"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -90,7 +90,7 @@ the Free Software Foundation; either version 2 of the License, or
 <dl class="method">
 <dt id="safe_qgis.dock.Dock.accept">
 <tt class="descname">accept</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/dock.html#Dock.accept"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.dock.Dock.accept" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute analysis when ok button is clicked.</p>
+<dd><p>Execute analysis when run button is clicked.</p>
 <div class="admonition-todo admonition" id="index-1">
 <p class="first admonition-title">Todo</p>
 <p class="last">FIXME (Tim) We may have to implement some polling logic
@@ -115,29 +115,6 @@ threading mode is enabled especially)</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="safe_qgis.dock.Dock.addComboItemInOrder">
-<tt class="descname">addComboItemInOrder</tt><big>(</big><em>theCombo</em>, <em>theItemText</em>, <em>theItemData=None</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/dock.html#Dock.addComboItemInOrder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.dock.Dock.addComboItemInOrder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Although QComboBox allows you to set an InsertAlphabetically enum
-this only has effect when a user interactively adds combo items to
-an editable combo. This we have this little function to ensure that
-combos are always sorted alphabetically.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><ul class="first last simple">
-<li>theCombo - combo box receiving the new item</li>
-<li>theItemText - display text for the combo</li>
-<li>theItemData - optional UserRole data to be associated with
-the item</li>
-</ul>
-</dd>
-<dt>Returns:</dt>
-<dd>None</dd>
-</dl>
-<p>Raises:</p>
-<p>..todo:: Move this to utilities</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="safe_qgis.dock.Dock.canvasLayersetChanged">
 <tt class="descname">canvasLayersetChanged</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/dock.html#Dock.canvasLayersetChanged"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.dock.Dock.canvasLayersetChanged" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper slot to update dock combos if canvas layerset changes.</p>
@@ -152,6 +129,29 @@ False this method will simply return, doing nothing.</p>
 <dt>Raises:</dt>
 <dd>Any exceptions raised by the InaSAFE library will be propagated.</dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="safe_qgis.dock.Dock.checkMemoryUsage">
+<tt class="descname">checkMemoryUsage</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/dock.html#Dock.checkMemoryUsage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.dock.Dock.checkMemoryUsage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Slot to check if analysis is feasible when extents change.</p>
+<p>For simplicity, we will do all our calcs in geocrs.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>None</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>str: A string containing notes about how much memory is needed</dt>
+<dd>for a single raster and if this is likely to result in an
+error.</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The dock is also updated with a message indicating if the
+memory usage is likely to be too much for the current system.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -221,7 +221,70 @@ in QGIS.</p>
 <dl class="method">
 <dt id="safe_qgis.dock.Dock.extentToGeoArray">
 <tt class="descname">extentToGeoArray</tt><big>(</big><em>theExtent</em>, <em>theSourceCrs</em><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/dock.html#Dock.extentToGeoArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.dock.Dock.extentToGeoArray" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert the supplied extent to geographic and return as as array</p>
+<dd><p>Convert the supplied extent to geographic and return as an array.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>theExtent: QgsRectangle defining a spatial extent in any CRS</li>
+<li>theSourceCrs: QgsCoordinateReferenceSystem for theExtent.</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>list: a list in the form [xmin, ymin, xmax, ymax] where all</dt>
+<dd>coordinates provided are in Geographic / EPSG:4326.</dd>
+</dl>
+</dd>
+<dt>Raises:</dt>
+<dd>None</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="safe_qgis.dock.Dock.getClipParameters">
+<tt class="descname">getClipParameters</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/dock.html#Dock.getClipParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.dock.Dock.getClipParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the best extents to use for the assessment.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>None</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>myExtraExposureKeywords: dict - any additional keywords that</dt>
+<dd><p class="first last">should be written to the exposure layer. For example if
+rescaling is required for a raster, the original resolution
+can be added to the keywords file.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>myBufferedGeoExtent: list - [xmin, ymin, xmax, ymax] - the best</dt>
+<dd><p class="first last">extent that can be used given the input datasets and the
+current viewport extents.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>myCellSize: float - the cell size that is the best of the</dt>
+<dd><p class="first last">hazard and exposure rasters.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">myExposureLayer: QgsMapLayer - layer representing exposure.</p>
+</li>
+<li><dl class="first docutils">
+<dt>myGeoExtent: list - [xmin, ymin, xmax, ymax] - the unbuffered</dt>
+<dd><p class="first last">intersection of the two input layers extents and the viewport.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">myHazardLayer: QgsMapLayer - layer representing hazard.</p>
+</li>
+</ul>
+</dd>
+<dt>Raises:</dt>
+<dd>InsufficientOverlapError</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -557,6 +620,25 @@ exposure layers.</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="safe_qgis.dock.Dock.preparePolygonLayerForAggr">
+<tt class="descname">preparePolygonLayerForAggr</tt><big>(</big><em>theLayerFilename</em>, <em>theQgisLayer</em><big>)</big><a class="headerlink" href="#safe_qgis.dock.Dock.preparePolygonLayerForAggr" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper function to align the polygons to the postprocLayer
+polygons. If one input polygon is in two or more postprocLayer polygons
+then it is divided so that each part is within only one of the
+postprocLayer polygons. this allows to aggregate in postrocessing using
+centroid in polygon.</p>
+<p>The function assumes EPSG:4326 but no checks are enforced</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>theLayerFilename str of the file to be processed</dd>
+<dt>Returns:</dt>
+<dd>str of the processed file</dd>
+<dt>Raises:</dt>
+<dd>Any exceptions raised by the InaSAFE library will be propagated.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="safe_qgis.dock.Dock.printMap">
 <tt class="descname">printMap</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/dock.html#Dock.printMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.dock.Dock.printMap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slot to print map when print map button pressed.</p>
@@ -721,6 +803,26 @@ Can be an html snippet.</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="safe_qgis.dock.Dock.spawnError">
+<tt class="descname">spawnError</tt><big>(</big><em>theException</em>, <em>theMessage</em><big>)</big><a class="headerlink" href="#safe_qgis.dock.Dock.spawnError" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to spawn an error and halt processing.</p>
+<p>An exception will be logged, busy status removed and a message
+displayed.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>theException: Exception - an exception that was raised.</li>
+<li>theMessage: str - a string to display.</li>
+</ul>
+</dd>
+<dt>Raises:</dt>
+<dd>None</dd>
+<dt>Exception:</dt>
+<dd>None</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="safe_qgis.dock.Dock.toggleAggregationCombo">
 <tt class="descname">toggleAggregationCombo</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/dock.html#Dock.toggleAggregationCombo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.dock.Dock.toggleAggregationCombo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function to toggle the aggregation combo enabled status.</p>
@@ -772,7 +874,27 @@ have failed.</li>
 <dl class="method">
 <dt id="safe_qgis.dock.Dock.viewportGeoArray">
 <tt class="descname">viewportGeoArray</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/safe_qgis/dock.html#Dock.viewportGeoArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe_qgis.dock.Dock.viewportGeoArray" title="Permalink to this definition">¶</a></dt>
-<dd><p>Obtain the map canvas current extent in EPSG:4326</p>
+<dd><p>Obtain the map canvas current extent in EPSG:4326.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>theExtent: QgsRectangle defining a spatial extent in any CRS</li>
+<li>theSourceCrs: QgsCoordinateReferenceSystem for theExtent.</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>list: a list in the form [xmin, ymin, xmax, ymax] where all</dt>
+<dd>coordinates provided are in Geographic / EPSG:4326.</dd>
+</dl>
+</dd>
+<dt>Raises:</dt>
+<dd>None</dd>
+</dl>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Delegates to self.extentToGeoArray()</p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -790,11 +912,11 @@ have failed.</li>
           <img class="logo" src="../../_static/icon.png" alt="Logo"/>
         </a></p>
   <h4>Previous topic</h4>
-  <p class="topless"><a href="../safe_qgis.html"
-                        title="previous chapter">Package::safe_qgis</a></p>
+  <p class="topless"><a href="html_renderer.html"
+                        title="previous chapter">Module:  safe_qgis.html_renderer</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="options_dialog.html"
-                        title="next chapter">Module:  safe_qgis.options_dialog</a></p>
+  <p class="topless"><a href="keyword_io.html"
+                        title="next chapter">Module:  safe_qgis.keyword_io</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../_sources/api-docs/safe_qgis/dock.txt"
@@ -829,10 +951,10 @@ have failed.</li>
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="options_dialog.html" title="Module: safe_qgis.options_dialog"
+          <a href="keyword_io.html" title="Module: safe_qgis.keyword_io"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="../safe_qgis.html" title="Package::safe_qgis"
+          <a href="html_renderer.html" title="Module: safe_qgis.html_renderer"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../index.html">Home</a> &raquo;</li>
     <li><a href="../../contents.html">Contents</a> &raquo;</li>
@@ -845,7 +967,7 @@ have failed.</li>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

@@ -82,8 +82,7 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">from</span> <span class="nn">safe.engine.core</span> <span class="kn">import</span> <span class="n">unique_filename</span>
-
+<span class="kn">from</span> <span class="nn">nose</span> <span class="kn">import</span> <span class="n">SkipTest</span>
 <span class="c"># Add PARENT directory to path to make test aware of other modules</span>
 <span class="n">pardir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s">&#39;..&#39;</span><span class="p">))</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pardir</span><span class="p">)</span>
@@ -96,12 +95,13 @@
                        <span class="n">QgsMapLayerRegistry</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">third_party.odict</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">safe.engine.core</span> <span class="kn">import</span> <span class="n">unique_filename</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.utilities_test</span> <span class="kn">import</span> <span class="p">(</span><span class="n">getQgisTestApp</span><span class="p">,</span>
                                       <span class="n">unitTestDataPath</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.safe_interface</span> <span class="kn">import</span> <span class="n">readKeywordsFromFile</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.keywords_dialog</span> <span class="kn">import</span> <span class="n">KeywordsDialog</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.exceptions</span> <span class="kn">import</span> <span class="n">KeywordNotFoundError</span>
-<span class="kn">from</span> <span class="nn">safe_qgis.utilities</span> <span class="kn">import</span> <span class="n">getDefaults</span>
+<span class="kn">from</span> <span class="nn">safe_qgis.utilities</span> <span class="kn">import</span> <span class="n">getDefaults</span><span class="p">,</span> <span class="n">qgisVersion</span>
 
 
 <span class="c"># For testing and demoing</span>
@@ -118,7 +118,10 @@
     <span class="n">myTitle</span> <span class="o">=</span> <span class="n">readKeywordsFromFile</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">)</span>
     <span class="c"># myTitle = &#39;An earthquake in Padang like in 2009&#39;</span>
     <span class="n">myLayer</span> <span class="o">=</span> <span class="n">QgsRasterLayer</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="n">myTitle</span><span class="p">)</span>
-    <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">qgisVersion</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">10800</span><span class="p">:</span>  <span class="c"># 1.8 or newer</span>
+        <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayers</span><span class="p">([</span><span class="n">myLayer</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">myLayer</span>
 
 </div>
@@ -138,7 +141,10 @@
     <span class="n">myPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">HAZDATA</span><span class="p">,</span> <span class="n">myFile</span><span class="p">)</span>
     <span class="n">myTitle</span> <span class="o">=</span> <span class="n">readKeywordsFromFile</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">)</span>
     <span class="n">myLayer</span> <span class="o">=</span> <span class="n">QgsRasterLayer</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="n">myTitle</span><span class="p">)</span>
-    <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">qgisVersion</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">10800</span><span class="p">:</span>  <span class="c"># 1.8 or newer</span>
+        <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayers</span><span class="p">([</span><span class="n">myLayer</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">myLayer</span><span class="p">,</span> <span class="n">myFileName</span>
 
 </div>
@@ -151,7 +157,10 @@
     <span class="k">except</span> <span class="n">KeywordNotFoundError</span><span class="p">:</span>
         <span class="n">myTitle</span> <span class="o">=</span> <span class="s">&#39;kabupaten_jakarta_singlepart_3_good_attr&#39;</span>
     <span class="n">myLayer</span> <span class="o">=</span> <span class="n">QgsVectorLayer</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="n">myTitle</span><span class="p">,</span> <span class="s">&#39;ogr&#39;</span><span class="p">)</span>
-    <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">qgisVersion</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">10800</span><span class="p">:</span>  <span class="c"># 1.8 or newer</span>
+        <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayers</span><span class="p">([</span><span class="n">myLayer</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">myLayer</span>
 
 </div>
@@ -184,7 +193,10 @@
     <span class="n">myPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">myBasePath</span><span class="p">,</span> <span class="n">myFile</span><span class="p">))</span>
     <span class="n">myTitle</span> <span class="o">=</span> <span class="s">&#39;Keywordless Layer&#39;</span>
     <span class="n">myLayer</span> <span class="o">=</span> <span class="n">QgsRasterLayer</span><span class="p">(</span><span class="n">myPath</span><span class="p">,</span> <span class="n">myTitle</span><span class="p">)</span>
-    <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">qgisVersion</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">10800</span><span class="p">:</span>  <span class="c"># 1.8 or newer</span>
+        <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayers</span><span class="p">([</span><span class="n">myLayer</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">myLayer</span>
 
 </div>
@@ -204,9 +216,14 @@
 <div class="viewcode-block" id="KeywordsDialogTest.tearDown"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_keywords_dialog.html#safe_qgis.test_keywords_dialog.KeywordsDialogTest.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Destroy the dialog after each test&quot;&quot;&quot;</span>
         <span class="n">clearLayers</span><span class="p">()</span>
-</div>
+
+    <span class="c"># This is how you skip a test when using unittest ...</span></div>
+    <span class="nd">@unittest.skip</span><span class="p">(</span><span class="s">&#39;Skipping as this test hangs Jenkins&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="KeywordsDialogTest.test_showHelp"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_keywords_dialog.html#safe_qgis.test_keywords_dialog.KeywordsDialogTest.test_showHelp">[docs]</a>    <span class="k">def</span> <span class="nf">test_showHelp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Test that help button works&quot;&quot;&quot;</span>
+        <span class="c"># ... and this is how you skip it using nosetests</span>
+        <span class="c">#pylint: disable=W0101</span>
+        <span class="k">raise</span> <span class="n">SkipTest</span><span class="p">(</span><span class="s">&quot;This test hangs Jenkins.&quot;</span><span class="p">)</span>
         <span class="n">myDialog</span> <span class="o">=</span> <span class="n">KeywordsDialog</span><span class="p">(</span><span class="n">PARENT</span><span class="p">,</span> <span class="n">IFACE</span><span class="p">)</span>
         <span class="n">myButton</span> <span class="o">=</span> <span class="n">myDialog</span><span class="o">.</span><span class="n">buttonBox</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">Help</span><span class="p">)</span>
         <span class="n">QTest</span><span class="o">.</span><span class="n">mouseClick</span><span class="p">(</span><span class="n">myButton</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">LeftButton</span><span class="p">)</span>
@@ -651,7 +668,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

@@ -386,14 +386,18 @@
             <span class="n">myExposureLayerCount</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="c"># Add layer to the registry (that QGis knows about) a slot</span>
         <span class="c"># in qgis_interface will also ensure it gets added to the canvas</span>
-        <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">qgisVersion</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">10800</span><span class="p">:</span>  <span class="c"># 1.8 or newer</span>
+            <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayers</span><span class="p">([</span><span class="n">myLayer</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">QgsMapLayerRegistry</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">addMapLayer</span><span class="p">(</span><span class="n">myLayer</span><span class="p">)</span>
 
     <span class="n">DOCK</span><span class="o">.</span><span class="n">getLayers</span><span class="p">()</span>
 
     <span class="c"># Add MCL&#39;s to the CANVAS</span>
     <span class="k">return</span> <span class="n">myHazardLayerCount</span><span class="p">,</span> <span class="n">myExposureLayerCount</span>
 
-</div>
+
+<span class="c">#noinspection PyArgumentList</span></div>
 <div class="viewcode-block" id="DockTest"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest">[docs]</a><span class="k">class</span> <span class="nc">DockTest</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Test the InaSAFE GUI&quot;&quot;&quot;</span>
 
@@ -508,7 +512,7 @@
         <span class="c">#vector hazard</span>
         <span class="c">#raster exposure</span>
         <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span> <span class="o">=</span> <span class="n">setupScenario</span><span class="p">(</span>
-            <span class="n">theHazard</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;A flood in Jakarta&#39;</span><span class="p">),</span>
+            <span class="n">theHazard</span><span class="o">=</span><span class="s">&#39;A flood in Jakarta&#39;</span><span class="p">,</span>
             <span class="n">theExposure</span><span class="o">=</span><span class="s">&#39;People&#39;</span><span class="p">,</span>
             <span class="n">theFunction</span><span class="o">=</span><span class="s">&#39;Need evacuation&#39;</span><span class="p">,</span>
             <span class="n">theFunctionId</span><span class="o">=</span><span class="s">&#39;Flood Evacuation Function Vector Hazard&#39;</span><span class="p">,</span>
@@ -559,7 +563,7 @@
         <span class="n">DOCK</span><span class="o">.</span><span class="n">runtimeKeywordsDialog</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
         <span class="n">myAttribute</span> <span class="o">=</span> <span class="n">DOCK</span><span class="o">.</span><span class="n">postProcessingAttributes</span><span class="p">[</span><span class="n">myAttrKey</span><span class="p">]</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;The aggregation should be KAB_NAME. Found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
-                     <span class="p">(</span><span class="n">myAttribute</span><span class="p">))</span>
+                     <span class="n">myAttribute</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">myAttribute</span><span class="p">,</span> <span class="s">&#39;KAB_NAME&#39;</span><span class="p">,</span> <span class="n">myMessage</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_checkAggregationAttribute1Attr"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_checkAggregationAttribute1Attr">[docs]</a>    <span class="k">def</span> <span class="nf">test_checkAggregationAttribute1Attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -585,7 +589,7 @@
         <span class="n">DOCK</span><span class="o">.</span><span class="n">runtimeKeywordsDialog</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
         <span class="n">myAttribute</span> <span class="o">=</span> <span class="n">DOCK</span><span class="o">.</span><span class="n">postProcessingAttributes</span><span class="p">[</span><span class="n">myAttrKey</span><span class="p">]</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;The aggregation should be KAB_NAME. Found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
-                     <span class="p">(</span><span class="n">myAttribute</span><span class="p">))</span>
+                     <span class="n">myAttribute</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">myAttribute</span><span class="p">,</span> <span class="s">&#39;KAB_NAME&#39;</span><span class="p">,</span> <span class="n">myMessage</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_checkAggregationAttributeNoAttr"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_checkAggregationAttributeNoAttr">[docs]</a>    <span class="k">def</span> <span class="nf">test_checkAggregationAttributeNoAttr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -611,7 +615,7 @@
         <span class="n">DOCK</span><span class="o">.</span><span class="n">runtimeKeywordsDialog</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
         <span class="n">myAttribute</span> <span class="o">=</span> <span class="n">DOCK</span><span class="o">.</span><span class="n">postProcessingAttributes</span><span class="p">[</span><span class="n">myAttrKey</span><span class="p">]</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;The aggregation should be None. Found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
-                     <span class="p">(</span><span class="n">myAttribute</span><span class="p">))</span>
+                     <span class="n">myAttribute</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">myAttribute</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_checkAggregationAttributeNoneAttr"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_checkAggregationAttributeNoneAttr">[docs]</a>    <span class="k">def</span> <span class="nf">test_checkAggregationAttributeNoneAttr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -641,7 +645,7 @@
         <span class="k">assert</span> <span class="n">myAttribute</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="n">myMessage</span>
 
     <span class="c">#the generated layers are not added to the map registry</span></div>
-    <span class="k">def</span> <span class="nf">test_checkPostProcessingLayersVisibility</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DockTest.test_checkPostProcessingLayersVisibility"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_checkPostProcessingLayersVisibility">[docs]</a>    <span class="k">def</span> <span class="nf">test_checkPostProcessingLayersVisibility</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">myRunButton</span> <span class="o">=</span> <span class="n">DOCK</span><span class="o">.</span><span class="n">pbnRunStop</span>
 
         <span class="c"># with KAB_NAME aggregation attribute defined in .keyword using</span>
@@ -684,7 +688,7 @@
                      <span class="p">(</span><span class="n">myBeforeCount</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">myAfterCount</span><span class="p">))</span>
         <span class="c"># We expect two more since we enabled showing intermedate layers</span>
         <span class="k">assert</span> <span class="n">myBeforeCount</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">==</span> <span class="n">myAfterCount</span><span class="p">,</span> <span class="n">myMessage</span>
-
+</div>
 <div class="viewcode-block" id="DockTest.test_runEarthQuakeGuidelinesFunction"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runEarthQuakeGuidelinesFunction">[docs]</a>    <span class="k">def</span> <span class="nf">test_runEarthQuakeGuidelinesFunction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;GUI runs with Shakemap 2009 and Padang Buildings&quot;&quot;&quot;</span>
 
@@ -747,7 +751,7 @@
         <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Unexpected result returned for Earthquake guidelines&#39;</span>
                <span class="s">&#39;function. Expected:</span><span class="se">\n</span><span class="s"> &quot;All&quot; count of 2993, &#39;</span>
                <span class="s">&#39;received: </span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="s">&#39;2993&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">2993</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runEarthquakeFatalityFunction_small"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runEarthquakeFatalityFunction_small">[docs]</a>    <span class="k">def</span> <span class="nf">test_runEarthquakeFatalityFunction_small</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Padang 2009 fatalities estimated correctly (small extent)&quot;&quot;&quot;</span>
@@ -798,12 +802,12 @@
         <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Unexpected result returned for Earthquake Fatality &#39;</span>
                      <span class="s">&#39;Function Expected: fatality count of &#39;</span>
                      <span class="s">&#39;116 , received: </span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="s">&#39;116&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">116</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Unexpected result returned for Earthquake Fatality &#39;</span>
                      <span class="s">&#39;Function Expected: total population count of &#39;</span>
                      <span class="s">&#39;847529 , received: </span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="s">&#39;847529&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">847529</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runEarthquakeFatalityFunction_Padang_full"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runEarthquakeFatalityFunction_Padang_full">[docs]</a>    <span class="k">def</span> <span class="nf">test_runEarthquakeFatalityFunction_Padang_full</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Padang 2009 fatalities estimated correctly (large extent)&quot;&quot;&quot;</span>
@@ -853,12 +857,12 @@
         <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Unexpected result returned for Earthquake Fatality &#39;</span>
                      <span class="s">&#39;Function Expected: fatality count of &#39;</span>
                      <span class="s">&#39;500 , received: </span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="s">&#39;500&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Unexpected result returned for Earthquake Fatality &#39;</span>
                      <span class="s">&#39;Function Expected: total population count of &#39;</span>
                      <span class="s">&#39;31372262 , received: </span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="s">&#39;31372262&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">31372262</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runTsunamiBuildingImpactFunction"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runTsunamiBuildingImpactFunction">[docs]</a>    <span class="k">def</span> <span class="nf">test_runTsunamiBuildingImpactFunction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Tsunami function runs in GUI as expected.&quot;&quot;&quot;</span>
@@ -898,8 +902,8 @@
         <span class="c">#All	        7	                17</span>
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
-        <span class="k">assert</span> <span class="s">&#39;17&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;7&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">17</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runFloodPopulationImpactFunction"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runFloodPopulationImpactFunction">[docs]</a>    <span class="k">def</span> <span class="nf">test_runFloodPopulationImpactFunction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Flood function runs in GUI with Jakarta data</span>
@@ -930,7 +934,7 @@
         <span class="c"># Marco Hartman form HKV</span>
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
         <span class="c"># This is the expected impact number</span>
-        <span class="k">assert</span> <span class="s">&#39;2480&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">2480</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runFloodPopulationImpactFunction_scaling"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runFloodPopulationImpactFunction_scaling">[docs]</a>    <span class="k">def</span> <span class="nf">test_runFloodPopulationImpactFunction_scaling</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Flood function runs in GUI with 5x5km population data</span>
@@ -955,8 +959,9 @@
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
 
         <span class="c"># Check numbers are OK (within expected errors from resampling)</span>
+        <span class="c"># These are expected impact number</span>
         <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">10484</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;977&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>  <span class="c"># These are expected impact number</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">977</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runFloodPopulationPolygonHazardImpactFunction"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runFloodPopulationPolygonHazardImpactFunction">[docs]</a>    <span class="k">def</span> <span class="nf">test_runFloodPopulationPolygonHazardImpactFunction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Flood function runs in GUI with Jakarta polygon flood hazard data.</span>
@@ -980,7 +985,7 @@
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
         <span class="c"># This is the expected number of people needing evacuation</span>
-        <span class="k">assert</span> <span class="s">&#39;134953000&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">134953000</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runCategorizedHazardBuildingImpact"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runCategorizedHazardBuildingImpact">[docs]</a>    <span class="k">def</span> <span class="nf">test_runCategorizedHazardBuildingImpact</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Flood function runs in GUI with Flood in Jakarta hazard data</span>
@@ -1004,9 +1009,9 @@
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
         <span class="c"># This is the expected number of building might be affected</span>
-        <span class="k">assert</span> <span class="s">&#39;535&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;453&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;436&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">535</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">453</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">436</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runCategorisedHazardPopulationImpactFunction"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runCategorisedHazardPopulationImpactFunction">[docs]</a>    <span class="k">def</span> <span class="nf">test_runCategorisedHazardPopulationImpactFunction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Flood function runs in GUI with Flood in Jakarta hazard data</span>
@@ -1030,10 +1035,11 @@
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
         <span class="c"># This is the expected number of population might be affected</span>
-        <span class="k">assert</span> <span class="s">&#39;30938000&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;68280000&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;157551000&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-</div>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">30938000</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">68280000</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">157551000</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+
+    <span class="c">#noinspection PyArgumentList</span></div>
 <div class="viewcode-block" id="DockTest.test_runEarthquakeBuildingImpactFunction"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runEarthquakeBuildingImpactFunction">[docs]</a>    <span class="k">def</span> <span class="nf">test_runEarthquakeBuildingImpactFunction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Earthquake function runs in GUI with An earthquake in Yogyakarta</span>
 <span class="sd">        like in 2006 hazard data uses OSM Building Polygons exposure data.&quot;&quot;&quot;</span>
@@ -1057,9 +1063,9 @@
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
         <span class="c"># This is the expected number of building might be affected</span>
-        <span class="k">assert</span> <span class="s">&#39;786&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;15528&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;177&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">786</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">15528</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">177</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runVolcanoBuildingImpact"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runVolcanoBuildingImpact">[docs]</a>    <span class="k">def</span> <span class="nf">test_runVolcanoBuildingImpact</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Volcano function runs in GUI with An donut (merapi hazard map)</span>
@@ -1084,7 +1090,7 @@
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
         <span class="c"># This is the expected number of building might be affected</span>
-        <span class="k">assert</span> <span class="s">&#39;288&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">288</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runVolcanoPopulationImpact"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runVolcanoPopulationImpact">[docs]</a>    <span class="k">def</span> <span class="nf">test_runVolcanoPopulationImpact</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Volcano function runs in GUI with a donut (merapi hazard map)</span>
@@ -1113,12 +1119,20 @@
         <span class="c"># Kawasan Rawan Bencana III	45.000	45.000</span>
         <span class="c"># Kawasan Rawan Bencana II	84.000	129.000</span>
         <span class="c"># Kawasan Rawan Bencana I	28.000	157.000</span>
-        <span class="k">assert</span> <span class="s">&#39;45&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;84&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;28&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+
+        <span class="c"># We could also get a memory error here so there are</span>
+        <span class="c"># two plausible outcomes:</span>
+
+        <span class="c"># Outcome 1: we ran out of memory</span>
+        <span class="k">if</span> <span class="s">&#39;system does not have sufficient memory&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c"># Outcome 2: It ran so check the results</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">45</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">84</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">28</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_runVolcanoCirclePopulation"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_runVolcanoCirclePopulation">[docs]</a>    <span class="k">def</span> <span class="nf">test_runVolcanoCirclePopulation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Volcano function runs in GUI with a circular evacutation zone</span>
+        <span class="sd">&quot;&quot;&quot;Volcano function runs in GUI with a circular evacuation zone.</span>
 
 <span class="sd">        Uses population density grid as exposure.&quot;&quot;&quot;</span>
 
@@ -1137,19 +1151,28 @@
 
         <span class="c"># Press RUN</span>
         <span class="n">myButton</span> <span class="o">=</span> <span class="n">DOCK</span><span class="o">.</span><span class="n">pbnRunStop</span>
-        <span class="n">QTest</span><span class="o">.</span><span class="n">mouseClick</span><span class="p">(</span><span class="n">myButton</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">LeftButton</span><span class="p">)</span>
-        <span class="n">myResult</span> <span class="o">=</span> <span class="n">DOCK</span><span class="o">.</span><span class="n">wvResults</span><span class="o">.</span><span class="n">page</span><span class="p">()</span><span class="o">.</span><span class="n">currentFrame</span><span class="p">()</span><span class="o">.</span><span class="n">toPlainText</span><span class="p">()</span>
-        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">myResult</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">QTest</span><span class="o">.</span><span class="n">mouseClick</span><span class="p">(</span><span class="n">myButton</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">LeftButton</span><span class="p">)</span>
+            <span class="n">myResult</span> <span class="o">=</span> <span class="n">DOCK</span><span class="o">.</span><span class="n">wvResults</span><span class="o">.</span><span class="n">page</span><span class="p">()</span><span class="o">.</span><span class="n">currentFrame</span><span class="p">()</span><span class="o">.</span><span class="n">toPlainText</span><span class="p">()</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">myResult</span><span class="p">)</span>
 
-        <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
-        <span class="c"># This is the expected number of people affected</span>
-        <span class="c"># Jarak [km]	Jumlah	Kumulatif</span>
-        <span class="c"># 3	     15.000	15.000</span>
-        <span class="c"># 5	     17.000	32.000</span>
-        <span class="c"># 10	124.000	156.000</span>
-        <span class="k">assert</span> <span class="s">&#39;15&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;17&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
-        <span class="k">assert</span> <span class="s">&#39;124&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+            <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
+            <span class="c"># This is the expected number of people affected</span>
+            <span class="c"># Jarak [km]	Jumlah	Kumulatif</span>
+            <span class="c"># 3	     15.000	15.000</span>
+            <span class="c"># 5	     17.000	32.000</span>
+            <span class="c"># 10	124.000	156.000</span>
+            <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">15000</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+            <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">17000</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+            <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">124000</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">except</span> <span class="ne">MemoryError</span><span class="p">:</span>
+            <span class="c"># We cant predictably check for mem errors</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Memory error occurred.&#39;</span><span class="p">)</span>
+        <span class="c">#pylint: disable=W0703</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Failed or Exception is not expected&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">e</span>
+        <span class="c">#pylint: enable=W0703</span>
 
     <span class="c"># disabled this test until further coding</span></div>
 <div class="viewcode-block" id="DockTest.Xtest_printMap"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.Xtest_printMap">[docs]</a>    <span class="k">def</span> <span class="nf">Xtest_printMap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1247,7 +1270,7 @@
         <span class="n">myResult</span> <span class="o">=</span> <span class="n">DOCK</span><span class="o">.</span><span class="n">wvResults</span><span class="o">.</span><span class="n">page</span><span class="p">()</span><span class="o">.</span><span class="n">currentFrame</span><span class="p">()</span><span class="o">.</span><span class="n">toPlainText</span><span class="p">()</span>
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
-        <span class="k">assert</span> <span class="s">&#39;2366&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">2366</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_issue45"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_issue45">[docs]</a>    <span class="k">def</span> <span class="nf">test_issue45</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Points near the edge of a raster hazard layer are interpolated OK&quot;&quot;&quot;</span>
@@ -1470,7 +1493,7 @@
         <span class="n">myResult</span> <span class="o">=</span> <span class="n">DOCK</span><span class="o">.</span><span class="n">wvResults</span><span class="o">.</span><span class="n">page</span><span class="p">()</span><span class="o">.</span><span class="n">currentFrame</span><span class="p">()</span><span class="o">.</span><span class="n">toPlainText</span><span class="p">()</span>
 
         <span class="n">myMessage</span> <span class="o">=</span> <span class="s">&#39;Result not as expected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">myResult</span>
-        <span class="k">assert</span> <span class="s">&#39;68&#39;</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
+        <span class="k">assert</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">68</span><span class="p">)</span> <span class="ow">in</span> <span class="n">myResult</span><span class="p">,</span> <span class="n">myMessage</span>
 </div>
 <div class="viewcode-block" id="DockTest.test_state"><a class="viewcode-back" href="../../api-docs/safe_qgis_tests/test_dock.html#safe_qgis.test_dock.DockTest.test_state">[docs]</a>    <span class="k">def</span> <span class="nf">test_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Check if the save/restore state methods work. See also</span>
@@ -1760,7 +1783,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

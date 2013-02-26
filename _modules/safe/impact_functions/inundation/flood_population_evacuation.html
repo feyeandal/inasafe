@@ -61,10 +61,12 @@
             
   <h1>Source code for safe.impact_functions.inundation.flood_population_evacuation</h1><div class="highlight"><pre>
 <span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">FunctionProvider</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_hazard_layer</span><span class="p">,</span> <span class="n">get_exposure_layer</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">get_question</span><span class="p">,</span> <span class="n">get_function_title</span>
-<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="n">format_int</span>
+<span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">FunctionProvider</span><span class="p">,</span>
+                                        <span class="n">get_hazard_layer</span><span class="p">,</span>
+                                        <span class="n">get_exposure_layer</span><span class="p">,</span>
+                                        <span class="n">get_question</span><span class="p">,</span>
+                                        <span class="n">get_function_title</span><span class="p">,</span>
+                                        <span class="n">format_int</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">safe.impact_functions.styles</span> <span class="kn">import</span> <span class="n">flood_population_style</span> <span class="k">as</span> <span class="n">style_info</span>
 <span class="kn">from</span> <span class="nn">safe.storage.raster</span> <span class="kn">import</span> <span class="n">Raster</span>
 <span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ugettext</span> <span class="k">as</span> <span class="n">tr</span><span class="p">,</span>
@@ -91,6 +93,41 @@
 
     <span class="n">title</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Need evacuation&#39;</span><span class="p">)</span>
     <span class="n">defaults</span> <span class="o">=</span> <span class="n">get_defaults</span><span class="p">()</span>
+
+    <span class="c"># Function documentation</span>
+    <span class="n">synopsis</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;To assess the impacts of (flood or tsunami) inundation &#39;</span>
+                  <span class="s">&#39;on population.&#39;</span><span class="p">)</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Provide details about how many people would likely need &#39;</span>
+                 <span class="s">&#39;to be evacuated, where they are located and what resources &#39;</span>
+                 <span class="s">&#39;would be required to support them.&#39;</span><span class="p">)</span>
+    <span class="c">#citations = []</span>
+    <span class="n">detailed_description</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;The population subject to inundation &#39;</span>
+                              <span class="s">&#39;exceeding a threshold (default 1m) is &#39;</span>
+                              <span class="s">&#39;calculated and returned as a raster layer.&#39;</span>
+                              <span class="s">&#39;In addition the total number and the required &#39;</span>
+                              <span class="s">&#39;needs in terms of the BNPB (Perka 7) &#39;</span>
+                              <span class="s">&#39;are reported. The threshold can be changed and &#39;</span>
+                              <span class="s">&#39;even contain multiple numbers in which case &#39;</span>
+                              <span class="s">&#39;evacuation and needs are calculated using &#39;</span>
+                              <span class="s">&#39;the largest number with population breakdowns &#39;</span>
+                              <span class="s">&#39;provided for the smaller numbers. The &#39;</span>
+                              <span class="s">&#39;population &#39;</span>
+                              <span class="s">&#39;raster is resampled to the resolution of the &#39;</span>
+                              <span class="s">&#39;hazard raster and is rescaled so that the &#39;</span>
+                              <span class="s">&#39;resampled population counts reflect estimates &#39;</span>
+                              <span class="s">&#39;of population count per resampled cell. &#39;</span>
+                              <span class="s">&#39;The resulting impact layer has the same &#39;</span>
+                              <span class="s">&#39;resolution and reflects population count &#39;</span>
+                              <span class="s">&#39;per cell which are affected by inundation.&#39;</span><span class="p">)</span>
+    <span class="n">permissible_hazard_input</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;A hazard raster layer where each cell &#39;</span>
+        <span class="s">&#39;represents flood depth (in meters).&#39;</span><span class="p">)</span>
+    <span class="n">permissible_exposure_input</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;An exposure raster layer where each &#39;</span>
+                                    <span class="s">&#39;cell &#39;</span>
+                                    <span class="s">&#39;represent population count.&#39;</span><span class="p">)</span>
+    <span class="n">limitation</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;The default threshold of 1 meter was selected based on &#39;</span>
+                    <span class="s">&#39;consensus, not hard evidence.&#39;</span><span class="p">)</span>
+
+    <span class="c"># Configurable parameters</span>
     <span class="n">parameters</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
         <span class="p">(</span><span class="s">&#39;thresholds&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]),</span>
         <span class="p">(</span><span class="s">&#39;postprocessors&#39;</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">([</span>
@@ -312,7 +349,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

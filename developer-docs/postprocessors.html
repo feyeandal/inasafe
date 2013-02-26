@@ -33,7 +33,7 @@
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../index.html" />
     <link rel="up" title="InaSAFE developer documentation" href="index.html" />
     <link rel="next" title="Reporting bugs and getting help" href="bug_reporting.html" />
-    <link rel="prev" title="Maintaining the documentation" href="maintaining_documentation.html" /> 
+    <link rel="prev" title="Impact Function Tutorial" href="impact_function_tutorial.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -51,7 +51,7 @@
           <a href="bug_reporting.html" title="Reporting bugs and getting help"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="maintaining_documentation.html" title="Maintaining the documentation"
+          <a href="impact_function_tutorial.html" title="Impact Function Tutorial"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../index.html">Home</a> &raquo;</li>
     <li><a href="../contents.html">Contents</a> &raquo;</li>
@@ -111,7 +111,7 @@ method (process), 2 optional ones and as many indicators as you need.</p>
 </div>
 <p>After that you need to import the new class into postprocessor_factory and
 update AVAILABLE_POSTPTOCESSORS to include the postprocessor prefix (e.g.
-MySuper if the class is called MySuperPostprocessor)</p>
+MySuper if the class is called MySuperPostprocessor and its human readable name)</p>
 <p>As last step you have to update or add the <em>parameters</em> variable to the impact
 functions that you want to use the new postprocessor. This will need to include
 a dicionary of the available postprocessors as shown below.</p>
@@ -142,7 +142,9 @@ both use mandatory and optional parameters</p>
 <h2>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h2>
 <p>Dock.postprocOutput will hold the result datastructure (shown below) of all the
 postprocessors. The structure is then parsed by Dock._postProcessingOutput() and
-stored in the impact layer&#8217;s keywords</p>
+stored in the impact layer&#8217;s keywords
+If a postprocessor generates no output (for example due to calculation errors),
+then it will just be skipped from the report</p>
 <div class="section" id="data-structure-of-results">
 <h3>Data structure of results<a class="headerlink" href="#data-structure-of-results" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;Gender&#39;</span><span class="p">:</span> <span class="p">[</span>
@@ -192,8 +194,8 @@ stored in the impact layer&#8217;s keywords</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="maintaining_documentation.html"
-                        title="previous chapter">Maintaining the documentation</a></p>
+  <p class="topless"><a href="impact_function_tutorial.html"
+                        title="previous chapter">Impact Function Tutorial</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="bug_reporting.html"
                         title="next chapter">Reporting bugs and getting help</a></p>
@@ -234,7 +236,7 @@ stored in the impact layer&#8217;s keywords</p>
           <a href="bug_reporting.html" title="Reporting bugs and getting help"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="maintaining_documentation.html" title="Maintaining the documentation"
+          <a href="impact_function_tutorial.html" title="Impact Function Tutorial"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../index.html">Home</a> &raquo;</li>
     <li><a href="../contents.html">Contents</a> &raquo;</li>
@@ -246,7 +248,7 @@ stored in the impact layer&#8217;s keywords</p>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Dec 19, 2012.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

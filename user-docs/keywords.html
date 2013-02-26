@@ -68,12 +68,12 @@
           <div class="body">
             
   <div class="section" id="keywords-system">
-<h1>Keywords System<a class="headerlink" href="#keywords-system" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1>Keywords System<a class="headerlink" href="#keywords-system" title="Permalink to this headline">¶</a></h1>
 <p>This document describes the purpose and usage of the InaSAFE <em>keywords</em>
 system.</p>
 <div class="section" id="purpose">
 <h2>Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
-<p>The keywords system is used by the <a class="reference internal" href="impact_functions.html"><em>Impact Functions</em></a> to determine the
+<p>The keywords system is used by the <a class="reference internal" href="impact_functions.html#impact-functions"><em>Impact Functions</em></a> to determine the
 nature of the input layers that have been passed to them.</p>
 <p>Each input GIS dataset used by InaSAFE needs to have an accompanying
 keywords file. The purpose of the keywords file is to provide additional
@@ -382,7 +382,7 @@ keyword list and then clicking <em class="guilabel">Remove selected</em></li>
 </div>
 <div class="section" id="invoking-the-keywords-editor">
 <h2>Invoking the keywords editor<a class="headerlink" href="#invoking-the-keywords-editor" title="Permalink to this headline">¶</a></h2>
-<p>The keyword editor can easily be invoked by selecting any layer in the
+<p>The keyword editor can easily be invoked by <strong>selecting any layer</strong> in the
 QGIS layers list, and then using the plugin menu to start the editor
 (<em class="menuselection">Plugins ‣ InaSAFE ‣ Keyword Editor</em>).
 Alternatively, you may use the keywords editor icon on the
@@ -390,6 +390,11 @@ plugins toolbar as illustrated below.</p>
 <div class="figure align-center">
 <img alt="../_images/keyword-editor-icon.png" src="../_images/keyword-editor-icon.png" />
 </div>
+<dl class="docutils">
+<dt>..note:: If you have not selected a layer in the QGIS legend,</dt>
+<dd>the keyword editor icon in the toolbar and menus will <strong>be disabbled</strong> and
+appear greyed out.</dd>
+</dl>
 </div>
 <div class="section" id="saving-your-edits">
 <h2>Saving your edits<a class="headerlink" href="#saving-your-edits" title="Permalink to this headline">¶</a></h2>
@@ -562,7 +567,7 @@ displayed.</p>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Dec 19, 2012.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

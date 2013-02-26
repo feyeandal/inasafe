@@ -560,7 +560,8 @@
 
         <span class="c"># Expected values from HKV</span>
         <span class="n">expected_values</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2485442</span><span class="p">,</span> <span class="mi">1537920</span><span class="p">]</span>
-        <span class="n">expected_strings</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&lt;b&gt;2480&lt;/b&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;b&gt;1533&lt;/b&gt;&#39;</span><span class="p">]</span>
+        <span class="n">expected_strings</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&lt;b&gt;&#39;</span> <span class="o">+</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">2480</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&lt;/b&gt;&#39;</span><span class="p">,</span>
+                            <span class="s">&#39;&lt;b&gt;&#39;</span> <span class="o">+</span> <span class="n">format_int</span><span class="p">(</span><span class="mi">1533</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&lt;/b&gt;&#39;</span><span class="p">]</span>
 
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Flood_Current_Depth_Jakarta_geographic.asc&#39;</span><span class="p">,</span>
@@ -3137,7 +3138,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

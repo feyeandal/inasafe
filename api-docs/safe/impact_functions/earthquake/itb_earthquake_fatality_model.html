@@ -32,8 +32,8 @@
     <link rel="shortcut icon" href="../../../../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../../index.html" />
     <link rel="up" title="Package::safe.impact_functions.earthquake" href="../earthquake.html" />
-    <link rel="next" title="Module: safe.impact_functions.earthquake.pager_earthquake_fatality_model" href="pager_earthquake_fatality_model.html" />
-    <link rel="prev" title="Module: safe.impact_functions.earthquake.earthquake_building_impact" href="earthquake_building_impact.html" /> 
+    <link rel="next" title="Package::safe.impact_functions.tephra" href="../tephra.html" />
+    <link rel="prev" title="Module: safe.impact_functions.earthquake.pager_earthquake_fatality_model" href="pager_earthquake_fatality_model.html" /> 
   </head>
   <body>
     <div class="relbar-top">
@@ -48,10 +48,10 @@
           <a href="../../../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="pager_earthquake_fatality_model.html" title="Module: safe.impact_functions.earthquake.pager_earthquake_fatality_model"
+          <a href="../tephra.html" title="Package::safe.impact_functions.tephra"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="earthquake_building_impact.html" title="Module: safe.impact_functions.earthquake.earthquake_building_impact"
+          <a href="pager_earthquake_fatality_model.html" title="Module: safe.impact_functions.earthquake.pager_earthquake_fatality_model"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../../../index.html">Home</a> &raquo;</li>
     <li><a href="../../../../contents.html">Contents</a> &raquo;</li>
@@ -86,7 +86,7 @@ Bali, 27-28 February 2012, 54pp.</p>
 <p>In this study, the same functional form as Allen (2009) is adopted
 to express fatality rate as a function of intensity (see Eq. 10 in the
 report). The Matlab built-in function (fminsearch) for  Nelder-Mead
-algorithm is used to estimate the model parameters. The objective
+algorithm was used to estimate the model parameters. The objective
 function (L2G norm) that is minimised during the optimisation is the
 same as the one used by Jaiswal et al. (2010).</p>
 <p>The coefficients used in the indonesian model are
@@ -119,6 +119,9 @@ These issues will be addressed by ITB team in the final report.</li>
 </ul>
 </dd>
 </dl>
+<p>Note: Because of these caveats, decisions should not be made solely on
+the information presented here and should always be verified by ground
+truthing and other reliable information sources.</p>
 <p>:author Hadi Ghasemi
 :rating 3</p>
 <p>:param requires category==&#8217;hazard&#8217; and                     subcategory==&#8217;earthquake&#8217; and                     layertype==&#8217;raster&#8217; and                     unit==&#8217;MMI&#8217;</p>
@@ -161,11 +164,11 @@ P: Raster layer of population density</dd>
           <img class="logo" src="../../../../_static/icon.png" alt="Logo"/>
         </a></p>
   <h4>Previous topic</h4>
-  <p class="topless"><a href="earthquake_building_impact.html"
-                        title="previous chapter">Module:  safe.impact_functions.earthquake.earthquake_building_impact</a></p>
-  <h4>Next topic</h4>
   <p class="topless"><a href="pager_earthquake_fatality_model.html"
-                        title="next chapter">Module:  safe.impact_functions.earthquake.pager_earthquake_fatality_model</a></p>
+                        title="previous chapter">Module:  safe.impact_functions.earthquake.pager_earthquake_fatality_model</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../tephra.html"
+                        title="next chapter">Package::safe.impact_functions.tephra</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../../../../_sources/api-docs/safe/impact_functions/earthquake/itb_earthquake_fatality_model.txt"
@@ -200,10 +203,10 @@ P: Raster layer of population density</dd>
           <a href="../../../../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="pager_earthquake_fatality_model.html" title="Module: safe.impact_functions.earthquake.pager_earthquake_fatality_model"
+          <a href="../tephra.html" title="Package::safe.impact_functions.tephra"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="earthquake_building_impact.html" title="Module: safe.impact_functions.earthquake.earthquake_building_impact"
+          <a href="pager_earthquake_fatality_model.html" title="Module: safe.impact_functions.earthquake.pager_earthquake_fatality_model"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="../../../../index.html">Home</a> &raquo;</li>
     <li><a href="../../../../contents.html">Contents</a> &raquo;</li>
@@ -218,7 +221,7 @@ P: Raster layer of population density</dd>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

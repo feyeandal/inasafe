@@ -63,14 +63,40 @@
 <span class="sd">&quot;&quot;&quot;Utilities for InaSAFE</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
 <span class="kn">import</span> <span class="nn">gettext</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
 <span class="kn">import</span> <span class="nn">getpass</span>
 <span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mkstemp</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">PIPE</span><span class="p">,</span> <span class="n">Popen</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
 
-<span class="kn">from</span> <span class="nn">safe.common.exceptions</span> <span class="kn">import</span> <span class="n">VerificationError</span>
+<span class="kn">from</span> <span class="nn">safe.common.exceptions</span> <span class="kn">import</span> <span class="n">VerificationError</span><span class="p">,</span> <span class="ne">WindowsError</span>
 
 
+<div class="viewcode-block" id="MEMORYSTATUSEX"><a class="viewcode-back" href="../../../api-docs/safe/common/utilities.html#safe.common.utilities.MEMORYSTATUSEX">[docs]</a><span class="k">class</span> <span class="nc">MEMORYSTATUSEX</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class is used for getting the free memory on Windows</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&quot;dwLength&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulong</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;dwMemoryLoad&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulong</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;ullTotalPhys&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;ullAvailPhys&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;ullTotalPageFile&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;ullAvailPageFile&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;ullTotalVirtual&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;ullAvailVirtual&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;sullAvailExtendedVirtual&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># have to initialize this to the size of MEMORYSTATUSEX</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dwLength</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">sizeof</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MEMORYSTATUSEX</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+</div>
 <div class="viewcode-block" id="verify"><a class="viewcode-back" href="../../../api-docs/safe/common/utilities.html#safe.common.utilities.verify">[docs]</a><span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Verification of logical statement similar to assertions</span>
 <span class="sd">    Input</span>
@@ -221,6 +247,99 @@
             <span class="k">return</span> <span class="n">DEFAULTS</span><span class="p">[</span><span class="n">default</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
+
+
+<div class="viewcode-block" id="zip_shp"><a class="viewcode-back" href="../../../api-docs/safe/common/utilities.html#safe.common.utilities.zip_shp">[docs]</a><span class="k">def</span> <span class="nf">zip_shp</span><span class="p">(</span><span class="n">shp_path</span><span class="p">,</span> <span class="n">extra_ext</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">remove_file</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Zip shape file and its gang (.shx, .dbf, .prj)</span>
+<span class="sd">    and extra_file is a list of another ext related to shapefile, if exist</span>
+<span class="sd">    The zip file will be put in the same directory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># go to the directory</span>
+    <span class="n">my_cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">shp_dir</span><span class="p">,</span> <span class="n">shp_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">shp_path</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">shp_dir</span><span class="p">)</span>
+
+    <span class="n">shp_basename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">shp_name</span><span class="p">)</span>
+    <span class="n">exts</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;.shp&#39;</span><span class="p">,</span> <span class="s">&#39;.shx&#39;</span><span class="p">,</span> <span class="s">&#39;.dbf&#39;</span><span class="p">,</span> <span class="s">&#39;.prj&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">extra_ext</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">exts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">extra_ext</span><span class="p">)</span>
+
+    <span class="c"># zip files</span>
+    <span class="n">zip_filename</span> <span class="o">=</span> <span class="n">shp_basename</span> <span class="o">+</span> <span class="s">&#39;.zip&#39;</span>
+    <span class="n">zip_object</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">zip_filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">exts</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">shp_basename</span> <span class="o">+</span> <span class="n">ext</span><span class="p">):</span>
+            <span class="n">zip_object</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">shp_basename</span> <span class="o">+</span> <span class="n">ext</span><span class="p">)</span>
+    <span class="n">zip_object</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">remove_file</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">exts</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">shp_basename</span> <span class="o">+</span> <span class="n">ext</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">shp_basename</span> <span class="o">+</span> <span class="n">ext</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">my_cwd</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_free_memory"><a class="viewcode-back" href="../../../api-docs/safe/common/utilities.html#safe.common.utilities.get_free_memory">[docs]</a><span class="k">def</span> <span class="nf">get_free_memory</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return current free memory on the machine.</span>
+<span class="sd">    Currently supported for Windows, Linux</span>
+<span class="sd">    Return in MB unit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s">&#39;win32&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">:</span>
+        <span class="c"># windows</span>
+        <span class="k">return</span> <span class="n">get_free_memory_win</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="s">&#39;linux2&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">:</span>
+        <span class="c"># linux</span>
+        <span class="k">return</span> <span class="n">get_free_memory_linux</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="s">&#39;darwin&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">:</span>
+        <span class="c"># mac</span>
+        <span class="k">return</span> <span class="n">get_free_memory_osx</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="get_free_memory_win"><a class="viewcode-back" href="../../../api-docs/safe/common/utilities.html#safe.common.utilities.get_free_memory_win">[docs]</a><span class="k">def</span> <span class="nf">get_free_memory_win</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return current free memory on the machine for windows.</span>
+<span class="sd">    Warning : this script is really not robust</span>
+<span class="sd">    Return in MB unit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="n">MEMORYSTATUSEX</span><span class="p">()</span>
+    <span class="n">ctypes</span><span class="o">.</span><span class="n">windll</span><span class="o">.</span><span class="n">kernel32</span><span class="o">.</span><span class="n">GlobalMemoryStatusEx</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">stat</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">ullAvailPhys</span> <span class="o">/</span> <span class="mi">1024</span> <span class="o">/</span> <span class="mi">1024</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_free_memory_linux"><a class="viewcode-back" href="../../../api-docs/safe/common/utilities.html#safe.common.utilities.get_free_memory_linux">[docs]</a><span class="k">def</span> <span class="nf">get_free_memory_linux</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return current free memory on the machine for linux.</span>
+<span class="sd">    Warning : this script is really not robust</span>
+<span class="sd">    Return in MB unit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="s">&#39;free -m&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>
+        <span class="n">stdout_string</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">OSError</span>
+    <span class="n">stdout_list</span> <span class="o">=</span> <span class="n">stdout_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+    <span class="n">stdout_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stdout_list</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">stdout_list</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="get_free_memory_osx"><a class="viewcode-back" href="../../../api-docs/safe/common/utilities.html#safe.common.utilities.get_free_memory_osx">[docs]</a><span class="k">def</span> <span class="nf">get_free_memory_osx</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return current free memory on the machine for mac os.</span>
+<span class="sd">    Warning : this script is really not robust</span>
+<span class="sd">    Return in MB unit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="s">&#39;echo -e &quot;</span><span class="se">\n</span><span class="s">$(top -l 1 | awk </span><span class="se">\&#39;</span><span class="s">/PhysMem/</span><span class="se">\&#39;</span><span class="s">;)</span><span class="se">\n</span><span class="s">&quot;&#39;</span><span class="p">,</span>
+                  <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>
+        <span class="n">stdout_string</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c"># e.g. output (its a single line)</span>
+        <span class="c"># PhysMem: 1491M wired, 3032M active, 1933M inactive,</span>
+        <span class="c"># 6456M used, 1735M free.</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">OSError</span>
+    <span class="n">stdout_list</span> <span class="o">=</span> <span class="n">stdout_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">inactive</span> <span class="o">=</span> <span class="n">stdout_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;M inactive&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">free</span> <span class="o">=</span> <span class="n">stdout_list</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;M free.&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">inactive</span><span class="p">)</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">free</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -269,7 +388,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

@@ -1,0 +1,230 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>safe.postprocessors.aggregation_postprocessor &mdash; InaSAFE 1.0.1-final documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Noticia+Text|Droid+Sans+Mono" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.1-final',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.cookie.js"></script>
+    <script type="text/javascript" src="../../../_static/toggle_sections.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+    <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="relbar-top">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+    <li><a href="../../../index.html">Home</a> &raquo;</li>
+    <li><a href="../../../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for safe.postprocessors.aggregation_postprocessor</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;**Postprocessors package.**</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Marco Bernasocchi &lt;marco@opengis.ch&gt;&#39;</span>
+<span class="n">__revision__</span> <span class="o">=</span> <span class="s">&#39;$Format:%H$&#39;</span>
+<span class="n">__date__</span> <span class="o">=</span> <span class="s">&#39;10/10/2012&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&#39;Copyright 2012, Australia Indonesia Facility for &#39;</span>
+<span class="n">__copyright__</span> <span class="o">+=</span> <span class="s">&#39;Disaster Reduction&#39;</span>
+
+
+<span class="kn">from</span> <span class="nn">safe.postprocessors.abstract_postprocessor</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AbstractPostprocessor</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">safe.common.utilities</span> <span class="kn">import</span> <span class="n">ugettext</span> <span class="k">as</span> <span class="n">tr</span>
+
+
+<div class="viewcode-block" id="AggregationPostprocessor"><a class="viewcode-back" href="../../../api-docs/safe/postprocessors/aggregation_postprocessor.html#safe.postprocessors.aggregation_postprocessor.AggregationPostprocessor">[docs]</a><span class="k">class</span> <span class="nc">AggregationPostprocessor</span><span class="p">(</span><span class="n">AbstractPostprocessor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Postprocessor that calculates age related statistics.</span>
+<span class="sd">    see the _calculate_* methods to see indicator specific documentation</span>
+
+<span class="sd">    see :mod:`safe.defaults` for default values information</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor for AgePostprocessor postprocessor class,</span>
+<span class="sd">        It takes care of defining self.impact_total</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">AbstractPostprocessor</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">impact_total</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="AggregationPostprocessor.setup"><a class="viewcode-back" href="../../../api-docs/safe/postprocessors/aggregation_postprocessor.html#safe.postprocessors.aggregation_postprocessor.AggregationPostprocessor.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;concrete implementation it takes care of the needed parameters being</span>
+<span class="sd">         initialized</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params: dict of parameters to pass to the post processor</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">AbstractPostprocessor</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">impact_total</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log_message</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> not all params have been correctly &#39;</span>
+                              <span class="s">&#39;initialized, setup needs to be called before &#39;</span>
+                              <span class="s">&#39;process. Skipping this postprocessor&#39;</span>
+                              <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">impact_total</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;impact_total&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_field</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;target_field&#39;</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="AggregationPostprocessor.process"><a class="viewcode-back" href="../../../api-docs/safe/postprocessors/aggregation_postprocessor.html#safe.postprocessors.aggregation_postprocessor.AggregationPostprocessor.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;concrete implementation it takes care of the needed parameters being</span>
+<span class="sd">         available and performs all the indicators calculations</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">AbstractPostprocessor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">impact_total</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_raise_error</span><span class="p">(</span><span class="s">&#39;setup needs to be called before process&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_total</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="AggregationPostprocessor.clear"><a class="viewcode-back" href="../../../api-docs/safe/postprocessors/aggregation_postprocessor.html#safe.postprocessors.aggregation_postprocessor.AggregationPostprocessor.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;concrete implementation it takes care of the needed parameters being</span>
+<span class="sd">         properly cleared</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">AbstractPostprocessor</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">impact_total</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+    <span class="k">def</span> <span class="nf">_calculate_total</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Indicator that shows total population.</span>
+
+<span class="sd">        this indicator reports the total population</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">myName</span> <span class="o">=</span> <span class="n">tr</span><span class="p">(</span><span class="s">&#39;Total&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">myName</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">myName</span><span class="p">,</span> <span class="n">tr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_field</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+        <span class="c">#FIXME (MB) Shameless hack to deal with issue #368</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">impact_total</span> <span class="o">&gt;</span> <span class="mi">8000000000</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">impact_total</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_append_result</span><span class="p">(</span><span class="n">myName</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">NO_DATA_TEXT</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">myResult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">impact_total</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">myResult</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">myResult</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">myResult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NO_DATA_TEXT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_append_result</span><span class="p">(</span><span class="n">myName</span><span class="p">,</span> <span class="n">myResult</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+        <p class="logo"><a href="../../../contents.html">
+          <img class="logo" src="../../../_static/icon.png" alt="Logo"/>
+        </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+        
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+    <li><a href="../../../index.html">Home</a> &raquo;</li>
+    <li><a href="../../../contents.html">Contents</a> &raquo;</li>
+
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
+      Last updated on Feb 26, 2013.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+    <!-- cloud_sptheme 1.3 -->
+  </body>
+</html>

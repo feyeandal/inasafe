@@ -79,6 +79,7 @@
 <span class="n">__copyright__</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Copyright 2012, Australia Indonesia Facility for &#39;</span>
                  <span class="s">&#39;Disaster Reduction&#39;</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">from</span> <span class="nn">nose</span> <span class="kn">import</span> <span class="n">SkipTest</span>
 <span class="kn">from</span> <span class="nn">impact_functions_doc</span> <span class="kn">import</span> <span class="n">ImpactFunctionsDoc</span>
 <span class="kn">from</span> <span class="nn">safe_qgis.utilities_test</span> <span class="kn">import</span> <span class="n">getQgisTestApp</span>
 <span class="kn">from</span> <span class="nn">PyQt4.QtTest</span> <span class="kn">import</span> <span class="n">QTest</span>
@@ -161,6 +162,9 @@
 
     <span class="k">def</span> <span class="nf">testRestButton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Test when reset button is pressed.&quot;&quot;&quot;</span>
+        <span class="c"># ... and this is how you skip it using nosetests</span>
+        <span class="c">#pylint: disable=W0101</span>
+        <span class="k">raise</span> <span class="n">SkipTest</span><span class="p">(</span><span class="s">&quot;This test hangs Jenkins.&quot;</span><span class="p">)</span>
         <span class="n">myDialog</span> <span class="o">=</span> <span class="n">ImpactFunctionsDoc</span><span class="p">(</span><span class="n">PARENT</span><span class="p">)</span>
         <span class="n">expectedTable</span> <span class="o">=</span> <span class="n">myDialog</span><span class="o">.</span><span class="n">if_table</span><span class="o">.</span><span class="n">toNewlineFreeString</span><span class="p">()</span>
         <span class="n">myDialog</span><span class="o">.</span><span class="n">comboBox_category</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -236,7 +240,7 @@
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Jan 14, 2013.
+      Last updated on Feb 26, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

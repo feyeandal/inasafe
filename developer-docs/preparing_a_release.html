@@ -32,7 +32,7 @@
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="top" title="InaSAFE 1.0.1-final documentation" href="../index.html" />
     <link rel="up" title="InaSAFE developer documentation" href="index.html" />
-    <link rel="next" title="Continuous Integration Testing with Jenkins" href="jenkins_ci.html" />
+    <link rel="next" title="Test builds" href="preparing_test_builds.html" />
     <link rel="prev" title="Reporting bugs and getting help" href="bug_reporting.html" /> 
   </head>
   <body>
@@ -48,7 +48,7 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="jenkins_ci.html" title="Continuous Integration Testing with Jenkins"
+          <a href="preparing_test_builds.html" title="Test builds"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
           <a href="bug_reporting.html" title="Reporting bugs and getting help"
@@ -76,7 +76,6 @@ as follows and are described in detail below:</p>
 <li>Identify what version number the new release will be assigned.</li>
 <li>Close all issues marked as blockers for the release.</li>
 <li>If needed, create a release branch</li>
-<li>Update all source files to the new version number.</li>
 <li>Update all source files for PEP8 and PEP257 compliance.</li>
 <li>Ensure no assert statements are critical to code flow</li>
 <li>Ensure that Qt resources and user interface files have been compiled</li>
@@ -170,23 +169,6 @@ version at the point of release.</p>
 <p><strong>Outcome:</strong> If needed, create a release branch which provides a &#8216;known good&#8217;
 version that can be returned to at any point in time.</p>
 </div>
-<div class="section" id="updating-the-source-version-number">
-<h2>Updating the source version number<a class="headerlink" href="#updating-the-source-version-number" title="Permalink to this headline">¶</a></h2>
-<p>In the preample to any source file there should be a standard header as
-described in the <a class="reference internal" href="coding_standards.html"><em>Coding Standards</em></a> document. Included in this header
-section is the version number e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.1.0&#39;</span>
-</pre></div>
-</div>
-<p>This number should be updated in every source file prior to release. Under
-linux this can easily be done using the <strong class="command">rpl</strong> command (which can
-easily be installed (by doing for example <strong class="command">sudo apt-get install rpl</strong>).</p>
-<p>Using th example above, to update version numbers for minor release &#8216;0.1.1&#8217;
-you could issue the following command at the root of the plugin source tree:</p>
-<div class="highlight-python"><pre>rpl "__version__ = '0.1.0'" "__version__ = '0.1.1'" *.py</pre>
-</div>
-<p><strong>Outcome::</strong> Every source file should be updated to indicate the version number.</p>
-</div>
 <div class="section" id="pep8-and-pep257-compliance">
 <h2>PEP8 and PEP257 compliance<a class="headerlink" href="#pep8-and-pep257-compliance" title="Permalink to this headline">¶</a></h2>
 <p>These <strong>Python Enhancement Proposals</strong> (PEP) relate to the formatting
@@ -224,9 +206,11 @@ short term.</p>
 </div>
 <div class="section" id="compile-qt-resources-and-user-interface-files">
 <h2>Compile Qt resources and user interface files<a class="headerlink" href="#compile-qt-resources-and-user-interface-files" title="Permalink to this headline">¶</a></h2>
-<p>The Qt4 resource and user interface definition files supplied with Risk in a
-Box need to be compiled before they can be deployed. There are two utility
-functions provided by Qt4 for this purpose:</p>
+<dl class="docutils">
+<dt>The Qt4 resource and user interface definition files supplied with InaSAFE</dt>
+<dd>need to be compiled before they can be deployed. There are two utility</dd>
+</dl>
+<p>functions provided by Qt4 for this purpose:</p>
 <ul class="simple">
 <li><strong class="command">pyuic4</strong> - A tool to compile Qt4 user interface definition files
 (.ui) into python source code. The .ui files contain xml which describes the
@@ -316,7 +300,7 @@ In particular the following two languages are supported as part of this
 project:</p>
 <ul class="simple">
 <li>English</li>
-<li>Bahasa Indonesian</li>
+<li>Bahasa Indonesia</li>
 </ul>
 <p>There are three components of the project that require translation:</p>
 <ul class="simple">
@@ -345,53 +329,41 @@ ensure that all generated documentation is also under version control.</p>
 <p><strong>Outcome:</strong> Sphinx documentation is compiled providing complete documentation
 to be shipped with the plugin.</p>
 </div>
-<div class="section" id="update-plugin-metadata">
-<h3>Update plugin metadata<a class="headerlink" href="#update-plugin-metadata" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="update-plugin-metadata-and-version-number">
+<h2>Update plugin metadata and version number<a class="headerlink" href="#update-plugin-metadata-and-version-number" title="Permalink to this headline">¶</a></h2>
 <p>QGIS uses specific metadata to register the plugin. At the time of writing
 the mechanism for registering this metadata is in transition from an in-source
 based system to an .ini file based system. In the interim, both should be
 maintained.</p>
-<p>The in-source metadata is updated by editing the <tt class="file docutils literal"><span class="pre">__init__.py</span></tt> file
-in the top level directory of the source tree:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">name</span><span class="p">():</span>
-   <span class="sd">&quot;&quot;&quot;A user friendly name for the plugin.&quot;&quot;&quot;</span>
-   <span class="k">return</span> <span class="s">&#39;|project_name|&#39;</span>
-
-
-<span class="k">def</span> <span class="nf">description</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;A one line description for the plugin.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="s">&#39;InaSAFE Disaster risk assessment tool developed by AusAid and World Bank&#39;</span>
-
-
-<span class="k">def</span> <span class="nf">version</span><span class="p">():</span>
+<p>There are two files containing version numbers:</p>
+<ul class="simple">
+<li><tt class="file docutils literal"><span class="pre">__init__.py</span></tt></li>
+<li>:file:<a href="#id1"><span class="problematic" id="id2">`</span></a>metadata.txt</li>
+</ul>
+<p>In the init file you would typically update the version entry like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">version</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Version of the plugin.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="s">&#39;Version 0.1&#39;</span>
-
-
-<span class="k">def</span> <span class="nf">icon</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Icon path for the plugin.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="s">&#39;icon.png&#39;</span>
-
-
-<span class="k">def</span> <span class="nf">qgisMinimumVersion</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Minimum version of QGIS needed to run this plugin -</span>
-<span class="sd">    currently set to 1.7.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="s">&#39;1.7&#39;</span>
+    <span class="k">return</span> <span class="s">&#39;Version 1.1.0&#39;</span>
 </pre></div>
 </div>
-<p>In general only the version function needs to be updated to reflect the new
-version of the InaSAFE plugin.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The above will be deprecated with the release of QGIS 2.0, see
-below for the alternative method of describing the plugin.</p>
+<p class="last">Be very careful about editing medata in __init__.py. The system
+of storing metadata in QGIS plugins is being deprecated (from QGIS 2.0)
+because it is extremely fragile and prone to breakage by poor text
+formatting.</p>
 </div>
-<p>For newer versions of QGIS (1.8+), the <tt class="file docutils literal"><span class="pre">metadata.txt</span></tt> will be used to
-store descriptive information about the plugin. Simply edit this file with
-a text editor and update it as needed.</p>
-<p><strong>Outcome:</strong> The plugin metadata to reflects the current version of Risk in a
-Box.</p>
+<p>In metadata you would typically update the version and status entries to:</p>
+<div class="highlight-python"><pre>version=1.1.0
+# alpha, beta, rc or final
+status=beta</pre>
 </div>
+<p>Immediately after branching, and then change the status designation to final
+just prior to tagging the release.</p>
+<p>Both of these files should be updated to reflect the version number and the
+metadata.txt file should reflect the release status.</p>
+<p><strong>Outcome:</strong> The plugin metadata to reflects the current version of InaSAFE.</p>
 <div class="section" id="generate-a-test-package">
 <h3>Generate a test package<a class="headerlink" href="#generate-a-test-package" title="Permalink to this headline">¶</a></h3>
 <p>At this point a test package should be generated that can be used to test
@@ -435,16 +407,54 @@ version numbers.</p>
 </div>
 <div class="section" id="tag-the-release">
 <h3>Tag the release<a class="headerlink" href="#tag-the-release" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As of version 1.1.0 we will be cryptographically signing the release
+tags using GPG (Gnu Privacy Guard), and annotating the git tag.</p>
+</div>
+</div>
+</div>
+<div class="section" id="prerequisite">
+<h2>Prerequisite<a class="headerlink" href="#prerequisite" title="Permalink to this headline">¶</a></h2>
+<p>You need to have a GPG key already (google GPG to see how to create one).</p>
+<p>You should register your key with GIT. To do this, first identify what your
+key id is:</p>
+<div class="highlight-python"><pre>gpg --list-sigs | grep tim</pre>
+</div>
+<p>Which should produce something like this:</p>
+<div class="highlight-python"><pre>uid                  Tim Sutton (QGIS Key) &lt;tim@linfiniti.com&gt;
+sig 3        97626237 2007-07-19  Tim Sutton (QGIS Key) &lt;tim@linfiniti.com&gt;</pre>
+</div>
+<p>So in my case my GPG id is <tt class="samp docutils literal"><span class="pre">97626237</span></tt>. Now register that key with GIT:</p>
+<div class="highlight-python"><pre>git config --global user.signingkey 97626237</pre>
+</div>
+<p>Now when you tag (as shown below), your tag will be signed with your chosen
+GPG key.</p>
+</div>
+<div class="section" id="tagging">
+<h2>Tagging<a class="headerlink" href="#tagging" title="Permalink to this headline">¶</a></h2>
 <p>Tagging the release provides a &#8216;known good&#8217; state for the software which
 represents a point in time where all of the above items in this list have
 been checked. The tag should be named after the major, minor and point release
-for example <tt class="samp docutils literal"><span class="pre">version-0_1_0</span></tt>. If the release is a releas candidate or
-and alpha release the letters <tt class="samp docutils literal"><span class="pre">rc</span></tt> or <tt class="samp docutils literal"><span class="pre">a</span></tt> resepectively should
+for example <tt class="samp docutils literal"><span class="pre">version-0_1_0</span></tt>. If the release is a release candidate or
+and alpha release the letters <tt class="samp docutils literal"><span class="pre">rc</span></tt> or <tt class="samp docutils literal"><span class="pre">a</span></tt> respectively should
 be appended respectively, along with the related number. For example version
 0.1.0 alpha 1 would be tagged as <tt class="samp docutils literal"><span class="pre">version-0_1_0a1</span></tt>. To tag the release
 simply do it in git as illustrated below.:</p>
-<div class="highlight-python"><pre>git tag version-0_1_0
-git push --tags origin version-0_1_0</pre>
+<div class="highlight-python"><pre>git tag -s version-1_1_0 -m "Version 1.1.0"</pre>
+</div>
+<p>This should generate an output similar to the example shown below:</p>
+<div class="highlight-python"><pre>gpg: NOTE: old default options file `/home/timlinux/.gnupg/options' ignored
+
+You need a passphrase to unlock the secret key for
+user: "Tim Sutton (QGIS Key) &lt;tim@linfiniti.com&gt;"
+1024-bit DSA key, ID 97626237, created 2007-07-19</pre>
+</div>
+<p>Depending on your operating system / desktop environment, you may be prompted
+for your GPG passphrase, or it will be automatically supplied if you are using
+an agent.</p>
+<p>Now we can go ahead and push the tag to the main repository:</p>
+<div class="highlight-python"><pre>git push --tags origin version-1_1_0</pre>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -460,7 +470,6 @@ version-0_4) whereas release tags are reserved for point releases
 <p><strong>Outcome:</strong> The release is tagged in GIT and can be checked out at any point
 in the future. The tagged source tree can easily be downloaded at any point by
 visiting <a class="reference external" href="https://github.com/AIFDR/inasafe/tags">https://github.com/AIFDR/inasafe/tags</a></p>
-</div>
 <div class="section" id="upload-the-package">
 <h3>Upload the package<a class="headerlink" href="#upload-the-package" title="Permalink to this headline">¶</a></h3>
 <p>QGIS provides an online plugin repository that centralizes the distribution
@@ -519,7 +528,6 @@ new release.</p>
 <li><a class="reference internal" href="#release-numbering">Release numbering</a></li>
 <li><a class="reference internal" href="#issue-completion">Issue completion</a></li>
 <li><a class="reference internal" href="#branching">Branching</a></li>
-<li><a class="reference internal" href="#updating-the-source-version-number">Updating the source version number</a></li>
 <li><a class="reference internal" href="#pep8-and-pep257-compliance">PEP8 and PEP257 compliance</a></li>
 <li><a class="reference internal" href="#check-for-assert-statements">Check for assert statements</a></li>
 <li><a class="reference internal" href="#compile-qt-resources-and-user-interface-files">Compile Qt resources and user interface files</a></li>
@@ -533,10 +541,16 @@ new release.</p>
 </li>
 <li><a class="reference internal" href="#finalise-translations">Finalise translations</a><ul>
 <li><a class="reference internal" href="#compile-the-sphinx-documentation">Compile the sphinx documentation</a></li>
-<li><a class="reference internal" href="#update-plugin-metadata">Update plugin metadata</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#update-plugin-metadata-and-version-number">Update plugin metadata and version number</a><ul>
 <li><a class="reference internal" href="#generate-a-test-package">Generate a test package</a></li>
 <li><a class="reference internal" href="#branch-the-release">Branch the release</a></li>
 <li><a class="reference internal" href="#tag-the-release">Tag the release</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#prerequisite">Prerequisite</a></li>
+<li><a class="reference internal" href="#tagging">Tagging</a><ul>
 <li><a class="reference internal" href="#upload-the-package">Upload the package</a></li>
 <li><a class="reference internal" href="#press-announcements">Press announcements</a></li>
 </ul>
@@ -549,8 +563,8 @@ new release.</p>
   <p class="topless"><a href="bug_reporting.html"
                         title="previous chapter">Reporting bugs and getting help</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="jenkins_ci.html"
-                        title="next chapter">Continuous Integration Testing with Jenkins</a></p>
+  <p class="topless"><a href="preparing_test_builds.html"
+                        title="next chapter">Test builds</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/developer-docs/preparing_a_release.txt"
@@ -585,7 +599,7 @@ new release.</p>
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="jenkins_ci.html" title="Continuous Integration Testing with Jenkins"
+          <a href="preparing_test_builds.html" title="Test builds"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
           <a href="bug_reporting.html" title="Reporting bugs and getting help"
@@ -600,7 +614,7 @@ new release.</p>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Dec 19, 2012.
+      Last updated on Feb 25, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->
