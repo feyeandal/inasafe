@@ -173,7 +173,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
                 for myKey, myValue in readScenarios(myAbsPath).iteritems():
                     appendRow(self.tblScript, myKey, myValue)
 
-    def runScript(self, theFilename, theCount=1):
+    def runScriptTask(self, theFilename):
         """ Run a python script in QGIS to exercise InaSAFE functionality.
 
         This functionality was originally intended for verifying that the key
@@ -205,20 +205,18 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         else:
             myScript = __import__(myModule)
 
-        # run script
-        for i in range(1, theCount + 1):
-            # run as a new project
-            self.iface.newProject()
+        # run as a new project
+        self.iface.newProject()
 
-            # run entry function
-            myFunction = myScript.runScript
-            if myFunction.func_code.co_argcount == 1:
-                myFunction(self.iface)
-            else:
-                myFunction()
+        # run entry function
+        myFunction = myScript.runScript
+        if myFunction.func_code.co_argcount == 1:
+            myFunction(self.iface)
+        else:
+            myFunction()
 
-    def runTextFile(self, theItem):
-        """ FIXME:(gigih) change function name """
+    def runSimpleTask(self, theItem):
+        """Run a simple scenario """
         myRoot = str(self.leBaseDataDir.text())
 
         myPaths = []
@@ -261,6 +259,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         myReport = []
         myFailCount = 0
         myPassCount = 0
+
         for myRow in range(self.tblScript.rowCount()):
             myItem = self.tblScript.item(myRow, 0)
             myStatusItem = self.tblScript.item(myRow, 1)
@@ -279,6 +278,11 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
                 myReport.append('F: %s\n' % str(myItem))
                 myFailCount += 1
 
+        self.showResultReport(myReport, myPassCount, myFailCount)
+
+    def showResultReport(self, myReport, myPassCount, myFailCount):
+        """FIXME: change the name & refactor """
+
         myPath = os.path.join(temp_dir(), 'batch-report.txt')
         myReportFile = file(myPath, 'wt')
         myReportFile.write(' InaSAFE Batch Report File\n')
@@ -295,8 +299,8 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         myUrl = QtCore.QUrl('file:///' + myPath)
         QtGui.QDesktopServices.openUrl(myUrl)
 
-    def runTask(self, theItem, theStatusItem):
-        """ run task """
+    def runTask(self, theItem, theStatusItem, theCount=1):
+        """Run a single task """
 
         # set status to 'running'
         theStatusItem.setText(self.tr('Running'))
@@ -311,7 +315,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
             myFilename = myValue
             # run script
             try:
-                self.runScript(myFilename, self.sboCount.value())
+                self.runScriptTask(myFilename, theCount)
                 # set status to 'OK'
                 theStatusItem.setText(self.tr('OK'))
             except Exception as ex:
@@ -322,7 +326,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
                 myResult = False
         elif isinstance(myValue, dict):
             # Its a dict containing files for a scenario
-            myResult = self.runTextFile(myValue)
+            myResult = self.runSimpleTask(myValue)
             if not myResult:
                 theStatusItem.setText(self.tr('Fail'))
                 myResult = False
@@ -365,15 +369,15 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
 
         LOGGER.debug('Report: %s Done' % theTitle)
 
-
     @pyqtSignature('')
     def on_btnRunSelected_clicked(self):
         """Run the selected item. """
         myCurrentRow = self.tblScript.currentRow()
         myItem = self.tblScript.item(myCurrentRow, 0)
         myStatusItem = self.tblScript.item(myCurrentRow, 1)
+        myCount = self.sboCount.value()
 
-        self.runTask(myItem, myStatusItem)
+        self.runTask(myItem, myStatusItem, myCount)
 
     @pyqtSignature('bool')
     def on_pbnAdvanced_toggled(self, theFlag):
@@ -386,12 +390,11 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         self.adjustSize()
 
 
-def readScenarios(theFilename):
+def readScenarios(theFileName):
     """Read keywords dictionary from file
 
     Args:
-        theFilename: Name of file holding scenarios - should be placed
-            in the script_runner directory.
+        theFilename: Name of file holding scenarios .
 
     Returns:
         Dictionary of with structure like this
@@ -411,8 +414,8 @@ def readScenarios(theFilename):
     """
 
     # Input checks
-    myFilename = os.path.abspath(theFilename)
-    myBasename, myExtension = os.path.splitext(theFilename)
+    myFilename = os.path.abspath(theFileName)
+    myBasename, myExtension = os.path.splitext(theFileName)
 
     myMessage = ('Unknown extension for file %s. '
                  'Expected %s.txt' % (myFilename, myBasename))
