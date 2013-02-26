@@ -133,7 +133,7 @@ searchBoxes: None
 """
         myState = str(myShakeEvent)
         myMessage = (('Expected:\n----------------\n%s'
-                      '\n\nGot\n------------------\n%s\n') %
+                     '\n\nGot\n------------------\n%s\n') %
                      (myExpectedState, myState))
         assert myState == myExpectedState, myMessage
         myPath = myShakeEvent.mmiDataToRaster(theForceFlag=True)
@@ -258,15 +258,15 @@ searchBoxes: None
         myResult, myFatalitiesHtml = myShakeEvent.calculateImpacts()
 
         myExpectedResult = ('/tmp/inasafe/realtime/shakemaps-extracted'
-                            '/20120726022003/impact-nearest.tif')
+                           '/20120726022003/impact-nearest.tif')
         myMessage = 'Got:\n%s\nExpected:\n%s\n' % (myResult, myExpectedResult)
         assert myResult == myExpectedResult, myMessage
 
         myExpectedResult = ('/tmp/inasafe/realtime/shakemaps-extracted'
                             '/20120726022003/impacts.html')
 
-        myMessage = 'Got:\n%s\nExpected:\n%s\n' % (
-            myFatalitiesHtml, myExpectedResult)
+        myMessage = 'Got:\n%s\nExpected:\n%s\n' % (myFatalitiesHtml,
+            myExpectedResult)
         assert myFatalitiesHtml == myExpectedResult, myMessage
 
         myExpectedFatalities = {2: 0.47386375223673427,
@@ -279,7 +279,7 @@ searchBoxes: None
                                 9: 0.0}
 
         myMessage = 'Got:\n%s\nExpected:\n%s\n' % (
-            myShakeEvent.fatalityCounts, myExpectedFatalities)
+                myShakeEvent.fatalityCounts, myExpectedFatalities)
         assert myShakeEvent.fatalityCounts == myExpectedFatalities, myMessage
 
     def testBoundsToRect(self):
@@ -288,7 +288,7 @@ searchBoxes: None
         myShakeEvent = ShakeEvent(myShakeId)
         myBounds = myShakeEvent.boundsToRectangle().toString()
         myExpectedResult = ('122.4500000000000028,-2.2100000000000000 : '
-                            '126.4500000000000028,1.7900000000000000')
+                           '126.4500000000000028,1.7900000000000000')
         myMessage = 'Got:\n%s\nExpected:\n%s\n' % (myBounds, myExpectedResult)
         assert myBounds == myExpectedResult, myMessage
 
@@ -367,11 +367,11 @@ searchBoxes: None
         myTable = myTable.toNewlineFreeString()
         myResult = len(myTable)
         myMessage = ('Got:\n%s\nExpected:\n%s\nFor rendered table:\n%s' %
-                     (myResult, myExpectedResult, myTable))
+                    (myResult, myExpectedResult, myTable))
         assert myResult == myExpectedResult, myMessage
 
         myExpectedPath = ('/tmp/inasafe/realtime/shakemaps-extracted/'
-                          '20120726022003/affected-cities.html')
+                         '20120726022003/affected-cities.html')
         myMessage = 'Got:\n%s\nExpected:\n%s\n' % (myPath, myExpectedPath)
         assert myPath == myExpectedPath, myMessage
 
@@ -382,11 +382,10 @@ searchBoxes: None
         myShakeEvent.calculateImpacts()
         myResult = myShakeEvent.impactTable()
         # TODO compare actual content of impact table...
-        myExpectedResult = (
-            '/tmp/inasafe/realtime/shakemaps-extracted/'
-            '20120726022003/impacts.html')
+        myExpectedResult = ('/tmp/inasafe/realtime/shakemaps-extracted/'
+                           '20120726022003/impacts.html')
         myMessage = ('Got:\n%s\nExpected:\n%s' %
-                     (myResult, myExpectedResult))
+                    (myResult, myExpectedResult))
         assert myResult == myExpectedResult, myMessage
 
     def testEventInfoDict(self):
@@ -394,64 +393,61 @@ searchBoxes: None
         myShakeId = '20120726022003'
         myShakeEvent = ShakeEvent(myShakeId)
         myResult = myShakeEvent.eventDict()
-        myExpectedDict = {
-            'place-name': PyQt4.QtCore.QString(u'n/a'),
-            'depth-name': PyQt4.QtCore.QString(u'Depth'),
-            'fatalities-name': PyQt4.QtCore.QString(
-                u'Estimated fatalities'),
-            'fatalities-count': u'0',  # 44 only after render
-            'elapsed-time': u'',  # empty as it will change
-            'legend-name': 'Population density',
-            'longitude-name': PyQt4.QtCore.QString(u'Longitude'),
-            'located-label': PyQt4.QtCore.QString(u'Located'),
-            'distance-unit': PyQt4.QtCore.QString(u'km'),
-            'bearing-compass': u'n/a',
-            'elapsed-time-name': PyQt4.QtCore.QString(
-                u'Elapsed time since event'),
-            'exposure-table-name': PyQt4.QtCore.QString(
-                u'Estimated number of people exposed to each '
-                u'MMI level'),
-            'longitude-value': u'124\xb027\'0.00"E',
-            'city-table-name': PyQt4.QtCore.QString(
-                u'Places Affected'),
-            'bearing-text': PyQt4.QtCore.QString(u'bearing'),
-            'limitations': PyQt4.QtCore.QString(
-                u'This impact estimation is automatically '
-                u'generated and only takes into account the '
-                u'population and cities affected by different '
-                u'levels of ground shaking. The estimate is '
-                u'based on ground shaking data from BMKG, '
-                u'population density data from asiapop.org, '
-                u'place information from geonames.org and '
-                u'software developed by BNPB. Limitations in '
-                u'the estimates of ground shaking, '
-                u'population  data and place names datasets may'
-                u' result in significant misrepresentation of '
-                u'the on-the-ground situation in the figures '
-                u'shown here. Consequently decisions should not'
-                u' be made solely on the information presented '
-                u'here and should always be verified by ground '
-                u'truthing and other reliable information '
-                u'sources.'),
-            'depth-unit': PyQt4.QtCore.QString(u'km'),
-            'latitude-name': PyQt4.QtCore.QString(u'Latitude'),
-            'mmi': '5.0',
-            'map-name': PyQt4.QtCore.QString(
-            u'Estimated Earthquake Impact'),
-            'date': '26-7-2012',
-            'bearing-degrees': '0.00\xb0',
-            'formatted-date-time': '26-Jul-12 02:15:35 ',
-            'distance': '0.00',
-            'direction-relation': PyQt4.QtCore.QString(u'of'),
-            'credits': PyQt4.QtCore.QString(
-            u'Supported by the Australia-Indonesia Facility'
-            u' for Disaster Reduction, '
-            u'Geoscience Australia and the GFDRR.'),
-            'latitude-value': u'0\xb012\'36.00"S',
-            'time': '2:15:35', 'depth-value': '11.0'}
+        myExpectedDict = {'place-name': PyQt4.QtCore.QString(u'n/a'),
+                          'depth-name': PyQt4.QtCore.QString(u'Depth'),
+                          'fatalities-name': PyQt4.QtCore.QString(
+                              u'Estimated fatalities'),
+                          'fatalities-count': u'0',  # 44 only after render
+                          'elapsed-time': u'',  # empty as it will change
+                          'legend-name': 'Population density',
+                          'longitude-name': PyQt4.QtCore.QString(u'Longitude'),
+                          'located-label': PyQt4.QtCore.QString(u'Located'),
+                          'distance-unit': PyQt4.QtCore.QString(u'km'),
+                          'bearing-compass': u'n/a',
+                          'elapsed-time-name': PyQt4.QtCore.QString(
+                              u'Elapsed time since event'),
+                          'exposure-table-name': PyQt4.QtCore.QString(
+                              u'Estimated number of people exposed to each '
+                              u'MMI level'),
+                          'longitude-value': u'124\xb027\'0.00"E',
+                          'city-table-name': PyQt4.QtCore.QString(
+                              u'Places Affected'),
+                          'bearing-text': PyQt4.QtCore.QString(u'bearing'),
+                          'limitations': PyQt4.QtCore.QString(
+                              u'This impact estimation is automatically '
+                              u'generated and only takes into account the '
+                              u'population and cities affected by different '
+                              u'levels of ground shaking. The estimate is '
+                              u'based on ground shaking data from BMKG, '
+                              u'population density data from asiapop.org, '
+                              u'place information from geonames.org and '
+                              u'software developed by BNPB. Limitations in '
+                              u'the estimates of ground shaking, '
+                              u'population  data and place names datasets may'
+                              u' result in significant misrepresentation of '
+                              u'the on-the-ground situation in the figures '
+                              u'shown here. Consequently decisions should not'
+                              u' be made solely on the information presented '
+                              u'here and should always be verified by ground '
+                              u'truthing and other reliable information '
+                              u'sources.'),
+                          'depth-unit': PyQt4.QtCore.QString(u'km'),
+                          'latitude-name': PyQt4.QtCore.QString(u'Latitude'),
+                          'mmi': '5.0', 'map-name': PyQt4.QtCore.QString(
+                          u'Estimated Earthquake Impact'), 'date': '26-7-2012',
+                          'bearing-degrees': '0.00\xb0',
+                          'formatted-date-time': '26-Jul-12 02:15:35 ',
+                          'distance': '0.00',
+                          'direction-relation': PyQt4.QtCore.QString(u'of'),
+                          'credits': PyQt4.QtCore.QString(
+                              u'Supported by the Australia-Indonesia Facility'
+                              u' for Disaster Reduction, '
+                              u'Geoscience Australia and the GFDRR.'),
+                          'latitude-value': u'0\xb012\'36.00"S',
+                          'time': '2:15:35', 'depth-value': '11.0'}
         myResult['elapsed-time'] = u''
         myMessage = ('Got:\n%s\nExpected:\n%s\n' %
-                     (myResult, myExpectedDict))
+             (myResult, myExpectedDict))
         self.maxDiff = None
         self.assertDictEqual(myExpectedDict, myResult, myMessage)
 
@@ -515,7 +511,6 @@ searchBoxes: None
         self.assertEqual('22', myShakeEvent.hour)
         self.assertEqual('22', myShakeEvent.minute)
         self.assertEqual('37', myShakeEvent.second)
-
 
 if __name__ == '__main__':
     suite = unittest.makeSuite(TestShakeEvent, 'testLocalCities')

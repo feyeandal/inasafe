@@ -262,18 +262,8 @@ def get_free_memory_linux():
 
 def get_free_memory_osx():
     """Return current free memory on the machine for mac os.
-
-    .. warning:: This script is really not robust (Ismail)
-
-    Args:
-        None
-
-    Returns:
-        int: Return in MB unit
-
-    Raises:
-        ValueError: You should wrap calls to this function in a try...except
-
+    Warning : this script is really not robust
+    Return in MB unit
     """
     try:
         p = Popen('echo -e "\n$(top -l 1 | awk \'/PhysMem/\';)\n"',
@@ -285,23 +275,38 @@ def get_free_memory_osx():
     except OSError:
         raise OSError
     stdout_list = stdout_string.split(',')
-    inactive = stdout_list[2]
-    if 'M' in inactive:
-        inactive = inactive.replace('M inactive', '').replace(' ', '')
-    elif 'K' in inactive:
-        inactive = inactive.replace('K inactive', '').replace(' ', '')
-        inactive = float(inactive) / 1024.0  # express as fraction of MB
-    else:
-        inactive = 0  # anything else is assumed invalid
+    inactive = stdout_list[2].replace('M inactive', '').replace(' ', '')
+    free = stdout_list[4].replace('M free.', '').replace(' ', '')
+    return int(inactive) + int(free)
 
-    memfree = stdout_list[4]
-    if 'M' in memfree:
-        memfree = stdout_list[4].replace('M free.', '').replace(' ', '')
-    if 'K' in memfree:
-        memfree = stdout_list[4].replace('K free.', '').replace(' ', '')
-        memfree = int(memfree) / 1024.0  # express as fraction of MB
-    else:
-        memfree = 0  # anything else is assumed invalid
 
-    total_free = int(inactive) + int(memfree)
-    return total_free
+def format_int(x):
+    """Format integer with separator between thousands
+
+    From http://stackoverflow.com/questions/5513615/
+               add-thousands-separators-to-a-number
+
+    # FIXME (Ole)
+    Currently not using locale coz broken
+
+    Instead use this:
+    http://docs.python.org/library/string.html#formatspec
+
+    """
+
+    # This is broken
+    #import locale
+    #locale.setlocale(locale.LC_ALL, '')  # Broken, why?
+    #s = locale.format('%d', x, 1)
+
+    lang = os.getenv('LANG')
+
+    s = '{0:,}'.format(x)
+    #s = '{0:n}'.format(x)  # n means locale aware (read up on this)
+
+    # Quick solution for the moment
+    if lang == 'id':
+        # Replace commas with dots
+        s = s.replace(',', '.')
+
+    return s

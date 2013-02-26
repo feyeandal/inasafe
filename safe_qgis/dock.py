@@ -230,24 +230,24 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         self.runInThreadFlag = myFlag
 
         myFlag = mySettings.value(
-                        'inasafe/visibleLayersOnlyFlag', True).toBool()
+            'inasafe/visibleLayersOnlyFlag', True).toBool()
         self.showOnlyVisibleLayersFlag = myFlag
 
         myFlag = mySettings.value(
-                        'inasafe/setLayerNameFromTitleFlag', True).toBool()
+            'inasafe/setLayerNameFromTitleFlag', True).toBool()
         self.setLayerNameFromTitleFlag = myFlag
 
         myFlag = mySettings.value(
-                            'inasafe/setZoomToImpactFlag', True).toBool()
+            'inasafe/setZoomToImpactFlag', True).toBool()
         self.zoomToImpactFlag = myFlag
         # whether exposure layer should be hidden after model completes
         myFlag = mySettings.value(
-                            'inasafe/setHideExposureFlag', False).toBool()
+            'inasafe/setHideExposureFlag', False).toBool()
         self.hideExposureFlag = myFlag
 
         # whether to clip hazard and exposure layers to the viewport
         myFlag = mySettings.value(
-                            'inasafe/clipToViewport', True).toBool()
+            'inasafe/clipToViewport', True).toBool()
         self.clipToViewport = myFlag
 
         # whether to 'hard clip' layers (e.g. cut buildings in half if they
@@ -258,7 +258,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
 
         # whether to show or not postprocessing generated layers
         myFlag = mySettings.value(
-                            'inasafe/showPostProcLayers', False).toBool()
+            'inasafe/showPostProcLayers', False).toBool()
         self.showPostProcLayers = myFlag
 
         self.getLayers()
@@ -281,9 +281,9 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         """
         if qgisVersion() >= 10800:  # 1.8 or newer
             QgsMapLayerRegistry.instance().layersWillBeRemoved.connect(
-                                                self.layersWillBeRemoved)
+                self.layersWillBeRemoved)
             QgsMapLayerRegistry.instance().layersAdded.connect(
-                                                 self.layersAdded)
+                self.layersAdded)
         # All versions of QGIS
         QtCore.QObject.connect(self.iface.mapCanvas(),
                                QtCore.SIGNAL('layersChanged()'),
@@ -307,31 +307,34 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
 
         """
         try:
-            QtCore.QObject.disconnect(QgsMapLayerRegistry.instance(),
-                               QtCore.SIGNAL('layerWillBeRemoved(QString)'),
-                               self.getLayers)
+            QtCore.QObject.disconnect(
+                QgsMapLayerRegistry.instance(),
+                QtCore.SIGNAL('layerWillBeRemoved(QString)'),
+                self.getLayers)
         except:
             pass
 
         try:
-            QtCore.QObject.disconnect(QgsMapLayerRegistry.instance(),
-                               QtCore.SIGNAL('layerWasAdded(QgsMapLayer)'),
-                               self.getLayers)
+            QtCore.QObject.disconnect(
+                QgsMapLayerRegistry.instance(),
+                QtCore.SIGNAL('layerWasAdded(QgsMapLayer)'),
+                self.getLayers)
         except:
             pass
 
         try:
             QgsMapLayerRegistry.instance().layersWillBeRemoved.disconnect(
-                                                self.layersWillBeRemoved)
+                self.layersWillBeRemoved)
             QgsMapLayerRegistry.instance().layersAdded.disconnect(
-                                                 self.layersAdded)
+                self.layersAdded)
         except:
             pass
 
         try:
-            QtCore.QObject.disconnect(self.iface.mapCanvas(),
-                               QtCore.SIGNAL('layersChanged()'),
-                               self.getLayers)
+            QtCore.QObject.disconnect(
+                self.iface.mapCanvas(),
+                QtCore.SIGNAL('layersChanged()'),
+                self.getLayers)
         except:
             pass
     # pylint: enable=W0702
@@ -367,53 +370,60 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         if myHazardIndex == -1 or myExposureIndex == -1:
             myMessage = '<table class="condensed">'
             myNotes = self.tr(
-            'To use this tool you need to add some layers to your '
-            'QGIS project. Ensure that at least one <em>hazard</em> layer '
-            '(e.g. earthquake MMI) and one <em>exposure</em> layer (e.g. '
-            'dwellings) re available. When you are ready, click the <em>'
-            'run</em> button below.')
+                'To use this tool you need to add some layers to your '
+                'QGIS project. Ensure that at least one <em>hazard</em> layer '
+                '(e.g. earthquake MMI) and one <em>exposure</em> layer (e.g. '
+                'dwellings) re available. When you are ready, click the <em>'
+                'run</em> button below.')
             myMessage += ('<tr><th class="info button-cell">'
-                  + self.tr('Getting started:') + '</th></tr>\n'
-                  '<tr><td>' + myNotes + '</td></tr>\n')
+                          + self.tr('Getting started:') + '</th></tr>\n'
+                          '<tr><td>' + myNotes + '</td></tr>\n')
             myMessage += '</table>'
             return (False, myMessage)
 
         if self.cboFunction.currentIndex() == -1:
             #myHazardFilename = self.getHazardLayer().source()
-            myHazardKeywords = QtCore.QString(str(self.keywordIO.readKeywords(
-                                                    self.getHazardLayer())))
+            myHazardKeywords = QtCore.QString(str(
+                self.keywordIO.readKeywords(
+                self.getHazardLayer())))
             #myExposureFilename = self.getExposureLayer().source()
             myExposureKeywords = QtCore.QString(
-                                            str(self.keywordIO.readKeywords(
-                                                self.getExposureLayer())))
+                str(self.keywordIO.readKeywords(
+                self.getExposureLayer())))
             # TODO refactor impact_functions so it is accessible and user here
             myMessage = '<table class="condensed">'
-            myNotes = self.tr('No functions are available for the inputs '
-                         'you have specified. '
-                         'Try selecting a different combination of inputs. '
-                         'Please consult the user manual <FIXME: add link> '
-                         'for details on what constitute valid inputs for '
-                         'a given risk function.')
-            myMessage += ('<tr><th class="warning button-cell">'
-                  + self.tr('No valid functions:') + '</th></tr>\n'
-                  '<tr><td>' + myNotes + '</td></tr>\n')
-            myMessage += ('<tr><th class="info button-cell">'
-                  + self.tr('Hazard keywords:') + '</th></tr>\n'
-                  '<tr><td>' + myHazardKeywords + '</td></tr>\n')
-            myMessage += ('<tr><th class="info button-cell">'
-                  + self.tr('Exposure keywords:') + '</th></tr>\n'
-                  '<tr><td>' + myExposureKeywords + '</td></tr>\n')
+            myNotes = self.tr(
+                'No functions are available for the inputs '
+                'you have specified. '
+                'Try selecting a different combination of inputs. '
+                'Please consult the user manual <FIXME: add link> '
+                'for details on what constitute valid inputs for '
+                'a given risk function.')
+            myMessage += (
+                '<tr><th class="warning button-cell">'
+                + self.tr('No valid functions:') + '</th></tr>\n'
+                '<tr><td>' + myNotes + '</td></tr>\n')
+            myMessage += (
+                '<tr><th class="info button-cell">'
+                + self.tr('Hazard keywords:') + '</th></tr>\n'
+                '<tr><td>' + myHazardKeywords + '</td></tr>\n')
+            myMessage += (
+                '<tr><th class="info button-cell">'
+                + self.tr('Exposure keywords:') + '</th></tr>\n'
+                '<tr><td>' + myExposureKeywords + '</td></tr>\n')
             myMessage += '</table>'
             return (False, myMessage)
         else:
             # What does this todo mean? TS
             # TODO refactor impact_functions so it is accessible and user here
             myMessage = '<table class="condensed">'
-            myNotes = self.tr('You can now proceed to run your model by'
-                                ' clicking the <em>Run</em> button.')
-            myMessage += ('<tr><th class="info button-cell">'
-                  + self.tr('Ready') + '</th></tr>\n'
-                  '<tr><td>' + myNotes + '</td></tr>\n')
+            myNotes = self.tr(
+                'You can now proceed to run your model by'
+                ' clicking the <em>Run</em> button.')
+            myMessage += (
+                '<tr><th class="info button-cell">'
+                + self.tr('Ready') + '</th></tr>\n'
+                '<tr><td>' + myNotes + '</td></tr>\n')
             myMessage += '</table>'
             return (True, myMessage)
 
@@ -802,9 +812,10 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                 # Provide function title and ID to function combo:
                 # myFunctionTitle is the text displayed in the combo
                 # myFunctionID is the canonical identifier
-                addComboItemInOrder(self.cboFunction,
-                                         myFunctionTitle,
-                                         theItemData=myFunctionID)
+                addComboItemInOrder(
+                    self.cboFunction,
+                    myFunctionTitle,
+                    theItemData=myFunctionID)
         except Exception, e:
             raise e
 
@@ -1155,7 +1166,8 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             return
         except InvalidProjectionError, e:
             self.spawnError(e,
-                self.tr('An error occurred because you are '
+                self.tr(
+                    'An error occurred because you are '
                     'using a layer containing density data (e.g. '
                     'population density) which will not scale '
                     'accurately if we re-project it from its '
@@ -1165,7 +1177,8 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             return
         except MemoryError, e:
             self.spawnError(e,
-                self.tr('An error occurred because it appears that your '
+                self.tr(
+                    'An error occurred because it appears that your '
                     'system does not have sufficient memory. Upgrading '
                     'your computer so that it has more memory may help. '
                     'Alternatively, consider using a smaller geographical '
@@ -1177,17 +1190,17 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         try:
             self.runner = self.calculator.getRunner()
         except (InsufficientParametersError, ReadLayerError), e:
-            self.spawnError(e,
-                self.tr('An exception occurred when setting up '
-                    'the model runner.'))
-            self.analysisDone.emit(False)
+            self.spawnError(
+                e,
+                self.tr(
+                    'An exception occurred when setting up the model runner.'))
             return
 
         QtCore.QObject.connect(self.runner,
                                QtCore.SIGNAL('done()'),
                                self.postProcess)
         QtGui.qApp.setOverrideCursor(
-                QtGui.QCursor(QtCore.Qt.WaitCursor))
+            QtGui.QCursor(QtCore.Qt.WaitCursor))
         self.repaint()
         QtGui.qApp.processEvents()
 
@@ -1209,9 +1222,9 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         except Exception, e:  # pylint: disable=W0703
             self.analysisDone.emit(False)
             # FIXME (Ole): This branch is not covered by the tests
-            self.spawnError(e, self.tr('An exception occurred when starting'
-                                ' the model.'))
-            self.analysisDone.emit(False)
+            self.spawnError(
+                e,
+                self.tr('An exception occurred when starting the model.'))
 
     def spawnError(self, theException, theMessage):
         """A helper to spawn an error and halt processing.
@@ -1287,12 +1300,12 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         Raises:
             Any exceptions raised by the InaSAFE library will be propagated.
         """
-        # import time
-        # startTime = time.clock()
+#        import time
+#        startTime = time.clock()
         myPostprocPolygons = self.mySafePostprocLayer.get_geometry()
         myPolygonsLayer = safe_read_layer(theLayerFilename)
         myRemainingPolygons = numpy.array(myPolygonsLayer.get_geometry())
-        # myRemainingAttributes = numpy.array(myPolygonsLayer.get_data())
+#        myRemainingAttributes = numpy.array(myPolygonsLayer.get_data())
         myRemainingIndexes = numpy.array(range(len(myRemainingPolygons)))
 
         #used for unit tests only
@@ -1564,11 +1577,12 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             # Done was emitted, but no impact layer was calculated
             myResult = self.runner.result()
             myMessage = str(self.tr('No impact layer was calculated. '
-                                    'Error message: %s\n' % str(myResult)))
+                                    'Error message: %1\n').arg(str(myResult)))
             myException = self.runner.lastException()
             if myException is not None:
                 myContext = self.tr('An exception occurred when calculating '
-                                    'the results. %s' % self.runner.result())
+                                    'the results. %1').arg(
+                                    self.runner.result())
                 myMessage = getExceptionWithStacktrace(myException,
                     theHtml=True,
                     theContext=myContext)
@@ -1704,8 +1718,8 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                        '       <td colspan="100%">'
                        '         <strong>'
                        + self.tr('Detailed %1 report').arg(
-                                 self.tr(get_postprocessor_human_name(proc))
-                                    .toLower()) +
+                                 safeTr(get_postprocessor_human_name(proc))
+                                 .lower()) +
                        '         </strong>'
                        '       </td>'
                        '    </tr>'
@@ -1871,6 +1885,9 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         """
         #TODO implement polygon to polygon aggregation (dissolve,
         # line in polygon, point in polygon)
+
+        # Note: The next line raises a pylint error but I am not disabling the
+        # pylint warning because I think we need some redesign here. TS
         global myAttrs
         try:
             self.targetField = self.keywordIO.readKeywords(myQGISImpactLayer,
@@ -1896,7 +1913,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             self.aggregationErrorSkipPostprocessing = myMessage
             return
 
-        # start data retrieval: fetch no geometry and
+        # start data retreival: fetch no geometry and
         # 1 attr for each feature
         myImpactProvider.select([myTargetFieldIndex], QgsRectangle(), False)
         myTotal = 0
@@ -2184,7 +2201,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             self.getAggregationFieldNameSum())
 
         if 'Gender' in myPostProcessors:
-            #look if we need to look for a vaInaSAFEle female ratio in a layer
+            #look if we need to look for a variable female ratio in a layer
             myFemaleRatioIsVariable = False
             try:
                 myFemRatioField = self.postProcessingAttributes[self.defaults[
