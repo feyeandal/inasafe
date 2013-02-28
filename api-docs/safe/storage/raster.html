@@ -75,7 +75,75 @@
 <dl class="class">
 <dt id="safe.storage.raster.Raster">
 <em class="property">class </em><tt class="descclassname">safe.storage.raster.</tt><tt class="descname">Raster</tt><big>(</big><em>data=None</em>, <em>projection=None</em>, <em>geotransform=None</em>, <em>name=None</em>, <em>keywords=None</em>, <em>style_info=None</em><big>)</big><a class="reference internal" href="../../../_modules/safe/storage/raster.html#Raster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.storage.raster.Raster" title="Permalink to this definition">¶</a></dt>
-<dd><p>Internal representation of raster data</p>
+<dd><p>InaSAFE representation of raster data</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>data: Can be either</dt>
+<dd><ul class="first last simple">
+<li>a filename of a raster file format known to GDAL</li>
+<li>an MxN array of raster data</li>
+<li>None (FIXME (Ole): Don&#8217;t think we need this option)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>projection: Geospatial reference in WKT format.</dt>
+<dd><p class="first last">Only used if data is provide as a numeric array,
+if None, WGS84 geographic is assumed</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>geotransform: GDAL geotransform (6-tuple).</dt>
+<dd><dl class="first docutils">
+<dt>(top left x, w-e pixel resolution, rotation,</dt>
+<dd><p class="first last">top left y, rotation, n-s pixel resolution).</p>
+</dd>
+</dl>
+<p class="last">See e.g. <a class="reference external" href="http://www.gdal.org/gdal_tutorial.html">http://www.gdal.org/gdal_tutorial.html</a>
+Only used if data is provide as a numeric array,</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">name: Optional name for layer. If None, basename is used.</p>
+</li>
+<li><dl class="first docutils">
+<dt>keywords: Optional dictionary with keywords that describe the</dt>
+<dd><p class="first">layer. When the layer is stored, these keywords will
+be written into an associated file with extension
+.keywords.</p>
+<p class="last">Keywords can for example be used to display text
+about the layer in a web application.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>style_info: Dictionary with information about how this layer</dt>
+<dd><p class="first last">should be styled. See impact_functions/styles.py
+for examples.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last simple">
+<li>InaSAFE raster layer instance</li>
+</ul>
+</dd>
+<dt>Raises:</dt>
+<dd><ul class="first last simple">
+<li>TypeError, ReadLayerError, WriteLayerError, InaSAFEError,
+GetDataError</li>
+</ul>
+</dd>
+<dt>Note:</dt>
+<dd>If data is a filename, all other arguments are ignored
+as they will be inferred from the file.</dd>
+</dl>
 <dl class="method">
 <dt id="safe.storage.raster.Raster.copy">
 <tt class="descname">copy</tt><big>(</big><big>)</big><a class="reference internal" href="../../../_modules/safe/storage/raster.html#Raster.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#safe.storage.raster.Raster.copy" title="Permalink to this definition">¶</a></dt>
@@ -357,7 +425,7 @@ x (longitude) direction is varying the fastest.</dd>
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Feb 26, 2013.
+      Last updated on Feb 28, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->

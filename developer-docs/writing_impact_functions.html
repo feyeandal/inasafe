@@ -72,7 +72,9 @@
 <p>This document explains the purpose of impact functions and shows how to
 write them. Some familiarity with the Python programming language will
 be helpful to fully appreciate this section. See also <a class="reference internal" href="../user-docs/impact_functions.html#impact-functions"><em>Impact Functions</em></a>
-for information about existing impact functions in InaSAFE.</p>
+for information about existing impact functions in InaSAFE.
+Three examples of impact functions for common combinations of input types are
+given in the sections <a class="reference internal" href="#raster-raster"><em>Impact function for raster hazard and raster exposure data</em></a>, <a class="reference internal" href="#raster-vector"><em>Impact function for raster hazard and vector (point or polygon) exposure data</em></a> and <a class="reference internal" href="#vector-vector"><em>Impact function for polygon hazard and vector point exposure data</em></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This section is still work in progress</p>
@@ -89,17 +91,104 @@ and one exposure layer. All impact functions return</p>
 impact such as estimated fatilities or number of buildings affected.</li>
 </ul>
 <p>Layers can be either raster or vector types. See <a class="reference internal" href="../user-docs/data_types.html#data-types"><em>Data Types</em></a>
-for a complete list of admissible layer types that can be sensibly handled by
-impact functions.</p>
+for a complete list of admissible input layer types that can be sensibly
+handled by impact functions.</p>
 <p>Impact functions also specify which layer types they can work with and thus
 directly control under which circumstances they are made available to the
 user in the impact function menu. See <a class="reference internal" href="#requires"><em>Controlling which layer types impact functions work with</em></a> for more details.</p>
 </div>
 <div class="section" id="creating-impact-functions">
 <h2>Creating impact functions<a class="headerlink" href="#creating-impact-functions" title="Permalink to this headline">¶</a></h2>
-<p>All impact functions follow a particular structure as outlined through example below.
-The example is a simple impact function that calculates an expected number of people
-in need of evacuation in a flood event as well as an estimate of supplies required.</p>
+<p>All impact functions follow a particular overall structure as outlined below:</p>
+<div class="section" id="import-required-modules">
+<h3>Import required modules<a class="headerlink" href="#import-required-modules" title="Permalink to this headline">¶</a></h3>
+<p>This section identifies functionality that is needed for the impact
+function in question.
+As a minimum, one must import functionality specific to the impact
+function framework, but depending on the usage other standard Python modules
+may be imported here. A minimal import section contains:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">safe.impact_functions.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">FunctionProvider</span><span class="p">,</span>
+                                        <span class="n">get_hazard_layer</span><span class="p">,</span>
+                                        <span class="n">get_exposure_layer</span><span class="p">,</span>
+                                        <span class="n">get_question</span><span class="p">,</span>
+                                        <span class="n">get_function_title</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">safe.common.tables</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">TableRow</span>
+</pre></div>
+</div>
+<p>The imported elements are</p>
+<dl class="docutils">
+<dt><a class="reference external" href="http://inasafe.org/api-docs/safe/impact_functions/core.html#safe.impact_functions.core.FunctionProvider">FunctionProvider</a></dt>
+<dd>Base class that all impact function classes must inherit from for InaSAFE to recognise them. Click on link or see examples below for more details.</dd>
+<dt><a class="reference external" href="http://inasafe.org/api-docs/safe/impact_functions/core.html#safe.impact_functions.core.get_hazard_layer">get_hazard_layer</a></dt>
+<dd>Helper function to extract hazard layer from input.</dd>
+<dt><a class="reference external" href="http://inasafe.org/api-docs/safe/impact_functions/core.html#safe.impact_functions.core.get_exposure_layer">get_exposure_layer</a>)</dt>
+<dd>Helper function to extract exposure layer from input.</dd>
+<dt><a class="reference external" href="http://inasafe.org/api-docs/safe/impact_functions/core.html#safe.impact_functions.core.get_question">get_question</a></dt>
+<dd>Function to paraphrase the selected scenario based on titles of hazard, exposure and impact function.</dd>
+<dt><a class="reference external" href="http://inasafe.org/api-docs/safe/impact_functions/core.html#safe.impact_functions.core.get_function_title">get_function_title</a></dt>
+<dd>Helper function which provides title of impact function.</dd>
+<dt><a class="reference external" href="http://inasafe.org/api-docs/safe/common/tables.html#safe.common.tables.Table">Table</a></dt>
+<dd>Class for representing tables for use in the InaSAFE reports.</dd>
+<dt><a class="reference external" href="http://inasafe.org/api-docs/safe/common/tables.html#safe.common.tables.TableRow">TableRow</a></dt>
+<dd>Class for representing one table row in a table.</dd>
+</dl>
+<p>Additionally, and depending on the type of the resulting layer, a typical import section will include either:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">safe.storage.raster</span> <span class="kn">import</span> <span class="n">Raster</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">safe.storage.vector</span> <span class="kn">import</span> <span class="n">Vector</span>
+</pre></div>
+</div>
+<p>See <a class="reference external" href="http://inasafe.org/api-docs/safe/storage/raster.html#module-safe.storage.raster">Raster</a> and <a class="reference external" href="http://inasafe.org/api-docs/safe/storage/raster.html#module-safe.storage.vector">Vector</a> documentation for details.</p>
+</div>
+<div class="section" id="define-the-impact-function-class">
+<h3>Define the impact function class<a class="headerlink" href="#define-the-impact-function-class" title="Permalink to this headline">¶</a></h3>
+<p>The impact function is represented by a Python class. It must inherit from the class <tt class="docutils literal"><span class="pre">FunctionProvider</span></tt>
+which is what will make it part of the InaSAFE system:</p>
+<div class="highlight-python"><pre>class SomeImpactFunction(FunctionProvider):
+    """Example impact function</pre>
+</div>
+<p>The impact function class must have some special tags in its docstring which are used to identify it and decide which layer types it is valid for. They are:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Name of the individual or organisation who wrote the impact function</td>
+</tr>
+<tr class="field-even field"><th class="field-name">rating:</th><td class="field-body">A numeric rating from 1 to 4 signifying a quality rating of the function (1 is worst and 4 is best). This is used in conjunction with similar ratings of input layers and combined into a rating of the resulting impact layer. The idea is that a final result is never better than the worst of the inputs and the calculation.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">param requires:</th><td class="field-body">This precedes an arbitrary boolean expression combining statements involving keyword and values. The expression must be valid Python statements and the keywords and values must be defined for each input layer - e.g. by using the keywords editor or by manually editing the keywords file. One keyword, layertype, which takes the values &#8216;raster&#8217; or &#8216;vector&#8217; is always present and is inferred automatically by InaSAFE. For more information about keywords please refer to <a class="reference internal" href="../user-docs/keywords.html#keywords-system"><em>Keywords System</em></a> and refer to the examples below.</td>
+</tr>
+</tbody>
+</table>
+<p>Following the docstring is a collection of variables that define and document the impact function. They are</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">title:</th><td class="field-body">Specifies the title of the impact function as displayed in the InaSAFE user interface</td>
+</tr>
+<tr class="field-even field"><th class="field-name">parameters:</th><td class="field-body">A (possibly ordered) dictionary of parameters that can be configured from the
+user interface. Anything listed here can be modified at runtime by clicking the pencil
+symbol next to the impact function. In this case it is the threshold used to define
+what water level signals evacuation.</td>
+</tr>
+</tbody>
+</table>
+<p>In addition, there is a collection of text variables used for various levels of documentation of this impact function. They are <tt class="docutils literal"><span class="pre">synopsis</span></tt>, <tt class="docutils literal"><span class="pre">actions</span></tt>, <tt class="docutils literal"><span class="pre">detailed_description</span></tt>, <tt class="docutils literal"><span class="pre">permissible_hazard_input</span></tt>, <tt class="docutils literal"><span class="pre">permissible_exposure_input</span></tt> and <tt class="docutils literal"><span class="pre">limitation</span></tt>. See examples below for more possible usages.</p>
+</div>
+<div class="section" id="impact-function-algorithm">
+<h3>Impact function algorithm<a class="headerlink" href="#impact-function-algorithm" title="Permalink to this headline">¶</a></h3>
+<p>TBA</p>
+</div>
+</div>
+<div class="section" id="impact-function-for-raster-hazard-and-raster-exposure-data">
+<span id="raster-raster"></span><h2>Impact function for raster hazard and raster exposure data<a class="headerlink" href="#impact-function-for-raster-hazard-and-raster-exposure-data" title="Permalink to this headline">¶</a></h2>
+<p>The example below is a simple impact function that calculates an
+expected number of people in need of evacuation in a flood event as
+well as an estimate of supplies required.</p>
 <div class="section" id="import-section">
 <h3>Import section<a class="headerlink" href="#import-section" title="Permalink to this headline">¶</a></h3>
 <p>This section identifies functionality that is needed for the impact function in question.
@@ -121,83 +210,54 @@ to form the resulting impact layer:</p>
 <div class="section" id="impact-function-class">
 <h3>Impact function class<a class="headerlink" href="#impact-function-class" title="Permalink to this headline">¶</a></h3>
 <p>The impact function itself is embodied in a Python class with a doc string:</p>
-<div class="highlight-python"><pre>class FloodPopulationEvacuationFunction(FunctionProvider):
-    """Impact function for flood evacuation (tutorial)
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">FloodPopulationEvacuationFunction</span><span class="p">(</span><span class="n">FunctionProvider</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Impact function for flood evacuation (tutorial)</span>
 
-    :author AIFDR
-    :rating 4
-    :param requires category=='hazard' and \
-                    subcategory in ['flood', 'tsunami'] and \
-                    layertype=='raster' and \
-                    unit=='m'
+<span class="sd">    :author AIFDR</span>
+<span class="sd">    :rating 4</span>
+<span class="sd">    :param requires category==&#39;hazard&#39; and \</span>
+<span class="sd">                    subcategory in [&#39;flood&#39;, &#39;tsunami&#39;] and \</span>
+<span class="sd">                    layertype==&#39;raster&#39; and \</span>
+<span class="sd">                    unit==&#39;m&#39;</span>
 
-    :param requires category=='exposure' and \
-                    subcategory=='population' and \
-                    layertype=='raster'
-    """
+<span class="sd">    :param requires category==&#39;exposure&#39; and \</span>
+<span class="sd">                    subcategory==&#39;population&#39; and \</span>
+<span class="sd">                    layertype==&#39;raster&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    title = 'be evacuated'
+    <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;be evacuated&#39;</span>
 
-    synopsis = ('To assess the impacts of (flood or tsunami) inundation '
-                'on population.')
-    actions = ('Provide details about how many people would likely need '
-               'to be evacuated, where they are located and what resources '
-               'would be required to support them.')
-    detailed_description = ('The population subject to inundation '
-                            'exceeding a threshold (default 1m) is '
-                            'calculated and returned as a raster layer.'
-                            'In addition the total number and the required '
-                            'needs in terms of the BNPB (Perka 7) ')
+    <span class="n">synopsis</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;To assess the impacts of (flood or tsunami) inundation &#39;</span>
+                <span class="s">&#39;on population.&#39;</span><span class="p">)</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Provide details about how many people would likely need &#39;</span>
+               <span class="s">&#39;to be evacuated, where they are located and what resources &#39;</span>
+               <span class="s">&#39;would be required to support them.&#39;</span><span class="p">)</span>
+    <span class="n">detailed_description</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;The population subject to inundation &#39;</span>
+                            <span class="s">&#39;exceeding a threshold (default 1m) is &#39;</span>
+                            <span class="s">&#39;calculated and returned as a raster layer.&#39;</span>
+                            <span class="s">&#39;In addition the total number and the required &#39;</span>
+                            <span class="s">&#39;needs in terms of the BNPB (Perka 7) &#39;</span><span class="p">)</span>
 
-    permissible_hazard_input = ('A hazard raster layer where each cell '
-                                'represents flood depth (in meters).')
-    permissible_exposure_input = ('An exposure raster layer where each '
-                                  'cell '
-                                  'represent population count.')
-    limitation = ('The default threshold of 1 meter was selected based on '
-                  'consensus, not hard evidence.')
+    <span class="n">permissible_hazard_input</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;A hazard raster layer where each cell &#39;</span>
+                                <span class="s">&#39;represents flood depth (in meters).&#39;</span><span class="p">)</span>
+    <span class="n">permissible_exposure_input</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;An exposure raster layer where each &#39;</span>
+                                  <span class="s">&#39;cell &#39;</span>
+                                  <span class="s">&#39;represent population count.&#39;</span><span class="p">)</span>
+    <span class="n">limitation</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;The default threshold of 1 meter was selected based on &#39;</span>
+                  <span class="s">&#39;consensus, not hard evidence.&#39;</span><span class="p">)</span>
 
-    parameters = {'threshold': 1.0}
-"""</pre>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;threshold&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
+</pre></div>
 </div>
-<p>The class name <tt class="docutils literal"><span class="pre">FloodPopulationEvacuationFunction</span></tt> is used to uniquely identify
-this impact function
-and it is important to make sure that no two impact functions share the same class name.
-If they do, one of them will be ignored.</p>
-<p>The impact function class must inherit by the class <tt class="docutils literal"><span class="pre">FunctionProvider</span></tt> which is what will
-make it part of the InaSAFE system.</p>
-<p>The doc string can contain any text documenting the impact function, but it must contain
-some special symbols recognised by InaSAFE. They are</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Name of the individual or organisation who wrote the impact function</td>
-</tr>
-<tr class="field-even field"><th class="field-name">rating:</th><td class="field-body">A numeric rating from 1 to 4 signifying a quality rating of the function. This is used in conjunction with similar ratings of input layers and combined into a rating of the resulting impact layer. The idea is that a final result is never better than the worst of the inputs and the calculation.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">param requires:</th><td class="field-body">This is a list of keyword value pairs that input layers must fulfil for this impact function. In this case, there must be a hazard layer with subcategory of either &#8216;flood&#8217; or &#8216;tsunami&#8217;, with layertype being &#8216;raster&#8217; and unit of meters. The other input must be tagged as &#8216;exposure&#8217; with subcategory &#8216;population&#8217; and also having layertype &#8216;raster&#8217;. Except for layertype which is automatically inferred by InaSAFE all other keywords must be specified with each layer e.g. by using the InaSAFE keyword editor or by manually editing the keywords file. For more information about keywords please refer to <a class="reference internal" href="../user-docs/keywords.html#keywords-system"><em>Keywords System</em></a>.</td>
-</tr>
-</tbody>
-</table>
-<p>Following the docstrings are a collection of variables that define and document the impact function. They are</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">title:</th><td class="field-body">Specifies the title of the impact function as displayed in the InaSAFE user interface</td>
-</tr>
-<tr class="field-even field"><th class="field-name">parameters:</th><td class="field-body">A (possibly ordered) dictionary of parameters that can be configured from the
-user interface. Anything listed here can be modified at runtime by clicking the pencil
-symbol next to the impact function. In this case it is the threshold used to define
-what water level signals evacuation.</td>
-</tr>
-</tbody>
-</table>
-<p>In addition, there is a collection of text variables used for various levels of documentation of this impact function.</p>
+<p>The class name <tt class="docutils literal"><span class="pre">FloodPopulationEvacuationFunction</span></tt> is used to uniquely
+identify this impact function and it is important to make sure that no
+two impact functions share the same class name. If they do, one of them
+will be ignored.</p>
+<p>The doc string defines the author, the rating and the requirements that input layers must fulfil for this impact function. In this case, there must be a hazard layer with subcategory of either &#8216;flood&#8217; or &#8216;tsunami&#8217;, with layertype being &#8216;raster&#8217; and unit of meters. The other input must be tagged as &#8216;exposure&#8217; with subcategory &#8216;population&#8217; and also having layertype &#8216;raster&#8217;. Except for layertype which is automatically inferred by InaSAFE all other keywords must be specified with each layer e.g. by using the InaSAFE keyword editor or by manually editing the keywords file. See also <a class="reference internal" href="../user-docs/keywords.html#keywords-system"><em>Keywords System</em></a>.</p>
+<p>The rest of this section comprise the documentation variables and the parameters dictionary which in this case makes one variable available for interactive modification from the user interface. In this case, the threshold used to determine whether people should be evacuated is made configurable. The default value is set to 1m.</p>
 </div>
-<div class="section" id="impact-function-algorithm">
-<h3>Impact function algorithm<a class="headerlink" href="#impact-function-algorithm" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h3>Impact function algorithm<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>The actual calculation of the impact function is specified as a method call called <tt class="docutils literal"><span class="pre">run</span></tt>. This
 method will be called by InaSAFE with a list of the 2 selected layers:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">):</span>
@@ -261,7 +321,7 @@ compatible and be used safely in numerical calculations:</p>
 </table>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last"># FIXME (Ole): Tim - how do we cross reference docstrings?</p>
+<p class="last"># FIXME (Ole): Tim - how do we cross reference docstrings? The problem is that we can&#8217;t drop labels into them because they are auto-generated?</p>
 </div>
 <p>See :ref:/api-docs/safe/storage/raster.html#safe.storage.raster.Raster.get_data for more details on
 the <tt class="docutils literal"><span class="pre">get_data()</span></tt> method.</p>
@@ -411,6 +471,43 @@ the same projection and geotransform as the hazard layer, give it a suitable nam
 </div>
 </div>
 </div>
+<div class="section" id="impact-function-for-raster-hazard-and-vector-point-or-polygon-exposure-data">
+<span id="raster-vector"></span><h2>Impact function for raster hazard and vector (point or polygon) exposure data<a class="headerlink" href="#impact-function-for-raster-hazard-and-vector-point-or-polygon-exposure-data" title="Permalink to this headline">¶</a></h2>
+<p>The example below is a simple impact function that identifies which
+buildings (vector data) will be affected by earthquake ground shaking
+(raster data).</p>
+<p>TBA</p>
+</div>
+<div class="section" id="impact-function-for-polygon-hazard-and-vector-point-exposure-data">
+<span id="vector-vector"></span><h2>Impact function for polygon hazard and vector point exposure data<a class="headerlink" href="#impact-function-for-polygon-hazard-and-vector-point-exposure-data" title="Permalink to this headline">¶</a></h2>
+<p>The example below is a simple impact function that identifies which
+buildings (vector data) will be affected by certain volcanic hazard areas (vector polygon data).</p>
+<p>TBA</p>
+</div>
+<div class="section" id="assigning-hazard-values-to-exposure-data">
+<h2>Assigning hazard values to exposure data<a class="headerlink" href="#assigning-hazard-values-to-exposure-data" title="Permalink to this headline">¶</a></h2>
+<p>In many cases, there is a need to tag the exposure layer with values from the hazard layer in order to calculate the impact.
+Typical examples include interpolation from gridded hazard data to point data (interpolation), from polygon hazard data to point data or, indeed, from polygon data to gridded population data. InaSAFE provides one general mechanism for this purpose called <a href="#id3"><span class="problematic" id="id4">``</span></a>assign_hazard_values_to_exposure_data&#8217;&#8216;and it is typically called in the beginning of the impact function to generate an intermediate layer that has all information about both hazard and exposure. A call looks like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">I</span> <span class="o">=</span> <span class="n">assign_hazard_values_to_exposure_data</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span>
+                                          <span class="n">attribute_name</span><span class="o">=</span><span class="s">&#39;depth&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case H could be either raster or polygon vector data and E polygon or point vector data. In either case the result I
+represents the exposure data but with an additional attribute added containing the hazard level. If H is polygon data, all its attributes will
+be transferred to I. If H is raster_data and hence has only one value, that value will be assigned to a new attribute in I as specified by
+the keyword argument attribute_name - in this example &#8216;depth&#8217;. See full documentation of this function in section <a class="reference internal" href="../user-docs/data_types.html#data-types"><em>Data Types</em></a>.</p>
+</div>
+<div class="section" id="deploying-new-impact-functions">
+<h2>Deploying new impact functions<a class="headerlink" href="#deploying-new-impact-functions" title="Permalink to this headline">¶</a></h2>
+<p>To make a new impact function visible to InaSAFE it has to be placed in a subdirectory under
+safe/impact_functions relative to where it is installed. This will typically be something like
+.qgis/python/plugins/inasafe.</p>
+<p>There are a number of subdirectories with existing impact functions organised by hazard.
+The new impact function can use either of them or be located in a new subdirectory with
+the same __init_.py file as the existing ones.</p>
+<p>Next time InaSAFE is loaded, the new impact function will be included and provided its
+keywords match those of the input layers it will be available to run.</p>
+</div>
 <div class="section" id="controlling-which-layer-types-impact-functions-work-with">
 <span id="requires"></span><h2>Controlling which layer types impact functions work with<a class="headerlink" href="#controlling-which-layer-types-impact-functions-work-with" title="Permalink to this headline">¶</a></h2>
 <p>Each impact function has a requirements section embedded in its doc string
@@ -449,12 +546,22 @@ whose associated keywords match these requirements. For more information about k
 <li><a class="reference internal" href="#">Writing Impact Functions</a><ul>
 <li><a class="reference internal" href="#what-is-an-impact-function">What is an impact function?</a></li>
 <li><a class="reference internal" href="#creating-impact-functions">Creating impact functions</a><ul>
+<li><a class="reference internal" href="#import-required-modules">Import required modules</a></li>
+<li><a class="reference internal" href="#define-the-impact-function-class">Define the impact function class</a></li>
+<li><a class="reference internal" href="#impact-function-algorithm">Impact function algorithm</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#impact-function-for-raster-hazard-and-raster-exposure-data">Impact function for raster hazard and raster exposure data</a><ul>
 <li><a class="reference internal" href="#import-section">Import section</a></li>
 <li><a class="reference internal" href="#impact-function-class">Impact function class</a></li>
-<li><a class="reference internal" href="#impact-function-algorithm">Impact function algorithm</a></li>
+<li><a class="reference internal" href="#id2">Impact function algorithm</a></li>
 <li><a class="reference internal" href="#output">Output</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#impact-function-for-raster-hazard-and-vector-point-or-polygon-exposure-data">Impact function for raster hazard and vector (point or polygon) exposure data</a></li>
+<li><a class="reference internal" href="#impact-function-for-polygon-hazard-and-vector-point-exposure-data">Impact function for polygon hazard and vector point exposure data</a></li>
+<li><a class="reference internal" href="#assigning-hazard-values-to-exposure-data">Assigning hazard values to exposure data</a></li>
+<li><a class="reference internal" href="#deploying-new-impact-functions">Deploying new impact functions</a></li>
 <li><a class="reference internal" href="#controlling-which-layer-types-impact-functions-work-with">Controlling which layer types impact functions work with</a></li>
 </ul>
 </li>
@@ -515,7 +622,7 @@ whose associated keywords match these requirements. For more information about k
 
     <div class="footer">
         &copy; Copyright 2012, BNPB/AIFDR/GFDRR.
-      Last updated on Feb 26, 2013.
+      Last updated on Feb 28, 2013.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
     <!-- cloud_sptheme 1.3 -->
