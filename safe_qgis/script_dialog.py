@@ -53,7 +53,6 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         """
         QDialog.__init__(self, theParent)
         self.setupUi(self)
-        self.setWindowTitle(self.tr('Script Dialog'))
         LOGGER.info('Script runner dialog started')
 
         self.iface = theIface
@@ -76,9 +75,14 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         self.leSourceDir.textChanged.connect(self.saveState)
         self.leSourceDir.textChanged.connect(self.populateTable)
 
+        #self.tblScript.roActivated.connect(lambda: self.btnRunSelected.setEnabled(True))
+        #self.tblScript.horizontalHeader().sectionClicked.connect(lambda: self.btnRunSelected.setEnabled(True))
+        self.btnRunSelected.setEnabled(True)
+
         self.restoreState()
 
     def restoreState(self):
+        LOGGER.info("restore state")
         # get the base data path from settings if available
         mySettings = QtCore.QSettings()
 
@@ -92,6 +96,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         self.leBaseDataDir.setText(myPath.toString())
 
     def saveState(self):
+        LOGGER.info("save state")
         # get the base data path from settings if available
         mySettings = QtCore.QSettings()
 
@@ -230,8 +235,9 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         # always run in new project
         self.iface.newProject()
 
-        LOGGER.info('Loading layers: \nRoot: %s\n%s' % (
-                    myRoot, myPaths))
+        myMessage = 'Loading layers: \nRoot: %s\n%s' % (myRoot, myPaths)
+        LOGGER.info(myMessage)
+
         try:
             macro.addLayers(myRoot, myPaths)
         except QgisPathError:
@@ -251,6 +257,13 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
             myResult = macro.setAggregationLayer(theItem['aggregation'])
             if not myResult:
                 return False
+
+        # if 'extent' in theItem:
+        #     from qgis.utils import iface
+        #     TODO: convert extent to QRect
+        #     iface.mapCanvas().setExtent()
+
+        macro.runScenario()
 
         return True
 
@@ -330,44 +343,55 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
             if not myResult:
                 theStatusItem.setText(self.tr('Fail'))
                 myResult = False
+            else:
+                myPath = str(self.leBaseDataDir.text())
+                myTitle = str(theItem.text())
+
+                # NOTE(gigih):
+                # Usually after analysis is done, the impact layer
+                # become the active layer.
+                myImpactLayer = self.iface.activeLayer()
+                self.createPDFReport(myTitle, myPath, myImpactLayer)
         else:
             LOGGER.exception('data type not supported: "%s"' % myValue)
             myResult = False
 
-        ## save pdf
-        ##FIXME: not working....
-        if myResult:
-            myPath = str(self.leBaseDataDir.text())
-            myTitle = str(theItem.text())
-            self.createReport(myTitle, myPath)
-
         return myResult
 
-    def createReport(self, theTitle, theBasePath):
-        """Create PDF report.
-        initial implementation of pdf report.
+    def createPDFReport(self, theTitle, theBasePath, theImpactLayer):
+        """Create PDF report from impact layer.
+        Create map & table report PDF based from theImpactLayer data.
+
+        Params:
+            * theTitle : the report title.
+                         Output filename is based from this variable.
+            * theBasePath : output directory
+            * theImpactLayer : impact layer instance.
 
         See also:
-            dock.printMap
+            Dock.printMap()
         """
+
         myMap = Map(self.iface)
-        myMap.setImpactLayer(self.iface.activeLayer())
+
+        # FIXME: check if theImpactLayer is the real impact layer...
+        myMap.setImpactLayer(theImpactLayer)
 
         LOGGER.debug('Create Report: %s' % theTitle)
 
-        myFileName = theTitle + '.pdf'
-        myFileName = myFileName.replace(' ', '_')
-        myMapPdfFilePath = os.path.join(theBasePath, myFileName)
+        # create map pdf
+        myFileName = theTitle.replace(' ', '_')
+        myFileName = myFileName + '.pdf'
+        myMapPath = os.path.join(theBasePath, myFileName)
+        myMap.printToPdf(myMapPath)
 
-        myTableFilename = os.path.splitext(myMapPdfFilePath)[0] + '_table.pdf'
-        myHtmlRenderer = HtmlRenderer(thePageDpi=myMap.pageDpi)
-        myKeywords = myMap.keywordIO.readKeywords(self.iface.activeLayer())
-        myHtmlRenderer.printImpactTable(
-            myKeywords, theFilename=myTableFilename)
+        # create table report pdf
+        myTablePath = os.path.splitext(myMapPath)[0] + '_table.pdf'
+        myHtmlRenderer = HtmlRenderer(myMap.pageDpi)
+        myKeywords = myMap.keywordIO.readKeywords(theImpactLayer)
+        myHtmlRenderer.printImpactTable(myKeywords, myTablePath)
 
-        myMap.printToPdf(myMapPdfFilePath)
-
-        LOGGER.debug('Report: %s Done' % theTitle)
+        LOGGER.debug("report done %s %s" % (myMapPath, myTablePath))
 
     @pyqtSignature('')
     def on_btnRunSelected_clicked(self):
