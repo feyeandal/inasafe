@@ -20,7 +20,9 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
 import os
 import sys
 import logging
-import re
+
+from StringIO import StringIO
+from ConfigParser import ConfigParser, MissingSectionHeaderError
 
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import (pyqtSignature, QSettings, QVariant, QString, Qt)
@@ -73,6 +75,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         self.adjustSize()
 
         self.restoreState()
+        self.populateTable(str(self.leSourceDir.text()))
 
         # connect signal to slot
         self.leBaseDataDir.textChanged.connect(self.saveState)
@@ -528,64 +531,24 @@ def readScenarios(theFileName):
         LOGGER.error(myMessage)
         return
 
-    if not os.path.isfile(myFilename):
-        return {}
-
-    # Read all entries
     myBlocks = {}
-    myKeys = {}
-    myFile = open(myFilename, 'r')
-    myBlock = None
-    myFirstKeys = None
-    for line in myFile.readlines():
-        # Remove trailing (but not preceding!) whitespace
-        # FIXME: Can be removed altogether
-        myLine = line.rstrip()
+    myParser = ConfigParser()
 
-        # Ignore blank lines
-        if myLine == '':
-            continue
+    # Parse the file content.
+    # if the content don't have section header
+    # we use the filename.
+    try:
+        myParser.read(myFilename)
+    except MissingSectionHeaderError:
+        mySection = '[%s]\n' % myBasename
+        myContent = mySection + open(myFilename).read()
+        myParser.read(StringIO(myContent))
 
-        # Check if it is an ini style group header
-        myBlockFlag = re.search(r'^\[.*]$', myLine, re.M | re.I)
-
-        if myBlockFlag:
-            # Write the old block if it exists - must have a current
-            # block to prevent orphans
-            if len(myKeys) > 0 and myBlock is not None:
-                myBlocks[myBlock] = myKeys
-            if myFirstKeys is None and len(myKeys) > 0:
-                myFirstKeys = myKeys
-                # Now set up for a new block
-            myBlock = myLine[1:-1]
-            # Reset the keys each time we encounter a new block
-            # until we know we are on the desired one
-            myKeys = {}
-            continue
-
-        if ':' not in myLine:
-            continue
-        else:
-            # Get splitting point
-            myIndex = myLine.find(':')
-
-            # Take key as everything up to the first ':'
-            myKey = myLine[:myIndex]
-
-            # Take value as everything after the first ':'
-            myValue = myLine[myIndex + 1:].strip()
-
-        # Add entry to dictionary
-        myKeys[myKey] = myValue
-
-    myFile.close()
-
-    # Write out any unfinalised block data
-    if len(myKeys) > 0 and myBlock is not None:
-        myBlocks[myBlock] = myKeys
-    # I think we can delete this? TS
-    if myFirstKeys is None:
-        myFirstKeys = myKeys
+    for mySection in myParser.sections():
+        myItems = myParser.items(mySection)
+        myBlocks[mySection] = {}
+        for myKey, myValue in myItems:
+            myBlocks[mySection][myKey] = myValue
 
     # Ok we have generated a structure that looks like this:
     # myBlocks = {{ 'foo' : { 'a': 'b', 'c': 'd'},
