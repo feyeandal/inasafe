@@ -75,7 +75,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         self.adjustSize()
 
         self.restoreState()
-        self.populateTable(str(self.leSourceDir.text()))
+        self.populateTable(self.leSourceDir.text())
 
         # connect signal to slot
         self.leBaseDataDir.textChanged.connect(self.saveState)
@@ -130,7 +130,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         """ Populate table with files from theBasePath directory.
 
         Args:
-            theBasePath - path where .txt & .py reside
+            theBasePath : QString - path where .txt & .py reside
 
         Returns:
             None
@@ -169,10 +169,6 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         python scripts with it. As such you can use it it automate
         activities in QGIS, for example automatically running an impact
         assessment in response to an event.
-
-        .. note:: This is a note.
-
-        .. warning:: This is a warning.
 
         Args:
            * theFilename: str - the script filename.
@@ -300,10 +296,10 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
                 myReport.append('F: %s\n' % str(myItem))
                 myFailCount += 1
 
-        self.showResultReport(myReport, myPassCount, myFailCount)
+        self.showBatchReport(myReport, myPassCount, myFailCount)
 
-    def showResultReport(self, myReport, myPassCount, myFailCount):
-        """FIXME: change the name & refactor """
+    def showBatchReport(self, myReport, myPassCount, myFailCount):
+        """Display a report status of Batch Runner"""
 
         myPath = os.path.join(temp_dir(), 'batch-report.txt')
         myReportFile = file(myPath, 'wt')
@@ -407,6 +403,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
             myPDFPaths = [x for x in myPDFPaths if os.path.exists(x)]
             myPaths.extend(myPDFPaths)
 
+        # if reports are not founds, just return True
         if len(myPaths) == 0:
             return True
 
@@ -523,13 +520,6 @@ def readScenarios(theFileName):
 
     # Input checks
     myFilename = os.path.abspath(theFileName)
-    myBasename, myExtension = os.path.splitext(theFileName)
-
-    myMessage = ('Unknown extension for file %s. '
-                 'Expected %s.txt' % (myFilename, myBasename))
-    if '.txt' != myExtension:
-        LOGGER.error(myMessage)
-        return
 
     myBlocks = {}
     myParser = ConfigParser()
@@ -540,9 +530,11 @@ def readScenarios(theFileName):
     try:
         myParser.read(myFilename)
     except MissingSectionHeaderError:
-        mySection = '[%s]\n' % myBasename
+        myBaseName = os.path.basename(theFileName)
+        myName = os.path.splitext(myBaseName)[0]
+        mySection = '[%s]\n' % myName
         myContent = mySection + open(myFilename).read()
-        myParser.read(StringIO(myContent))
+        myParser.readfp(StringIO(myContent))
 
     for mySection in myParser.sections():
         myItems = myParser.items(mySection)
