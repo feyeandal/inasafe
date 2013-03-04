@@ -55,7 +55,6 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         """
         QDialog.__init__(self, theParent)
         self.setupUi(self)
-        LOGGER.info('Script runner dialog started')
 
         self.iface = theIface
         myRoot = os.path.dirname(__file__)
@@ -73,6 +72,8 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
 
         self.adjustSize()
 
+        self.restoreState()
+
         # connect signal to slot
         self.leBaseDataDir.textChanged.connect(self.saveState)
 
@@ -83,17 +84,14 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         #self.tblScript.horizontalHeader().sectionClicked.connect(lambda: self.btnRunSelected.setEnabled(True))
         self.btnRunSelected.setEnabled(True)
 
-        self.restoreState()
-
     def restoreState(self):
         """Restore GUI state from configuration file"""
-        LOGGER.info("restore state")
-        # get the base data path from settings if available
+
         mySettings = QSettings()
 
         # restore last source path
         myLastSourcePath = mySettings.value('inasafe/lastSourceDir',
-                                            self.defaultSourceDir)
+                                             self.defaultSourceDir)
         self.leSourceDir.setText(myLastSourcePath.toString())
 
         # restore path for layer data & pdf output
@@ -102,15 +100,11 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
 
     def saveState(self):
         """Save current state of GUI to configuration file"""
-        LOGGER.info("save state")
-        # get the base data path from settings if available
+
         mySettings = QSettings()
 
         mySettings.setValue('inasafe/lastSourceDir', self.leSourceDir.text())
         mySettings.setValue('inasafe/baseDataDir', self.leBaseDataDir.text())
-
-        LOGGER.info(" lastSourceDir: %s" % self.leSourceDir.text())
-        LOGGER.info(" baseDataDir: %s" % self.leBaseDataDir.text())
 
     def showDirectoryDialog(self, theLineEdit, theTitle):
         """ Show a directory selection dialog.
@@ -632,7 +626,11 @@ def appendRow(theTable, theLabel, theData):
 
 if __name__ == '__main__':
     from PyQt4.QtGui import QApplication
+    from PyQt4.QtCore import QCoreApplication
     import sys
+
+    QCoreApplication.setOrganizationDomain('aifdr')
+    QCoreApplication.setApplicationName('inasafe')
 
     app = QApplication(sys.argv)
     a = ScriptDialog()
