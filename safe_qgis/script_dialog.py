@@ -58,7 +58,9 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         LOGGER.info('Script runner dialog started')
 
         self.iface = theIface
-        self.defaultSourceDir = getScriptPath()
+        myRoot = os.path.dirname(__file__)
+        self.defaultSourceDir = os.path.abspath(
+            os.path.join(myRoot, '..', 'script_runner'))
 
         myHeaderView = self.tblScript.horizontalHeader()
         myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch)
@@ -84,6 +86,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         self.restoreState()
 
     def restoreState(self):
+        """Restore GUI state from configuration file"""
         LOGGER.info("restore state")
         # get the base data path from settings if available
         mySettings = QSettings()
@@ -98,6 +101,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         self.leBaseDataDir.setText(myPath.toString())
 
     def saveState(self):
+        """Save current state of GUI to configuration file"""
         LOGGER.info("save state")
         # get the base data path from settings if available
         mySettings = QSettings()
@@ -105,16 +109,19 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         mySettings.setValue('inasafe/lastSourceDir', self.leSourceDir.text())
         mySettings.setValue('inasafe/baseDataDir', self.leBaseDataDir.text())
 
+        LOGGER.info(" lastSourceDir: %s" % self.leSourceDir.text())
+        LOGGER.info(" baseDataDir: %s" % self.leBaseDataDir.text())
+
     def showDirectoryDialog(self, theLineEdit, theTitle):
         """ Show a directory selection dialog.
         This function will show the dialog then set theLineEdit widget
         text with output from the dialog.
 
         Params:
-            theLineEdit : QLineEdit widget instance
+            * theLineEdit - QLineEdit widget instance
+            * theTitle - title of dialog
         """
         myPath = theLineEdit.text()
-        # myTitle = self.tr('Set the base directory for data packages')
         myNewPath = QFileDialog.getExistingDirectory(
             self,
             theTitle,
@@ -126,7 +133,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         """ Populate table with files from theBasePath directory.
 
         Args:
-            None
+            theBasePath - path where .txt & .py reside
 
         Returns:
             None
@@ -201,7 +208,13 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
             myFunction()
 
     def runSimpleTask(self, theItem):
-        """Run a simple scenario """
+        """Run a simple scenario.
+
+        Params:
+            theItem - a dictionary contains the scenario configuration
+        Returns:
+            True if success, otherwise return False.
+        """
         myRoot = str(self.leBaseDataDir.text())
 
         myPaths = []
@@ -350,7 +363,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
 
                 # NOTE(gigih):
                 # Usually after analysis is done, the impact layer
-                # become the active layer.
+                # become the active layer. <--- WRONG
                 myImpactLayer = self.iface.activeLayer()
                 self.createPDFReport(myTitle, myPath, myImpactLayer)
         else:
@@ -406,6 +419,8 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
 
     @pyqtSignature('bool')
     def on_pbnAdvanced_toggled(self, theFlag):
+        """Autoconnect slot activated when advanced button is clicked"""
+
         if theFlag:
             self.pbnAdvanced.setText(self.tr('Hide advanced options'))
         else:
@@ -417,13 +432,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
     @pyqtSignature('')  # prevents actions being handled twice
     def on_tbBaseDataDir_clicked(self):
         """Autoconnect slot activated when the select cache file tool button is
-        clicked,
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            None
+        clicked.
         """
         myTitle = self.tr('Set the base directory for data packages')
         self.showDirectoryDialog(self.leBaseDataDir, myTitle)
@@ -534,22 +543,6 @@ def readScenarios(theFileName):
     # where foo and bar are scenarios and their dicts are the options for
     # that scenario (e.g. hazard, exposure etc)
     return myBlocks
-
-
-def getScriptPath():
-    """ Get base path for directory that contains the script files
-
-    Args:
-        None
-
-    Returns:
-        str: String containing absolute base path for script files
-
-    Raises:
-        None
-    """
-    myRoot = os.path.dirname(__file__)
-    return os.path.abspath(os.path.join(myRoot, '..', 'script_runner'))
 
 
 def appendRow(theTable, theLabel, theData):
