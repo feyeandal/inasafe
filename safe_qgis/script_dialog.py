@@ -24,7 +24,7 @@ import re
 
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import (pyqtSignature, QSettings, QVariant, QString, Qt)
-from PyQt4.QtGui import (QDialog, QFileDialog, QTableWidgetItem)
+from PyQt4.QtGui import (QDialog, QFileDialog, QTableWidgetItem, QMessageBox)
 
 from qgis.core import QgsRectangle
 
@@ -155,8 +155,6 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         for myFile in os.listdir(myPath):
             myExt = os.path.splitext(myFile)[1]
             myAbsPath = os.path.join(myPath, myFile)
-
-            print myFile, myExt
 
             if myExt == '.py':
                 appendRow(self.tblScript, myFile, myAbsPath)
@@ -352,14 +350,20 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
                 LOGGER.exception('Running macro failed')
                 myResult = False
         elif isinstance(myValue, dict):
+            myPath = str(self.leBaseDataDir.text())
+            myTitle = str(theItem.text())
+
+            # check existing pdf report
+            myResult = self.checkExistingPDFReport(myPath, [myTitle])
+            if myResult is False:
+                return False
+
             # Its a dict containing files for a scenario
             myResult = self.runSimpleTask(myValue)
             if not myResult:
                 theStatusItem.setText(self.tr('Fail'))
                 myResult = False
             else:
-                myPath = str(self.leBaseDataDir.text())
-                myTitle = str(theItem.text())
 
                 # NOTE(gigih):
                 # Usually after analysis is done, the impact layer
@@ -371,6 +375,61 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
             myResult = False
 
         return myResult
+
+    def getPDFReportPath(self, theBasePath, theTitle):
+        """Get PDF report filename based on theBasePath and theTitle.
+        Params:
+            * theBasePath - base path of pdf report file
+            * theTitle - title of report
+        Returns:
+            a tuple contains the pdf report filename like this
+            ('/home/foo/data/title.pdf', '/home/foo/data/title_table.pdf')
+        """
+
+        myFileName = theTitle.replace(' ', '_')
+        myFileName = myFileName + '.pdf'
+        myMapPath = os.path.join(theBasePath, myFileName)
+        myTablePath = os.path.splitext(myMapPath)[0] + '_table.pdf'
+
+        return (myMapPath, myTablePath)
+
+    def checkExistingPDFReport(self, theBasePath, theTitles):
+        """ Check the existence of pdf report in theBasePath.
+
+        Params:
+            * theBasePath - base path of pdf report file
+            * theTitle - list of report titles
+        Returns:
+            True if theBasePath contains no reports or User
+            agree to overwrite the report, otherwise return False.
+        """
+
+        myPaths = []
+        for theTitle in theTitles:
+            myPDFPaths = self.getPDFReportPath(theBasePath, theTitle)
+            myPDFPaths = [x for x in myPDFPaths if os.path.exists(x)]
+            myPaths.extend(myPDFPaths)
+
+        if len(myPaths) == 0:
+            return True
+
+        # setup message box widget
+        myMessage = self.tr(
+            "PDF Report already exist in %1. Rewrite the files?")
+        myMessage = myMessage.arg(theBasePath)
+
+        myDetail = 'Existing PDF Report: \n'
+        myDetail = myDetail + '\n'.join(myPaths)
+
+        myMsgBox = QMessageBox(self)
+        myMsgBox.setIcon(QMessageBox.Question)
+        myMsgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        myMsgBox.setText(myMessage)
+        myMsgBox.setDetailedText(myDetail)
+
+        # return the result
+        myResult = myMsgBox.exec_()
+        return myResult == QMessageBox.Yes
 
     def createPDFReport(self, theTitle, theBasePath, theImpactLayer):
         """Create PDF report from impact layer.
@@ -392,15 +451,12 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         myMap.setImpactLayer(theImpactLayer)
 
         LOGGER.debug('Create Report: %s' % theTitle)
+        myMapPath, myTablePath = self.getPDFReportPath(theBasePath, theTitle)
 
         # create map pdf
-        myFileName = theTitle.replace(' ', '_')
-        myFileName = myFileName + '.pdf'
-        myMapPath = os.path.join(theBasePath, myFileName)
         myMap.printToPdf(myMapPath)
 
         # create table report pdf
-        myTablePath = os.path.splitext(myMapPath)[0] + '_table.pdf'
         myHtmlRenderer = HtmlRenderer(myMap.pageDpi)
         myKeywords = myMap.keywordIO.readKeywords(theImpactLayer)
         myHtmlRenderer.printImpactTable(myKeywords, myTablePath)
