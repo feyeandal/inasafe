@@ -26,6 +26,8 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import (pyqtSignature, QSettings, QVariant, QString, Qt)
 from PyQt4.QtGui import (QDialog, QFileDialog, QTableWidgetItem)
 
+from qgis.core import QgsRectangle
+
 from script_dialog_base import Ui_ScriptDialogBase
 
 from safe_qgis.map import Map
@@ -84,7 +86,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
     def restoreState(self):
         LOGGER.info("restore state")
         # get the base data path from settings if available
-        mySettings = QtCore.QSettings()
+        mySettings = QSettings()
 
         # restore last source path
         myLastSourcePath = mySettings.value('inasafe/lastSourceDir',
@@ -98,7 +100,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
     def saveState(self):
         LOGGER.info("save state")
         # get the base data path from settings if available
-        mySettings = QtCore.QSettings()
+        mySettings = QSettings()
 
         mySettings.setValue('inasafe/lastSourceDir', self.leSourceDir.text())
         mySettings.setValue('inasafe/baseDataDir', self.leBaseDataDir.text())
@@ -119,28 +121,6 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
             myPath,
             QFileDialog.ShowDirsOnly)
         theLineEdit.setText(myNewPath)
-
-    @pyqtSignature('')  # prevents actions being handled twice
-    def on_tbBaseDataDir_clicked(self):
-        """Autoconnect slot activated when the select cache file tool button is
-        clicked,
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            None
-        """
-        myTitle = self.tr('Set the base directory for data packages')
-        self.showDirectoryDialog(self.leBaseDataDir, myTitle)
-
-
-    @pyqtSignature('')  # prevents actions being handled twice
-    def on_tbSourceDir_clicked(self):
-        """ Autoconnect slot activated when tbSourceDir is clicked """
-
-        myTitle = self.tr('Set the source directory for script and scenario')
-        self.showDirectoryDialog(self.leSourceDir, myTitle)
 
     def populateTable(self, theBasePath):
         """ Populate table with files from theBasePath directory.
@@ -258,10 +238,31 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
             if not myResult:
                 return False
 
-        # if 'extent' in theItem:
-        #     from qgis.utils import iface
-        #     TODO: convert extent to QRect
-        #     iface.mapCanvas().setExtent()
+        # set extent if exist
+        if 'extent' in theItem:
+            # split extent string
+            myCoordinate = theItem['extent'].replace(' ', '').split(',')
+            myCount = len(myCoordinate)
+            if myCount != 4:
+                myMessage = 'extent need exactly 4 value but got %s instead' % myCount
+                LOGGER.error(myMessage)
+                return False
+
+            # parse the value to float type
+            try:
+                myCoordinate = [float(i) for i in myCoordinate]
+            except ValueError as e:
+                myMessage = e.message
+                LOGGER.error(myMessage)
+                return False
+
+            # set the extent according the value
+            myExtent = QgsRectangle(*myCoordinate)
+
+            myMessage = 'set layer extent to %s ' % myExtent.asWktCoordinates()
+            LOGGER.info(myMessage)
+
+            self.iface.mapCanvas().setExtent(myExtent)
 
         macro.runScenario()
 
@@ -412,6 +413,27 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
 
         self.gboOptions.setVisible(theFlag)
         self.adjustSize()
+
+    @pyqtSignature('')  # prevents actions being handled twice
+    def on_tbBaseDataDir_clicked(self):
+        """Autoconnect slot activated when the select cache file tool button is
+        clicked,
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+        myTitle = self.tr('Set the base directory for data packages')
+        self.showDirectoryDialog(self.leBaseDataDir, myTitle)
+
+    @pyqtSignature('')  # prevents actions being handled twice
+    def on_tbSourceDir_clicked(self):
+        """ Autoconnect slot activated when tbSourceDir is clicked """
+
+        myTitle = self.tr('Set the source directory for script and scenario')
+        self.showDirectoryDialog(self.leSourceDir, myTitle)
 
 
 def readScenarios(theFileName):
