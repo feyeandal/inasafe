@@ -38,6 +38,7 @@ from safe_qgis.exceptions import QgisPathError
 from safe_qgis.safe_interface import temp_dir
 
 from safe_qgis import macro
+from safe_qgis.utilities import safeTr
 
 LOGGER = logging.getLogger('InaSAFE')
 
@@ -62,6 +63,7 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         myRoot = os.path.dirname(__file__)
         self.defaultSourceDir = os.path.abspath(
             os.path.join(myRoot, '..', 'script_runner'))
+        self.lastSaveDir = self.defaultSourceDir
 
         myHeaderView = self.tblScript.horizontalHeader()
         myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch)
@@ -457,6 +459,50 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
 
         LOGGER.debug("report done %s %s" % (myMapPath, myTablePath))
 
+    def saveCurrentScenario(self):
+        """"""
+        myTitleDialog = self.tr('Save Scenario')
+        myFileName = QFileDialog.getSaveFileName(
+            self, myTitleDialog,
+            self.lastSaveDir,
+            "Text files (*.txt)"
+        )
+
+        if myFileName is None:
+            LOGGER.info("batal")
+            return
+
+        ### get data layer
+        myDock = macro.getDock()
+
+        # get absolute path of exposure & hazard layer
+        myExposureLayer = myDock.getExposureLayer()
+        myHazardLayer = myDock.getHazardLayer()
+
+        myExposurePath = myExposureLayer.publicSource()
+        myHazardPath = myHazardLayer.publicSource()
+        myRootPath = os.path.commonprefix([myExposurePath, myHazardPath])
+
+        myTitle = myDock.keywordIO.readKeywords(myHazardLayer, 'title')
+        myTitle = safeTr(myTitle)
+
+        myFunctionId = myDock.getFunctionID(myDock.cboFunction.currentIndex())
+
+        # simplify the path
+        myExposurePath = myExposurePath.split(myRootPath)[1]
+        myHazardPath = myHazardPath.split(myRootPath)[1]
+
+        # write to file
+        myParser = ConfigParser()
+        myParser.add_section(myTitle)
+        myParser.set(myTitle, 'path', myRootPath)
+        myParser.set(myTitle, 'exposure', myExposurePath)
+        myParser.set(myTitle, 'hazard', myHazardPath)
+        myParser.set(myTitle, 'function', myFunctionId)
+
+        myParser.write(open(myFileName, 'w'))
+
+
     @pyqtSignature('')
     def on_btnRunSelected_clicked(self):
         """Run the selected item. """
@@ -536,6 +582,7 @@ def readScenarios(theFileName):
         myContent = mySection + open(myFilename).read()
         myParser.readfp(StringIO(myContent))
 
+    # convert to dictionary
     for mySection in myParser.sections():
         myItems = myParser.items(mySection)
         myBlocks[mySection] = {}
@@ -589,6 +636,9 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     a = ScriptDialog()
-    a.show()
+    #a.show()
+
+    a.saveCurrentScenario()
+
     app.exec_()
 
