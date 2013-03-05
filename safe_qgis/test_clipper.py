@@ -10,13 +10,13 @@ Contact : ole.moller.nielsen@gmail.com
      (at your option) any later version.
 
 """
-from unittest import expectedFailure
 
 __author__ = 'tim@linfiniti.com'
 __date__ = '20/01/2011'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
 
+from unittest import expectedFailure
 import unittest
 import sys
 import os
