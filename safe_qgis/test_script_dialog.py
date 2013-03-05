@@ -31,13 +31,16 @@ LOGGER = logging.getLogger('InaSAFE')
 CONTROL_INPUT_DIR = os.path.join(os.path.dirname(__file__),
                                  'test_data/test_files')
 
+LOGGER = logging.getLogger('InaSAFE')
+
+
 class ScriptDialogTest(unittest.TestCase):
 
-    # def setUp(self):
-    #     self.scriptDialog = ScriptDialog(PARENT, IFACE)
+    #def setUp(self):
+    #    self.scriptDialog = ScriptDialog(PARENT, IFACE)
 
-    def testScenarioParser(self):
-        """Test if we can load scenarios from a text file."""
+    def test_readScenarios1(self):
+        """Test if we can load scenarios from a multi section file text."""
         myFile = os.path.join(CONTROL_INPUT_DIR, "test-scenario-input.txt")
         myDictionary = readScenarios(myFile)
 
@@ -57,27 +60,53 @@ class ScriptDialogTest(unittest.TestCase):
         }
         self.assertDictEqual(myExpectedDictionary, myDictionary)
 
-    def testAppendRow(self):
-        """Test appendRow() functionality"""
-        myTable = QTableWidget(PARENT)
-        myTable.clearContents()
+    def test_readScenarios2(self):
+        """Test if we can load scenarios from a single section file text."""
+        myFile = os.path.join(CONTROL_INPUT_DIR, "test-scenario-input2.txt")
+        myDictionary = readScenarios(myFile)
 
-        appendRow(myTable, 'Foo1', 'bar.py')
-        appendRow(myTable, 'Foo2', {'number': 70})
+        myExpectedDictionary = {
+            'test-scenario-input2': {
+                'exposure': 'Merapi/Data/bangunan.shp',
+                'hazard': 'Merapi/Data/merapi_krb.shp',
+                'function': 'Volcano Building Impact',
+            }
+        }
+        self.assertDictEqual(myExpectedDictionary, myDictionary)
 
-        self.assertEquals(myTable.rowCount(), 2, "row count don't match")
-
-        myItem = myTable.item(0, 0)
-        myVariant = myItem.data(Qt.UserRole)
-        myValue = myVariant.toPyObject()[0]
-
-        self.assertEquals(myValue, 'bar.py', " value dont' match")
+    # def testAppendRow(self):
+    #     """Test appendRow() functionality"""
+    #     myTable = QTableWidget(PARENT)
+    #     myTable.clearContents()
+    #
+    #     appendRow(myTable, 'Foo1', 'bar.py')
+    #     appendRow(myTable, 'Foo2', {'number': 70})
+    #
+    #     self.assertEquals(myTable.rowCount(), 2, "row count don't match")
+    #
+    #     myItem = myTable.item(0, 0)
+    #     myVariant = myItem.data(Qt.UserRole)
+    #     myValue = myVariant.toPyObject()[0]
+    #
+    #     self.assertEquals(myValue, 'bar.py', " value dont' match")
 
         # myItem = myTable.item(1, 0)
         # myVariant = myItem.data(Qt.UserRole)
         # myValue = myVariant.toPyObject()[0]
         #
         # self.assertDictEqual(myValue, {'number': 70})
+
+    def test_getPDFReportPath(self):
+        """Test getPDFReport functionality"""
+        myDialog = ScriptDialog(PARENT, IFACE)
+        myValue = myDialog.getPDFReportPath('/home/foo', 'bar')
+
+        # we use os.path.join instead of hardcoded '/'
+        myMapPath = os.path.join('/home/foo', 'bar.pdf')
+        myTablePath = os.path.join('/home/foo', 'bar_table.pdf')
+        myExpectedValue = (myMapPath, myTablePath)
+
+        self.assertTupleEqual(myValue, myExpectedValue)
 
 
 if __name__ == '__main__':
