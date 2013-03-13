@@ -183,6 +183,11 @@ def rasterize(theLayer,
     myAttributes = myProvider.attributeIndexes()
     myFieldList = myProvider.fields()
 
+    # work out the layer name
+    mySource = str(theLayer.source())
+    myBase = os.path.basename(mySource)
+    myBase = os.path.splitext(myBase)[0]
+
     myBinaryList = which('gdal_rasterize')
     if len(myBinaryList) < 1:
         raise CallGDALError(
@@ -191,12 +196,33 @@ def rasterize(theLayer,
     myBinary = myBinaryList[0]
 
     myCommand = (
-        '%(binary)s -ts 24 23 -burn %(value)s -a_nodata -9999.5 -ot'
-        'Float32 -l flood_polygons flood_polygons.shp /tmp/test2.tif' % {
+        '%(binary)s -ts 24 23 -burn %(value)s -a_nodata -9999.5 -ot '
+        'Float32 -l %(layer)s %(in_file)s %(out_file)s' % {
         'binary': myBinary,
-        'value': theValue})
-    LOGGER.info(myCommand)
+        'value': theValue,
+        'layer': myBase,
+        'in_file': theLayer.source(),
+        'out_file': myFilename})
+    LOGGER.debug(myCommand)
+    myResult = QProcess().execute(myCommand)
 
+    # For QProcess exit codes see
+    # http://qt-project.org/doc/qt-4.8/qprocess.html#execute
+    if myResult == -2:  # cannot be started
+        myMessageDetail = tr('Process could not be started.')
+        myMessage = tr(
+            '<p>Error while executing the following shell command:'
+            '</p><pre>%s</pre><p>Error message: %s'
+            % (myCommand, myMessageDetail))
+        raise CallGDALError(myMessage)
+    elif myResult == -1:  # process crashed
+        myMessageDetail = tr('Process could not be started.')
+        myMessage = tr('<p>Error while executing the following shell command:'
+                       '</p><pre>%s</pre><p>Error message: %s'
+                       % (myCommand, myMessageDetail))
+        raise CallGDALError(myMessage)
+
+    # copy over the keywords from the polygon layer to the raster layer
     myKeywordIO = KeywordIO()
     myKeywordIO.copyKeywords(theLayer, myFilename,
                              theExtraKeywords=theExtraKeywords)
