@@ -68,6 +68,7 @@ def rasterize(theLayer,
               theExtent=None,
               theValue=1,
               theAttribute=None,
+              theAggresiveFlag=True,
               theExtraKeywords=None):
     """Rasterizes a polygon layer to the extents and cell size provided.
      The layer must be a vector layer or an exception will be thrown.
@@ -85,7 +86,7 @@ def rasterize(theLayer,
                 EPSG:4326 although currently no checks are made to enforce
                 this.
             * or: A QgsGeometry of type polygon. Note that only the bounding
-                box of the polygon will be used.
+                box of the polygon will be used. EPSG:4326 is assumed.
             Note: If no extent is specified, the extents of the polygon layer
             will be used.
         * theValue (Optional, defaults to 1): float - value to assign the
@@ -93,6 +94,9 @@ def rasterize(theLayer,
         * theAttribute: string - field name in the input dataset that
             provdes the value that should be assigned to each polygon. Note
             that if theAttribute is set, theValue will be ignored.
+        * theAggressiveFlag (Optional, defaults to True): whether pixels
+            should be aggressively or conservatively considered to be part of
+            the polygon layer.
         * theExtraKeywords - any additional keywords over and above the
           original keywords that should be associated with the cliplayer.
 
@@ -110,11 +114,19 @@ def rasterize(theLayer,
 
     Where options provided have the following significance:
 
-        * -ts 24 23 : Output image dimensions (we will need to compute this
-            from theCellSise and theExtent
+        * -tap: 'align the coordinates of the extent of the output file to the
+            values of the -tr, such that the aligned extent includes the
+            minimum extent.' (Description verbatim form gdal_translate man
+            page)
+        * -tr 0.008 0.008 : Output resolution in decimal degrees. X and Y
+            pixel dimensions respectively. theCellSize is used for this and
+            regular pixels are assumed.
         * -burn 1 : Pixel value to be assigned where ever a polygon exists (1)
         * -a_nodata -9999.5: Value to assign for no data cells (-9999.5)
         * -ot Byte : output format for the resulting raster (Byte)
+        * -at : It this option is present, any pixel intersecting a polygon
+            will be considered part of the polygon - if absent the pixel must
+             be mostly enclosed by the polygon. See theAggressiveFlag
         * -l flood_polygons : layer name of input file to use (for shp set it
             to the filename sans '.shp')
         * flood_polygons.shp : input vector layer
@@ -122,8 +134,6 @@ def rasterize(theLayer,
             gdal > 1.8)
 
     """
-    #raise NotImplementedError
-
     if not theLayer:
         myMessage = tr('Layer passed to rasterize is None.')
         raise InvalidParameterError(myMessage)
@@ -179,10 +189,6 @@ def rasterize(theLayer,
                        'layer "%s"' % theLayer.source())
         raise Exception(myMessage)
 
-    # Get the layer field list
-    myAttributes = myProvider.attributeIndexes()
-    myFieldList = myProvider.fields()
-
     # work out the layer name
     mySource = str(theLayer.source())
     myBase = os.path.basename(mySource)
@@ -195,14 +201,30 @@ def rasterize(theLayer,
         # Use the first matching gdalwarp found
     myBinary = myBinaryList[0]
 
-    myCommand = (
-        '%(binary)s -ts 24 23 -burn %(value)s -a_nodata -9999.5 -ot '
-        'Float32 -l %(layer)s %(in_file)s %(out_file)s' % {
-        'binary': myBinary,
+    myCommandOptions = (
+        '-tr %(cell_size)s %(cell_size)s -a_nodata -9999'
+        '.5 -tap -ot Float32 -l %(layer)s %(in_file)s %(out_file)s' % {
+        'cell_size': theCellSize,
         'value': theValue,
         'layer': myBase,
         'in_file': theLayer.source(),
         'out_file': myFilename})
+
+    if theAggresiveFlag:
+        # enable 'ALL_TOUCHED' option
+        myCommandOptions = '-at %s' % myCommandOptions
+    # Decide what value to burn into each polygon
+    if theAttribute is not None and theAttribute != '':
+        # set the attribute field
+        # Get the layer field list
+        myFieldList = myProvider.fields()
+        LOGGER.debug(myFieldList)
+        myCommandOptions = '-a %s %s' % (theAttribute, myCommandOptions)
+    else:
+        # use the supplied burn value
+        myCommandOptions = '-burn %s %s' % (theValue, myCommandOptions)
+
+    myCommand = '%s %s' % (myBinary, myCommandOptions)
     LOGGER.debug(myCommand)
     myResult = QProcess().execute(myCommand)
 

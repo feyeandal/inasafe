@@ -49,7 +49,8 @@ from safe.common.testing import UNITDATA
 from safe.common.exceptions import GetDataError
 
 # Setup pathnames for test data sets
-VECTOR_PATH = os.path.join(UNITDATA, 'hazard', 'flood_polygons.shp')
+VECTOR_PATH = os.path.join(UNITDATA, 'hazard', 'jk_flood_polygons.shp')
+RASTER_PATH = os.path.join(UNITDATA, 'exposure', 'jk_population.shp')
 
 # Handle to common QGis test app
 QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
@@ -64,9 +65,8 @@ class RasterizerTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_rasterize(self):
-        """Vector polygon layer can be rasterized
-        """
+    def loadVectorLayer(self):
+        """Helper function to load the vector layer."""
         # Create a vector layer
         myName = 'flood_polygons'
         myVectorLayer = QgsVectorLayer(VECTOR_PATH, myName, 'ogr')
@@ -85,6 +85,20 @@ class RasterizerTest(unittest.TestCase):
             myVectorLayer.isValid()))
 
         assert myVectorLayer.isValid(), myMessage
+        return myVectorLayer
+
+    def checkRaster(self, theRaster):
+        """Helper function to check the created raster is OK."""
+        with RedirectStdStreams(stdout=DEVNULL, stderr=DEVNULL):
+            myRasterLayer = QgsRasterLayer(theRaster, 'rasterized_ouput')
+        myMessage = ('Rasterised output is not a valid raster layer. %s' % (
+            theRaster))
+        assert myRasterLayer.isValid(), myMessage
+
+    def test_rasterize_with_value(self):
+        """Vector polygon layer can be rasterized, giving it a fixed value.
+        """
+        myVectorLayer = self.loadVectorLayer()
 
         # rasterize the vector to the bbox
         myResult = rasterize(myVectorLayer,
@@ -93,11 +107,18 @@ class RasterizerTest(unittest.TestCase):
                              theAttribute=None,
                              theExtraKeywords=None)
         # Check the output is valid
-        with RedirectStdStreams(stdout=DEVNULL, stderr=DEVNULL):
-            myRasterLayer = QgsRasterLayer(myResult, 'rasterized_ouput')
-        myMessage = ('Rasterised output is not a valid raster layer. %s' % (
-            myResult))
-        assert myRasterLayer.isValid(), myMessage
+        self.checkRaster(myResult)
+
+    def test_rasterize_with_attribute(self):
+        """Vector polygon layer can be rasterized, fgiving it an attribute."""
+        myVectorLayer = self.loadVectorLayer()
+        # rasterize the vector to the bbox
+        myResult = rasterize(myVectorLayer,
+                             theCellSize=0.000706662322222,
+                             theAttribute='depth',
+                             theExtraKeywords=None)
+        # Check the output is valid
+        self.checkRaster(myResult)
 
     def test_invalidFilenamesCaught(self):
         """Invalid filenames raise appropriate exceptions
@@ -128,27 +149,6 @@ class RasterizerTest(unittest.TestCase):
                      'existent path "%s" and name "%s".'
                      % (myPath, myName))
         assert not myRasterLayer.isValid(), myMessage
-
-    def test_vectorProjections(self):
-        """Test vector input data is reprojected properly during rasterize.
-        """
-        raise NotImplementedError
-        # Input data is OSM in GOOGLE CRS
-        # We are reprojecting to GEO and expecting the output shp to be in GEO
-        # see https://github.com/AIFDR/inasafe/issues/119
-        # and https://github.com/AIFDR/inasafe/issues/95
-        myVectorLayer = QgsVectorLayer(VECTOR_PATH2,
-                                       'OSM Buildings',
-                                       'ogr')
-        myMessage = 'Failed to load osm buildings'
-        assert myVectorLayer is not None, myMessage
-        assert myVectorLayer.isValid()
-        setCanvasCrs(GEOCRS, True)
-        setJakartaGeoExtent()
-        myClipRect = [106.52, -6.38, 107.14, -6.07]
-        # Clip the vector to the bbox
-        myResult = rasterizeLayer(myVectorLayer, myClipRect)
-        assert(os.path.exists(myResult))
 
 
 if __name__ == '__main__':
