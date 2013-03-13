@@ -63,11 +63,11 @@ def tr(theText):
 
 
 def rasterize(theLayer,
-                     theExtent,
-                     theCellSize,
-                     theExtraKeywords=None,
-                     theExplodeFlag=True,
-                     theHardClipFlag=False):
+              theExtent,
+              theCellSize,
+              theExtraKeywords=None,
+              theExplodeFlag=True,
+              theHardClipFlag=False):
     """Rasterizes a polygon layer to the extents and cell size provided.
      The layer must be a vector layer or an exception will be thrown.
 
@@ -98,7 +98,7 @@ def rasterize(theLayer,
        None
 
     """
-    raise NotImplementedError
+    #raise NotImplementedError
 
     if not theLayer or not theExtent:
         myMessage = tr('Layer or Extent passed to rasterize is None.')

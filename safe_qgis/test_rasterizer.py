@@ -34,31 +34,20 @@ from qgis.core import (QgsVectorLayer,
 from safe_qgis.safe_interface import readSafeLayer
 from safe_qgis.safe_interface import getOptimalExtent
 from safe_qgis.exceptions import InvalidProjectionError, CallGDALError
-from safe_qgis.clipper import (clipLayer,
-                               extentToKml,
-                               explodeMultiPartGeometry,
-                               clipGeometry)
+from safe_qgis.rasterizer import rasterize
 from safe_qgis.utilities import qgisVersion
 
 from safe_qgis.utilities_test import (getQgisTestApp,
                                       setCanvasCrs,
                                       RedirectStdStreams,
                                       DEVNULL,
-                                      GEOCRS,
-                                      setJakartaGeoExtent)
+                                      GEOCRS)
 
-from safe.common.testing import HAZDATA, TESTDATA, EXPDATA, UNITDATA
+from safe.common.testing import UNITDATA
 from safe.common.exceptions import GetDataError
-from safe.api import nanallclose
 
 # Setup pathnames for test data sets
-VECTOR_PATH = os.path.join(TESTDATA, 'Padang_WGS84.shp')
-VECTOR_PATH2 = os.path.join(TESTDATA, 'OSM_subset_google_mercator.shp')
-VECTOR_PATH3 = os.path.join(UNITDATA, 'exposure', 'buildings_osm_4326.shp')
-
-RASTERPATH = os.path.join(HAZDATA, 'Shakemap_Padang_2009.asc')
-RASTERPATH2 = os.path.join(TESTDATA, 'population_padang_1.asc')
-
+VECTOR_PATH = os.path.join(UNITDATA, 'hazard' 'flood_polygons.shp')
 
 # Handle to common QGis test app
 QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
@@ -73,8 +62,8 @@ class RasterizerTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_clipVector(self):
-        """Vector layers can be rasterizeped
+    def test_rasterize(self):
+        """Vector polygon layer can be rasterized
         """
         raise NotImplementedError
         # Create a vector layer
@@ -89,7 +78,7 @@ class RasterizerTest(unittest.TestCase):
         myRect = [100.03, -1.14, 100.81, -0.73]
 
         # rasterize the vector to the bbox
-        myResult = rasterizeLayer(myVectorLayer, myRect)
+        myResult = rasterize(myVectorLayer, myRect)
 
         # Check the output is valid
         assert(os.path.exists(myResult))
