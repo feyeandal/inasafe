@@ -41,6 +41,7 @@ from safe_qgis.exceptions import (InvalidParameterError,
                                   CallGDALError,
                                   InvalidProjectionError,
                                   InvalidClipGeometryError)
+from safe_qgis.utilities import which
 
 LOGGER = logging.getLogger(name='InaSAFE')
 
@@ -163,11 +164,13 @@ def rasterize(theLayer,
         myRect = theExtent.boundingBox().toRectF()
         myClipPolygon = theExtent
     else:
-        raise InvalidClipGeometryError(
-            tr('Clip geometry must be an extent or a single part'
-               'polygon based geometry.'))
+        # Extent is not required
+        myClipPolygon = None
 
-    myProjectedExtent = myXForm.transformBoundingBox(myRect)
+    if myClipPolygon is not None:
+        myProjectedExtent = myXForm.transformBoundingBox(myRect)
+    else:
+        myProjectedExtent = None
 
     # Get vector layer
     myProvider = theLayer.dataProvider()
@@ -179,6 +182,20 @@ def rasterize(theLayer,
     # Get the layer field list
     myAttributes = myProvider.attributeIndexes()
     myFieldList = myProvider.fields()
+
+    myBinaryList = which('gdal_rasterize')
+    if len(myBinaryList) < 1:
+        raise CallGDALError(
+            tr('gdal_rasterize could not be found on your computer'))
+        # Use the first matching gdalwarp found
+    myBinary = myBinaryList[0]
+
+    myCommand = (
+        '%(binary)s -ts 24 23 -burn %(value)s -a_nodata -9999.5 -ot'
+        'Float32 -l flood_polygons flood_polygons.shp /tmp/test2.tif' % {
+        'binary': myBinary,
+        'value': theValue})
+    LOGGER.info(myCommand)
 
     myKeywordIO = KeywordIO()
     myKeywordIO.copyKeywords(theLayer, myFilename,
