@@ -63,11 +63,12 @@ def tr(theText):
 
 
 def rasterize(theLayer,
-              theExtent,
               theCellSize,
+              theExtent=None,
+              theValue=1,
+              theAttribute=None,
               theExtraKeywords=None,
-              theExplodeFlag=True,
-              theHardClipFlag=False):
+              theExplodeFlag=True):
     """Rasterizes a polygon layer to the extents and cell size provided.
      The layer must be a vector layer or an exception will be thrown.
 
@@ -76,26 +77,49 @@ def rasterize(theLayer,
     Args:
 
         * theLayer - a valid QGIS vector layer in EPSG:4326
-        * theExtent either: an array representing the exposure layer
-           extents in the form [xmin, ymin, xmax, ymax]. It is assumed
-           that the coordinates are in EPSG:4326 although currently
-           no checks are made to enforce this.
-                    or: A QgsGeometry of type polygon. **Polygon clipping is
-           currently only supported for vector datasets.**
         * theCellSize: Cell size for the output dataset in EPSG:4326 with
             the assumption that X and Y dimensions are identical.
+        * theExtent (Optional) either:
+            * an array representing the layer extents in the form [xmin, ymin,
+                xmax, ymax]. It is assumed that the coordinates are in
+                EPSG:4326 although currently no checks are made to enforce
+                this.
+            * or: A QgsGeometry of type polygon. Note that only the bounding
+                box of the polygon will be used.
+            Note: If no extent is specified, the extents of the polygon layer
+            will be used.
+        * theValue (Optional, defaults to 1): float - value to assign the
+            polygonal areas in the output raster
+        * theAttribute: string - field name in the input dataset that
+            provdes the value that should be assigned to each polygon. Note
+            that if theAttribute is set, theValue will be ignored.
         * theExtraKeywords - any additional keywords over and above the
           original keywords that should be associated with the cliplayer.
-        * theHardClipFlag - a bool specifying whether line and polygon features
-            that extend beyond the extents should be clipped such that they
-            are reduced in size to the part of the geometry that intersects
-            the extent only. Default is False.
 
     Returns:
         Path to the output rasterized layer (placed in the system temp dir).
 
     Raises:
        None
+
+    Rasterization will be performed using gdal_rasterize using a similar
+    technique to this:
+
+    gdal_rasterize -ts 24 23 -burn 1 -a_nodata -9999.5 -ot Float32 \
+                -l flood_polygons flood_polygons.shp /tmp/test2.tif
+
+    Where options provided have the following significance:
+
+        * -ts 24 23 : Output image dimensions (we will need to compute this
+            from theCellSise and theExtent
+        * -burn 1 : Pixel value to be assigned where ever a polygon exists (1)
+        * -a_nodata -9999.5: Value to assign for no data cells (-9999.5)
+        * -ot Byte : output format for the resulting raster (Byte)
+        * -l flood_polygons : layer name of input file to use (for shp set it
+            to the filename sans '.shp')
+        * flood_polygons.shp : input vector layer
+        * /tmp/test.tif : output raster layer (does not need to preexist in
+            gdal > 1.8)
 
     """
     #raise NotImplementedError
@@ -109,10 +133,14 @@ def rasterize(theLayer,
                        str(theLayer.type()))
         raise InvalidParameterError(myMessage)
 
-    #myHandle, myFilename = tempfile.mkstemp('.sqlite', 'clip_',
-    #    temp_dir())
-    myHandle, myFilename = tempfile.mkstemp('.shp', 'clip_',
-                                            temp_dir())
+    myAllowedTypes = [QGis.WKBPolygon, QGis.WKBPolygon25D]
+
+    if theLayer.wkbType() not in myAllowedTypes:
+        myMessage = tr('Expected a polygon layer but received a %s.' %
+                       str(theLayer.wkbType()))
+        raise InvalidParameterError(myMessage)
+
+    myHandle, myFilename = tempfile.mkstemp('.tif', 'rasterize_', temp_dir())
 
     # Ensure the file is deleted before we try to write to it
     # fixes windows specific issue where you get a message like this
@@ -126,13 +154,13 @@ def rasterize(theLayer,
     myGeoCrs = QgsCoordinateReferenceSystem()
     myGeoCrs.createFromId(4326, QgsCoordinateReferenceSystem.EpsgCrsId)
     myXForm = QgsCoordinateTransform(myGeoCrs, theLayer.crs())
-    myAllowedClipTypes = [QGis.WKBPolygon, QGis.WKBPolygon25D]
+
     if type(theExtent) is list:
         myRect = QgsRectangle(theExtent[0], theExtent[1],
                               theExtent[2], theExtent[3])
         myClipPolygon = QgsGeometry.fromRect(myRect)
     elif (type(theExtent) is QgsGeometry and
-                  theExtent.wkbType in myAllowedClipTypes):
+            theExtent.wkbType in myAllowedTypes):
         myRect = theExtent.boundingBox().toRectF()
         myClipPolygon = theExtent
     else:
@@ -149,72 +177,11 @@ def rasterize(theLayer,
                        'layer "%s"' % theLayer.source())
         raise Exception(myMessage)
 
-    # Get the layer field list, select by our extent then write to disk
-    # .. todo:: FIXME - for different geometry types we should implement
-    #    different clipping behaviour e.g. reject polygons that
-    #    intersect the edge of the bbox. Tim
+    # Get the layer field list
     myAttributes = myProvider.attributeIndexes()
-    myFetchGeometryFlag = True
-    myUseIntersectFlag = True
-    myProvider.select(myAttributes,
-                      myProjectedExtent,
-                      myFetchGeometryFlag,
-                      myUseIntersectFlag)
-
     myFieldList = myProvider.fields()
 
-    myWriter = QgsVectorFileWriter(myFilename,
-                                   'UTF-8',
-                                   myFieldList,
-                                   theLayer.wkbType(),
-                                   myGeoCrs,
-                                   'ESRI Shapefile')
-    if myWriter.hasError() != QgsVectorFileWriter.NoError:
-        myMessage = tr('Error when creating shapefile: <br>Filename:'
-                       '%s<br>Error: %s' %
-                       (myFilename, myWriter.hasError()))
-        raise Exception(myMessage)
 
-    # Reverse the coordinate xform now so that we can convert
-    # geometries from layer crs to geocrs.
-    myXForm = QgsCoordinateTransform(theLayer.crs(), myGeoCrs)
-    # Retrieve every feature with its geometry and attributes
-    myFeature = QgsFeature()
-    myCount = 0
-    while myProvider.nextFeature(myFeature):
-        myGeometry = myFeature.geometry()
-        # Loop through the parts adding them to the output file
-        # we write out single part features unless theExplodeFlag is False
-        if theExplodeFlag:
-            myGeometryList = explodeMultiPartGeometry(myGeometry)
-        else:
-            myGeometryList = [myGeometry]
-
-        for myPart in myGeometryList:
-            myPart.transform(myXForm)
-            if theHardClipFlag:
-                # Remove any dangling bits so only intersecting area is
-                # kept.
-                myPart = clipGeometry(myClipPolygon, myPart)
-            if myPart is None:
-                continue
-            myFeature.setGeometry(myPart)
-            myWriter.addFeature(myFeature)
-        myCount += 1
-    del myWriter  # Flush to disk
-
-    if myCount < 1:
-        myMessage = tr('No features fall within the clip extents. '
-                       'Try panning / zooming to an area containing data '
-                       'and then try to run your analysis again.'
-                       'If hazard and exposure data doesn\'t overlap '
-                       'at all, it is not possible to do an analysis.'
-                       'Another possibility is that the layers do overlap '
-                       'but because they may have different spatial '
-                       'references, they appear to be disjoint. '
-                       'If this is the case, try to turn on reproject '
-                       'on-the-fly in QGIS.')
-        raise NoFeaturesInExtentError(myMessage)
 
     myKeywordIO = KeywordIO()
     myKeywordIO.copyKeywords(theLayer, myFilename,
