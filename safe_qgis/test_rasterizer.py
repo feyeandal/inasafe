@@ -26,10 +26,12 @@ sys.path.append(pardir)
 
 import numpy
 
-from qgis.core import (QgsVectorLayer,
-                       QgsRasterLayer,
-                       QgsGeometry,
-                       QgsPoint)
+from qgis.core import (
+    QGis,
+    QgsVectorLayer,
+    QgsRasterLayer,
+    QgsGeometry,
+    QgsPoint)
 
 from safe_qgis.safe_interface import readSafeLayer
 from safe_qgis.safe_interface import getOptimalExtent
@@ -72,22 +74,24 @@ class RasterizerTest(unittest.TestCase):
         myMessage = 'Did not find layer "%s" in path "%s"' % (myName,
                                                               VECTOR_PATH)
         assert myVectorLayer is not None, myMessage
-        myMessage = 'Layer "%s" in path "%s" is not valid' % (myName,
-                                                              VECTOR_PATH)
+
+        myMessage = 'Expected layer to be of type polygon, ' \
+                    'got %s' % myVectorLayer.wkbType()
+        self.assertEqual(myVectorLayer.wkbType(), QGis.WKBPolygon, myMessage)
+
+        myMessage = ('Layer "%s" in path "%s" valid flag is %s' % (
+            myName,
+            VECTOR_PATH,
+            myVectorLayer.isValid()))
+
         assert myVectorLayer.isValid(), myMessage
-        # Create a bounding box
-        myRect = [106.9041416, -6.3027378, 106.9211015, -6.2843478]
 
         # rasterize the vector to the bbox
         myResult = rasterize(myVectorLayer,
                              theCellSize=0.000706662322222,
-                             theRect=myRect,
                              theValue=1,
                              theAttribute=None,
-                             theExtraKeywords=None,
-                             theExplodeFlag=True,
-                             theHardClipFlag=False)
-
+                             theExtraKeywords=None)
         # Check the output is valid
         with RedirectStdStreams(stdout=DEVNULL, stderr=DEVNULL):
             myRasterLayer = QgsRasterLayer(myResult, 'rasterized_ouput')

@@ -67,8 +67,7 @@ def rasterize(theLayer,
               theExtent=None,
               theValue=1,
               theAttribute=None,
-              theExtraKeywords=None,
-              theExplodeFlag=True):
+              theExtraKeywords=None):
     """Rasterizes a polygon layer to the extents and cell size provided.
      The layer must be a vector layer or an exception will be thrown.
 
@@ -124,8 +123,8 @@ def rasterize(theLayer,
     """
     #raise NotImplementedError
 
-    if not theLayer or not theExtent:
-        myMessage = tr('Layer or Extent passed to rasterize is None.')
+    if not theLayer:
+        myMessage = tr('Layer passed to rasterize is None.')
         raise InvalidParameterError(myMessage)
 
     if theLayer.type() != QgsMapLayer.VectorLayer:
@@ -180,8 +179,6 @@ def rasterize(theLayer,
     # Get the layer field list
     myAttributes = myProvider.attributeIndexes()
     myFieldList = myProvider.fields()
-
-
 
     myKeywordIO = KeywordIO()
     myKeywordIO.copyKeywords(theLayer, myFilename,
