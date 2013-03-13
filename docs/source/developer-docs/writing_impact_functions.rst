@@ -122,9 +122,117 @@ Following the docstring is a collection of variables that define and document th
 
 In addition, there is a collection of text variables used for various levels of documentation of this impact function. They are ``synopsis``, ``actions``, ``detailed_description``, ``permissible_hazard_input``, ``permissible_exposure_input`` and ``limitation``. See examples below for more possible usages.
 
-Impact function algorithm
-.........................
-TBA
+Impact function method
+......................
+
+The actual calculation of the impact function is specified as a method call called ``run``. This
+method will be called by InaSAFE with a list of the 2 selected layers (hazard and exposure):
+
+::
+
+    def run(self, layers):
+        """Typical impact function
+
+        Input
+          layers: List of layers expected to contain
+              * Hazard layer of type raster or polygon
+              * Exposure layer of type raster, polygon or point
+
+        Return
+          Layer object representing the calculated impact
+        """
+
+        # Identify hazard and exposure layers
+        inundation = get_hazard_layer(layers)  # Flood inundation [m]
+        population = get_exposure_layer(layers)
+
+        question = get_question(inundation.get_name(),
+                                population.get_name(),
+                                self)
+
+
+The typical way to start the calculation is to explicitly get a handle to the hazard
+layer and the exposure layer using the two functions ``get_hazard_layer`` and ``get_exposure_layer`` both taking the input list as argument.
+
+We can also use a built-in function ``get_question`` to paraphrase the selected scenario based on titles of
+hazard, exposure and impact function. See e.g. :ref:`raster_raster` for an example.
+
+The next typical step is to extract the numerical data to be used. All layers have a methods called
+get_data() and get_geometry() which will return their data as python and numpy structures. Their exact
+return values depend on whether the layer is raster or vector as follows
+
+InaSAFE layers provide a range of methods for getting information from them. Some of the most important ones for raster data are listed here. For the full list,
+please consult the source documentation
+
+=================  =============
+Spatial data type  Documentation
+=================  =============
+Raster             http://inasafe.org/api-docs/safe/storage/raster.html
+Vector             http://inasafe.org/api-docs/safe/storage/vector.html
+Common to both     http://inasafe.org/api-docs/safe/storage/layer.html
+=================  =============
+
+
+
+Getting data from raster layers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The main methods for raster data are
+
+================   ====================================================   ========================================================================================
+Method             Returns                                                Documentation
+================   ====================================================   ========================================================================================
+get_data           2D numpy array representing pixel values               http://inasafe.org/api-docs/safe/storage/raster.html#safe.storage.raster.Raster.get_data
+get_geometry       Two 1D numpy arrays of corresponding coordinate axes   http://inasafe.org/api-docs/safe/storage/raster.html#safe.storage.raster.Raster.get_geometry
+get_geotransform   Needed e.g. to create new raster layers                http://inasafe.org/api-docs/safe/storage/raster.html#safe.storage.raster.Raster.get_geotransform
+get_projection     The spatial reference for the layer                    http://inasafe.org/api-docs/safe/storage/layer.html#safe.storage.layer.Layer.get_projection
+================   ====================================================   ========================================================================================
+
+.. See See :ref:/api-docs/safe/storage/raster.html#safe.storage.raster.Raster.get_data for more details on
+.. the ``get_data()`` method.
+
+
+Getting data from vector layers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The main methods for vector data are
+
+================   ====================================================   ========================================================================================
+Method             Returns                                                Documentation
+================   ====================================================   ========================================================================================
+get_data           List of dictionaries of vector attributes              http://inasafe.org/api-docs/safe/storage/vector.html#safe.storage.vector.Vector.get_data
+get_geometry       Return geometry for vector layer (e.g. point coords)   http://inasafe.org/api-docs/safe/storage/vector.html#safe.storage.vector.Vector.get_geometry
+get_projection     The spatial reference for the layer                    http://inasafe.org/api-docs/safe/storage/layer.html#safe.storage.layer.Layer.get_projection
+================   ====================================================   ========================================================================================
+
+
+Impact function calculation
+...........................
+
+With the numerical data from raster or vector layers quite arbitrary calculations can be made.
+However, one typical operation is to create a combined layer where the exposure data is augmented with the hazard level. How this is done and used depends
+on the spatial data types but the call is always the same
+
+::
+
+   I = assign_hazard_values_to_exposure_data(H, E, <optional keyword arguments>)
+
+where H is the hazard layer, either raster or polygon vector data, and E the exposure layer, either of spatial type raster, polygon or point vector data.
+In either case the result I represents the exposure data with hazard levels assigned. A number of options are also available as keyword arguments
+(depending on the data types):
+
+================  ==================
+Keyword argument  Description
+================  ==================
+layer_name        Optional name of returned layer
+attribute_name    Name of new attribute in exposure layer depending on input data types
+mode              Interpolation mode: 'linear' (default) or 'constant. Only used when hazard is a raster layer
+================  ==================
+
+See full documentation of the is function in section :ref:`data_types` an in the source code
+http://inasafe.org/api-docs/safe/engine/interpolation.html#module-safe.engine.interpolation
+
+See also examples of use in the impact function examples below.
 
 
 .. _raster_raster:
@@ -282,9 +390,13 @@ The method ``get_data()`` returns an array if the layer is raster and takes two 
 :scaling: Optional argument controlling if data is to be scaled. In this case we set it to True which means that if the corresponding raster layer was resampled by InaSAFE, the values will be correctly scaled by the squared ratio between its current and native resolution.
 
 .. note:: # FIXME (Ole): Tim - how do we cross reference docstrings? The problem is that we can't drop labels into them because they are auto-generated?
+.. note:: #              Would like something like :ref:/api-docs/safe/storage/raster.html#safe.storage.raster.Raster.get_data
+.. note:: #              but decided to use URLs directly for the time being (see issue https://github.com/AIFDR/inasafe/issues/487#issuecomment-14103214)
 
-See :ref:/api-docs/safe/storage/raster.html#safe.storage.raster.Raster.get_data for more details on
-the ``get_data()`` method.
+See http://inasafe.org/api-docs/safe/storage/raster.html#safe.storage.raster.Raster.get_data for more details on the ``get_data()`` method.
+
+
+
 
 Now we are ready to implement the desired calculation. In this case it is very simple as
 we just want to sum over population pixels where the inundation depth exceeds the threshold.
@@ -433,7 +545,7 @@ InaSAFE assumes that every impact function returns a raster or vector layer.
 
 
 
-This function is available in full at :download:`../static/flood_population_evacuation_impact_function.py`
+This function is available in full at :download:`/static/flood_population_evacuation_impact_function.py`
 
 
 Output
@@ -454,7 +566,7 @@ and the legend defined in the style_info section is available in the layer view
 .. _raster_vector:
 
 Impact function for raster hazard and vector (point or polygon) exposure data
----------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 The example below is a simple impact function that identifies which
 buildings (vector data) will be affected by earthquake ground shaking
@@ -463,7 +575,7 @@ buildings (vector data) will be affected by earthquake ground shaking
 
 TBA
 
-This function is available in full at :download:`../static/earthquake_building_impact_function.py`
+This function is available in full at :download:`/static/earthquake_building_impact_function.py`
 
 
 .. _vector_vector:
@@ -474,6 +586,7 @@ Impact function for polygon hazard and vector point exposure data
 The example below is a simple impact function that identifies which
 buildings (vector data) will be affected by certain volcanic hazard areas (vector polygon data).
 
+.. This should be the volcano impact function as it uses polygons
 
 TBA
 

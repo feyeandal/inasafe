@@ -4,19 +4,19 @@ Package::safe.common
 .. toctree::
    :maxdepth: 2
 
-   common/test_geodesy
-   common/utilities
    common/interpolation1d
-   common/test_polygon
-   common/dynamic_translations
-   common/interpolation2d
-   common/test_numerics
-   common/exceptions
-   common/polygon
-   common/testing
    common/geodesy
-   common/test_tables
    common/numerics
-   common/tables
-   common/test_interpolate
+   common/interpolation2d
+   common/test_tables
+   common/testing
    common/version
+   common/test_polygon
+   common/test_numerics
+   common/polygon
+   common/tables
+   common/dynamic_translations
+   common/exceptions
+   common/utilities
+   common/test_geodesy
+   common/test_interpolate
