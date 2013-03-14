@@ -216,6 +216,7 @@ def rasterize(theLayer,
     # Decide what value to burn into each polygon
     if theAttribute is not None and theAttribute != '':
         # set the attribute field
+        # TODO - check the attribute is valid
         # Get the layer field list
         myFieldList = myProvider.fields()
         LOGGER.debug(myFieldList)
