@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>413</width>
+    <width>703</width>
     <height>661</height>
    </rect>
   </property>
@@ -14,7 +14,7 @@
    <string>InaSAFE Batch Runner</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+   <item row="0" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
       <widget class="QLineEdit" name="leSourceDir">
@@ -32,7 +32,7 @@
      </item>
     </layout>
    </item>
-   <item row="3" column="0">
+   <item row="3" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="btnRunSelected">
@@ -53,7 +53,7 @@
      </item>
     </layout>
    </item>
-   <item row="4" column="0">
+   <item row="4" column="1">
     <widget class="QPushButton" name="pbnAdvanced">
      <property name="text">
       <string>Show advanced options</string>
@@ -66,7 +66,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="1" column="1">
     <widget class="QTableWidget" name="tblScript">
      <property name="enabled">
       <bool>true</bool>
@@ -101,7 +101,7 @@
      </column>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="5" column="1">
     <widget class="QGroupBox" name="gboOptions">
      <property name="title">
       <string>Options</string>
@@ -157,6 +157,9 @@
       </item>
      </layout>
     </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QListView" name="lvTask"/>
    </item>
   </layout>
  </widget>

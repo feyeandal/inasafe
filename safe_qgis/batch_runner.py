@@ -30,7 +30,7 @@ from PyQt4.QtGui import (QDialog, QFileDialog, QTableWidgetItem, QMessageBox)
 
 from qgis.core import QgsRectangle
 
-from script_dialog_base import Ui_ScriptDialogBase
+from batch_runner_base import Ui_ScriptDialogBase
 
 from safe_qgis.map import Map
 from safe_qgis.html_renderer import HtmlRenderer
@@ -88,6 +88,19 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         #self.tblScript.roActivated.connect(lambda: self.btnRunSelected.setEnabled(True))
         #self.tblScript.horizontalHeader().sectionClicked.connect(lambda: self.btnRunSelected.setEnabled(True))
         self.btnRunSelected.setEnabled(True)
+
+    def initListView(self, theBasePath):
+
+        myModel = TaskModel(self)
+        myModel.populate(theBasePath, self.lastSaveDir)
+
+        myItemDelegate = TaskItemDelegate(self)
+
+        self.lvTask.setModel(myModel)
+        self.lvTask.setItemDelegate(myItemDelegate)
+
+
+
 
     def restoreState(self):
         """Restore GUI state from configuration file"""
@@ -161,6 +174,10 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
                 # insert scenarios from file into table widget
                 for myKey, myValue in readScenarios(myAbsPath).iteritems():
                     appendRow(self.tblScript, myKey, myValue)
+
+
+        ##
+        self.initListView(theBasePath)
 
     def runScriptTask(self, theFilename):
         """ Run a python script in QGIS to exercise InaSAFE functionality.
@@ -626,6 +643,151 @@ def appendRow(theTable, theLabel, theData):
     theTable.setItem(myRow, 1, QTableWidgetItem(''))
 
 
+
+
+### Experiment ---------------------------------------------------
+from PyQt4.QtCore import QAbstractListModel, QModelIndex, QRect
+from PyQt4.QtGui import QItemDelegate, QPen, QStyle, QBrush, QStyleOptionButton
+
+###
+class TaskModel(QAbstractListModel):
+    """Task Model is class that contains all batch runner tasks"""
+
+    def __init__(self, theParent=None):
+        """ Initialize TaskModel.
+        Params:
+            * theParent - parent widget
+            * theSourcePath - directory path that contains batch runner tasks
+        """
+
+        QAbstractListModel.__init__(self, theParent)
+
+        self.tasks = []
+
+    def rowCount(self, parent=QModelIndex()):
+        return len(self.tasks)
+
+    def data(self, index, role):
+        if index.isValid() and role == Qt.DisplayRole:
+            #return QVariant(self.listdata[index.row()])
+            myData = self.tasks[index.row()]
+            return QVariant(myData['label'])
+        else:
+            return QVariant()
+
+    def populate(self, theSourcePath, theDataPath):
+        """ Populate table with files from theSourcePath directory.
+
+        Args:
+            theSourcePath : QString - path where .txt & .py reside
+
+        """
+
+        self.tasks = []
+
+        myPath = str(theSourcePath)
+
+        # only support .py and .txt files
+        for myFile in os.listdir(myPath):
+            myExt = os.path.splitext(myFile)[1]
+            myAbsPath = os.path.join(myPath, myFile)
+
+            if myExt == '.py':
+                #appendRow(self.tblScript, myFile, myAbsPath)
+                self.tasks.append({
+                    'type': 'script',
+                    'label': myFile,
+                    'source': os.path.join(myAbsPath, myFile)
+                })
+
+            elif myExt == '.txt':
+                # insert scenarios from file into table widget
+                for myKey, myValue in readScenarios(myAbsPath).iteritems():
+
+                    myLayers = []
+                    ## NOTE: hazard & exposure is must!!
+                    if 'hazard' in myValue:
+                        myLayers.append(myValue['hazard'])
+                    if 'exposure' in myValue:
+                        myLayers.append(myValue['exposure'])
+
+                    # optional
+                    if 'aggregation' in myValue:
+                        myLayers.append(myValue['aggregation'])
+
+                    self.tasks.append({
+                        'type': 'scenario',
+                        'label': myKey,
+                        'path': myValue.get('path') or theDataPath,
+                        'hazard': myValue['hazard'],
+                        'exposure': myValue['exposure'],
+                        'function': myValue['function'],
+                        'aggregation': myValue.get('aggregation'),
+                    })
+
+
+class TaskItemDelegate(QItemDelegate):
+    def __init__(self, theParent=None, *theArgs):
+        QItemDelegate.__init__(self, theParent, *theArgs)
+
+    def sizeHint(theOption, theIndex=None):
+        return QSize(800, 700)
+
+    def paint(self, painter, option, index):
+        painter.save()
+
+        # set background color
+        painter.setPen(QPen(Qt.NoPen))
+        if option.state & QStyle.State_Selected:
+            painter.setBrush(QBrush(Qt.red))
+        else:
+            painter.setBrush(QBrush(Qt.white))
+        painter.drawRect(option.rect)
+
+        # set text color
+        painter.setPen(QPen(Qt.black))
+        value = index.data(Qt.DisplayRole)
+        if value.isValid():
+            text = value.toString()
+            painter.drawText(option.rect, Qt.AlignLeft, text)
+
+        # set button
+        myButtonRect = QRect(option.rect)
+        myButtonRect.setY(option.rect.y() - 10)
+        myButtonRect.setHeight(30)
+
+        myButton = QStyleOptionButton()
+        myButton.rect = myButtonRect
+        myButton.text = "Run"
+        myButton.state = QStyle.State_Enabled
+
+        QApplication.style().drawControl(QStyle.CE_PushButton, myButton, painter)
+        # QRect buttonRect( rect);
+        #     buttonRect.setY(textRect.y()+ 35);
+        #     buttonRect.setHeight( 30);
+        #     QStyleOptionButton button;
+        #     button.rect = buttonRect;
+        #     button.text = text;
+        #     button.state = _state | QStyle::State_Enabled;
+
+        painter.restore()
+#
+# class MyListModel(QAbstractListModel):
+#     def __init__(self, datain, parent=None, *args):
+#         """ datain: a list where each item is a row
+#         """
+#         QAbstractListModel.__init__(self, parent, *args)
+#         self.listdata = datain
+#
+#     def rowCount(self, parent=QModelIndex()):
+#         return len(self.listdata)
+#
+#     def data(self, index, role):
+#         if index.isValid() and role == Qt.DisplayRole:
+#             return QVariant(self.listdata[index.row()])
+#         else:
+#             return QVariant()
+
 if __name__ == '__main__':
     from PyQt4.QtGui import QApplication
     from PyQt4.QtCore import QCoreApplication
@@ -636,9 +798,19 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     a = ScriptDialog()
-    #a.show()
 
-    a.saveCurrentScenario()
+
+    ### create content
+    # list_data = [1, 2, 3, 4]
+    # lm = MyListModel(list_data, a)
+    # de = MyDelegate()
+    #
+    # a.lvTask.setModel(lm)
+    # a.lvTask.setItemDelegate(de)
+
+    a.show()
+
+    #a.saveCurrentScenario()
 
     app.exec_()
 

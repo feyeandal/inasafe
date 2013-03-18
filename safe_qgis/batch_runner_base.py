@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'script_dialog_base.ui'
+# Form implementation generated from reading ui file 'batch_runner.ui'
 #
-# Created: Fri Mar 08 14:38:15 2013
+# Created: Fri Mar 08 15:38:37 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_ScriptDialogBase(object):
     def setupUi(self, ScriptDialogBase):
         ScriptDialogBase.setObjectName(_fromUtf8("ScriptDialogBase"))
-        ScriptDialogBase.resize(413, 661)
+        ScriptDialogBase.resize(703, 661)
         self.gridLayout = QtGui.QGridLayout(ScriptDialogBase)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.horizontalLayout_4 = QtGui.QHBoxLayout()
@@ -29,7 +29,7 @@ class Ui_ScriptDialogBase(object):
         self.tbSourceDir = QtGui.QToolButton(ScriptDialogBase)
         self.tbSourceDir.setObjectName(_fromUtf8("tbSourceDir"))
         self.horizontalLayout_4.addWidget(self.tbSourceDir)
-        self.gridLayout.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
+        self.gridLayout.addLayout(self.horizontalLayout_4, 0, 1, 1, 1)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.btnRunSelected = QtGui.QPushButton(ScriptDialogBase)
@@ -39,12 +39,12 @@ class Ui_ScriptDialogBase(object):
         self.pbnRunAll = QtGui.QPushButton(ScriptDialogBase)
         self.pbnRunAll.setObjectName(_fromUtf8("pbnRunAll"))
         self.horizontalLayout.addWidget(self.pbnRunAll)
-        self.gridLayout.addLayout(self.horizontalLayout, 3, 0, 1, 1)
+        self.gridLayout.addLayout(self.horizontalLayout, 3, 1, 1, 1)
         self.pbnAdvanced = QtGui.QPushButton(ScriptDialogBase)
         self.pbnAdvanced.setCheckable(True)
         self.pbnAdvanced.setChecked(False)
         self.pbnAdvanced.setObjectName(_fromUtf8("pbnAdvanced"))
-        self.gridLayout.addWidget(self.pbnAdvanced, 4, 0, 1, 1)
+        self.gridLayout.addWidget(self.pbnAdvanced, 4, 1, 1, 1)
         self.tblScript = QtGui.QTableWidget(ScriptDialogBase)
         self.tblScript.setEnabled(True)
         self.tblScript.setAlternatingRowColors(False)
@@ -60,7 +60,7 @@ class Ui_ScriptDialogBase(object):
         item = QtGui.QTableWidgetItem()
         self.tblScript.setHorizontalHeaderItem(1, item)
         self.tblScript.horizontalHeader().setDefaultSectionSize(100)
-        self.gridLayout.addWidget(self.tblScript, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.tblScript, 1, 1, 1, 1)
         self.gboOptions = QtGui.QGroupBox(ScriptDialogBase)
         self.gboOptions.setCheckable(False)
         self.gboOptions.setObjectName(_fromUtf8("gboOptions"))
@@ -90,7 +90,10 @@ class Ui_ScriptDialogBase(object):
         self.tbBaseDataDir.setObjectName(_fromUtf8("tbBaseDataDir"))
         self.horizontalLayout_3.addWidget(self.tbBaseDataDir)
         self.gridLayout_2.addLayout(self.horizontalLayout_3, 1, 0, 1, 1)
-        self.gridLayout.addWidget(self.gboOptions, 5, 0, 1, 1)
+        self.gridLayout.addWidget(self.gboOptions, 5, 1, 1, 1)
+        self.lvTask = QtGui.QListView(ScriptDialogBase)
+        self.lvTask.setObjectName(_fromUtf8("lvTask"))
+        self.gridLayout.addWidget(self.lvTask, 1, 0, 1, 1)
 
         self.retranslateUi(ScriptDialogBase)
         QtCore.QMetaObject.connectSlotsByName(ScriptDialogBase)
