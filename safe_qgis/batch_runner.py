@@ -1,6 +1,6 @@
 """
 InaSAFE Disaster risk assessment tool developed by AusAid -
-**Script runner dialog.**
+**Batch runner dialog.**
 
 Contact : ole.moller.nielsen@gmail.com
 
@@ -30,7 +30,7 @@ from PyQt4.QtGui import (QDialog, QFileDialog, QTableWidgetItem, QMessageBox)
 
 from qgis.core import QgsRectangle
 
-from batch_runner_base import Ui_ScriptDialogBase
+from batch_runner_base import Ui_BatchRunnerBase
 
 from safe_qgis.map import Map
 from safe_qgis.html_renderer import HtmlRenderer
@@ -43,7 +43,7 @@ from safe_qgis.utilities import safeTr
 LOGGER = logging.getLogger('InaSAFE')
 
 
-class ScriptDialog(QDialog, Ui_ScriptDialogBase):
+class BatchRunner(QDialog, Ui_BatchRunnerBase):
     """Script Dialog for InaSAFE."""
 
     def __init__(self, theParent=None, theIface=None):
@@ -89,18 +89,17 @@ class ScriptDialog(QDialog, Ui_ScriptDialogBase):
         #self.tblScript.horizontalHeader().sectionClicked.connect(lambda: self.btnRunSelected.setEnabled(True))
         self.btnRunSelected.setEnabled(True)
 
+        # initialized task list view
+        self.model = TaskModel(self)
+        self.itemDelegate = TaskItemDelegate(self)
+
+        self.lvTask.setModel(self.model)
+        self.lvTask.setItemDelegate(self.itemDelegate)
+
+        #self.itemDelegate.runClicked.connect(self.runTask)
+
     def initListView(self, theBasePath):
-
-        myModel = TaskModel(self)
-        myModel.populate(theBasePath, self.lastSaveDir)
-
-        myItemDelegate = TaskItemDelegate(self)
-
-        self.lvTask.setModel(myModel)
-        self.lvTask.setItemDelegate(myItemDelegate)
-
-
-
+        self.model.populate(theBasePath, self.lastSaveDir)
 
     def restoreState(self):
         """Restore GUI state from configuration file"""
@@ -646,8 +645,10 @@ def appendRow(theTable, theLabel, theData):
 
 
 ### Experiment ---------------------------------------------------
-from PyQt4.QtCore import QAbstractListModel, QModelIndex, QRect
-from PyQt4.QtGui import QItemDelegate, QPen, QStyle, QBrush, QStyleOptionButton
+# from PyQt4.QtCore import QAbstractListModel, QModelIndex, QRect, QSize, QEvent
+# from PyQt4.QtGui import QItemDelegate, QStyledItemDelegate, QPen, QStyle, QBrush, QStyleOptionButton, QPainter
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 ###
 class TaskModel(QAbstractListModel):
@@ -726,67 +727,82 @@ class TaskModel(QAbstractListModel):
                     })
 
 
-class TaskItemDelegate(QItemDelegate):
+class TaskItemDelegate(QStyledItemDelegate):
+    runClicked = pyqtSignal(int)
+
     def __init__(self, theParent=None, *theArgs):
-        QItemDelegate.__init__(self, theParent, *theArgs)
+        QStyledItemDelegate.__init__(self, theParent, *theArgs)
 
-    def sizeHint(theOption, theIndex=None):
-        return QSize(800, 700)
+        self.runButtonStyle = QStyleOptionButton()
+        #self.runButtonStyle.rect = myButtonRect
+        self.runButtonStyle.text = self.tr("Run")
+        self.runButtonStyle.state = QStyle.State_Enabled
 
-    def paint(self, painter, option, index):
+    def getRunButtonRect(self, theOption):
+        myRect = QRect(theOption.rect)
+        myRect.setX(theOption.rect.width() - 40)
+        myRect.setWidth(40)
+        #myRect.setY(theOption.rect.y() - 10)
+        myRect.setHeight(30)
+
+        return myRect
+
+    def sizeHint(self, theOption, theIndex=None):
+        return QSize(180, 90)
+
+    def paint(self, painter, theOption, index):
         painter.save()
 
-        # set background color
-        painter.setPen(QPen(Qt.NoPen))
-        if option.state & QStyle.State_Selected:
-            painter.setBrush(QBrush(Qt.red))
-        else:
-            painter.setBrush(QBrush(Qt.white))
-        painter.drawRect(option.rect)
+        painter.setRenderHint(QPainter.Antialiasing, True)
 
-        # set text color
+        # draw icon
+
+        # draw text
         painter.setPen(QPen(Qt.black))
         value = index.data(Qt.DisplayRole)
         if value.isValid():
             text = value.toString()
-            painter.drawText(option.rect, Qt.AlignLeft, text)
+            painter.drawText(theOption.rect, Qt.AlignLeft, text)
 
-        # set button
-        myButtonRect = QRect(option.rect)
-        myButtonRect.setY(option.rect.y() - 10)
-        myButtonRect.setHeight(30)
-
-        myButton = QStyleOptionButton()
-        myButton.rect = myButtonRect
-        myButton.text = "Run"
-        myButton.state = QStyle.State_Enabled
-
+        # draw run button
+        # myButtonRect = QRect(option.rect)
+        #
+        # myButton = QStyleOptionButton()
+        # myButton.rect = myButtonRect
+        # myButton.text = self.tr("Run")
+        # myButton.state = QStyle.State_Enabled
+        myButton = self.runButtonStyle
+        myButton.rect = self.getRunButtonRect(theOption)
         QApplication.style().drawControl(QStyle.CE_PushButton, myButton, painter)
-        # QRect buttonRect( rect);
-        #     buttonRect.setY(textRect.y()+ 35);
-        #     buttonRect.setHeight( 30);
-        #     QStyleOptionButton button;
-        #     button.rect = buttonRect;
-        #     button.text = text;
-        #     button.state = _state | QStyle::State_Enabled;
 
+        # draw progress bar
         painter.restore()
-#
-# class MyListModel(QAbstractListModel):
-#     def __init__(self, datain, parent=None, *args):
-#         """ datain: a list where each item is a row
-#         """
-#         QAbstractListModel.__init__(self, parent, *args)
-#         self.listdata = datain
-#
-#     def rowCount(self, parent=QModelIndex()):
-#         return len(self.listdata)
-#
-#     def data(self, index, role):
-#         if index.isValid() and role == Qt.DisplayRole:
-#             return QVariant(self.listdata[index.row()])
-#         else:
-#             return QVariant()
+
+    def editorEvent(self, theEvent, theItemModel, theOption, theModelIndex):
+        """
+        :param theEvent:QEvent
+        :param theItemModel:
+        :param theStyle:
+        :param theModelIndex:
+        :return:
+        """
+
+        ##
+
+        if theEvent.type() == QEvent.MouseButtonRelease:
+            myRunButtonRect = self.getRunButtonRect(theOption)
+            if myRunButtonRect.contains(theEvent.pos()):
+                self.runClicked.emit(theModelIndex.row())
+
+
+
+        # myButtonRect = QRect(option.rect)
+        #
+        # myButtonRect.setX(option.rect.width() - 40)
+        # myButtonRect.setWidth(40)
+        # #myButtonRect.setY(option.rect.y() - 10)
+        # myButtonRect.setHeight(30)
+        return False
 
 if __name__ == '__main__':
     from PyQt4.QtGui import QApplication
@@ -797,7 +813,7 @@ if __name__ == '__main__':
     QCoreApplication.setApplicationName('inasafe')
 
     app = QApplication(sys.argv)
-    a = ScriptDialog()
+    a = BatchRunner()
 
 
     ### create content
