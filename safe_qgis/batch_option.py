@@ -46,13 +46,40 @@ class BatchOption(QDialog, Ui_BatchOptionBase):
         QDialog.__init__(self, theParent)
         self.setupUi(self)
 
-
     @staticmethod
-    def getOptions():
-        myDialog = BatchOption()
-        myDialog.exec_()
+    def getOptions(theDataPath=None, theReportPath=None, theIgnoreDataPath=False):
+        """Get options value from dialog.
+        The returned value is tuple with this format:
+          (data_path: str, report_path: str, ignore_data_path: bool)
 
-        return
+        Params:
+            * theDataPath - default value for data path
+            * theReportPath - default value for report path
+            * theIgnoreDataPath - default value for ignore data path
+
+        Returns:
+            A tuple when 'OK' button is pressed, false otherwise
+        """
+
+        myDialog = BatchOption()
+
+        # set default value
+        myDialog.pleReportPath.setText(theDataPath)
+        myDialog.pleReportPath.setText(theReportPath)
+        myDialog.cbIgnoreDataPath.setChecked(theIgnoreDataPath)
+
+        myResult = myDialog.exec_()
+
+        # return false when user press 'cancel'
+        if not myResult:
+            return False
+
+        # get result
+        myDataPath = myDialog.pleDataPath.text()
+        myReportPath = myDialog.pleReportPath.text()
+        myIgnoreDataPath = myDialog.cbIgnoreDataPath.isChecked()
+
+        return (myDataPath, myReportPath, myIgnoreDataPath)
 
 
 if __name__ == '__main__':
