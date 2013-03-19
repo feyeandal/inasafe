@@ -37,8 +37,10 @@ def getDock():
     return iface.mainWindow().findChild(Dock, 'InaSAFEDock')
 
 
-def runScenario():
+def runScenario(theCallBack=None):
     """Simulate pressing run button in InaSAFE dock widget.
+    Params:
+        theCallBack - function to run when scenario finished
 
     Returns:
         None
@@ -48,6 +50,10 @@ def runScenario():
 
     def completed():
         LOGGER.debug("scenario done")
+
+        if theCallBack:
+            theCallBack()
+
         myDock.analysisDone.disconnect(completed)
 
     myDock.analysisDone.connect(completed)
