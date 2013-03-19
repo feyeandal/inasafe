@@ -24,7 +24,7 @@ import logging
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QApplication, QTableWidget  # pylint: disable=W0611
 from safe_qgis.utilities_test import getQgisTestApp, unitTestDataPath
-from safe_qgis.script_dialog import (ScriptDialog, readScenarios, appendRow)
+from safe_qgis.batch_runner import (BatchRunner, readScenarios, appendRow)
 
 QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
 LOGGER = logging.getLogger('InaSAFE')
@@ -98,7 +98,7 @@ class ScriptDialogTest(unittest.TestCase):
 
     def test_getPDFReportPath(self):
         """Test getPDFReport functionality"""
-        myDialog = ScriptDialog(PARENT, IFACE)
+        myDialog = BatchRunner(PARENT, IFACE)
         myValue = myDialog.getPDFReportPath('/home/foo', 'bar')
 
         # we use os.path.join instead of hardcoded '/'
