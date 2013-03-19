@@ -30,7 +30,8 @@ from PyQt4.QtGui import (QDialog, QFileDialog, QTableWidgetItem, QMessageBox)
 
 from qgis.core import QgsRectangle
 
-from batch_runner_base import Ui_BatchRunnerBase
+from safe_qgis.batch_runner_base import Ui_BatchRunnerBase
+from safe_qgis.batch_option import BatchOption
 
 from safe_qgis.map import Map
 from safe_qgis.html_renderer import HtmlRenderer
@@ -39,6 +40,7 @@ from safe_qgis.safe_interface import temp_dir
 
 from safe_qgis import macro
 from safe_qgis.utilities import safeTr
+from safe_qgis.exceptions import KeywordNotFoundError
 
 LOGGER = logging.getLogger('InaSAFE')
 
@@ -63,31 +65,8 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myRoot = os.path.dirname(__file__)
         self.defaultSourceDir = os.path.abspath(
             os.path.join(myRoot, '..', 'script_runner'))
-        self.lastSaveDir = self.defaultSourceDir
-
-        myHeaderView = self.tblScript.horizontalHeader()
-        myHeaderView.setResizeMode(0, QtGui.QHeaderView.Stretch)
-        myHeaderView.setResizeMode(1, QtGui.QHeaderView.Interactive)
-
-        self.tblScript.setColumnWidth(0, 200)
-        self.tblScript.setColumnWidth(1, 50)
-
-        self.gboOptions.setVisible(False)
-
-        self.adjustSize()
-
-        self.restoreState()
-        self.populateTable(self.leSourceDir.text())
-
-        # connect signal to slot
-        self.leBaseDataDir.textChanged.connect(self.saveState)
-
-        self.leSourceDir.textChanged.connect(self.saveState)
-        self.leSourceDir.textChanged.connect(self.populateTable)
-
-        #self.tblScript.roActivated.connect(lambda: self.btnRunSelected.setEnabled(True))
-        #self.tblScript.horizontalHeader().sectionClicked.connect(lambda: self.btnRunSelected.setEnabled(True))
-        self.btnRunSelected.setEnabled(True)
+        self.sourceDir = self.defaultSourceDir
+        self.ignoreBaseDataDir = False
 
         # initialized task list view
         self.model = TaskModel(self)
@@ -96,87 +75,58 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         self.lvTask.setModel(self.model)
         self.lvTask.setItemDelegate(self.itemDelegate)
 
-        #self.itemDelegate.runClicked.connect(self.runTask)
+        #self.adjustSize()
+        self.restoreState()
 
-    def initListView(self, theBasePath):
-        self.model.populate(theBasePath, self.lastSaveDir)
+        self.populate(self.sourceDir)
+
+        # setup signal & slot
+        self.pleSourcePath.lePath.textChanged.connect(self.populate)
+        self.itemDelegate.runClicked.connect(self.runTask)
+        self.pbnRunAll.clicked.connect(self.runAllTask)
+        self.pbnOption.clicked.connect(self.showOptionDialog)
+
+    def populate(self, theBasePath):
+        self.model.populate(theBasePath, self.sourceDir)
 
     def restoreState(self):
         """Restore GUI state from configuration file"""
 
         mySettings = QSettings()
 
-        # restore last source path
-        myLastSourcePath = mySettings.value('inasafe/lastSourceDir',
-                                             self.defaultSourceDir)
-        self.leSourceDir.setText(myLastSourcePath.toString())
+        self.baseDataDir = mySettings.value('inasafe/baseDataDir',
+                                            QString('')).toString()
+        self.sourceDir = mySettings.value('inasafe/lastSourceDir',
+                                          self.defaultSourceDir).toString()
+        self.reportDir = mySettings.value('inasafe/reportDir',
+                                          self.baseDataDir).toString()
+        self.ignoreBaseDataDir = mySettings.value(
+            'inasafe/ignoreBaseDataDir',
+            self.ignoreBaseDataDir).toBool()
 
-        # restore path for layer data & pdf output
-        myPath = mySettings.value('inasafe/baseDataDir', QString(''))
-        self.leBaseDataDir.setText(myPath.toString())
+        self.pleSourcePath.setText(self.sourceDir)
 
     def saveState(self):
         """Save current state of GUI to configuration file"""
 
         mySettings = QSettings()
 
-        mySettings.setValue('inasafe/lastSourceDir', self.leSourceDir.text())
-        mySettings.setValue('inasafe/baseDataDir', self.leBaseDataDir.text())
+        mySettings.setValue('inasafe/lastSourceDir', self.sourceDir)
+        mySettings.setValue('inasafe/baseDataDir', self.baseDataDir)
+        mySettings.setValue('inasafe/reportDir', self.reportDir)
+        mySettings.setValue('inasafe/ignoreBaseDataDir', self.ignoreBaseDataDir)
 
-    def showDirectoryDialog(self, theLineEdit, theTitle):
-        """ Show a directory selection dialog.
-        This function will show the dialog then set theLineEdit widget
-        text with output from the dialog.
+    def showOptionDialog(self):
+        """ Show option dialog """
 
-        Params:
-            * theLineEdit - QLineEdit widget instance
-            * theTitle - title of dialog
-        """
-        myPath = theLineEdit.text()
-        myNewPath = QFileDialog.getExistingDirectory(
-            self,
-            theTitle,
-            myPath,
-            QFileDialog.ShowDirsOnly)
-        theLineEdit.setText(myNewPath)
+        myOptions = BatchOption.getOptions(
+            self.baseDataDir, self.reportDir, self.ignoreBaseDataDir)
 
-    def populateTable(self, theBasePath):
-        """ Populate table with files from theBasePath directory.
+        if myOptions:
+            (self.baseDataDir, self.reportDir, self.ignoreBaseDataDir) = \
+                myOptions
 
-        Args:
-            theBasePath : QString - path where .txt & .py reside
-
-        Returns:
-            None
-
-        Raises:
-            None
-        """
-
-        LOGGER.info("populateTable from %s" % theBasePath)
-
-        self.tblScript.clearContents()
-
-        # NOTE(gigih): need this line to remove existing rows
-        self.tblScript.setRowCount(0)
-
-        myPath = str(theBasePath)
-
-        # only support .py and .txt files
-        for myFile in os.listdir(myPath):
-            myExt = os.path.splitext(myFile)[1]
-            myAbsPath = os.path.join(myPath, myFile)
-
-            if myExt == '.py':
-                appendRow(self.tblScript, myFile, myAbsPath)
-            elif myExt == '.txt':
-                # insert scenarios from file into table widget
-                for myKey, myValue in readScenarios(myAbsPath).iteritems():
-                    appendRow(self.tblScript, myKey, myValue)
-
-
-        ##
-        self.initListView(theBasePath)
+            self.saveState()
 
     def runScriptTask(self, theFilename):
         """ Run a python script in QGIS to exercise InaSAFE functionality.
@@ -216,54 +166,51 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         else:
             myFunction()
 
-    def runSimpleTask(self, theItem):
+    def runScenarioTask(self, theIndex, theTask):
         """Run a simple scenario.
+        After scenario has finished, pdf report will be created in
+        directory self.reportDir
 
         Params:
             theItem - a dictionary contains the scenario configuration
         Returns:
             True if success, otherwise return False.
         """
-        myRoot = str(self.leBaseDataDir.text())
-
-        myPaths = []
-        if 'hazard' in theItem:
-            myPaths.append(theItem['hazard'])
-        if 'exposure' in theItem:
-            myPaths.append(theItem['exposure'])
-        if 'aggregation' in theItem:
-            myPaths.append(theItem['aggregation'])
 
         # always run in new project
         self.iface.newProject()
 
-        myMessage = 'Loading layers: \nRoot: %s\n%s' % (myRoot, myPaths)
+        myMessage = 'Loading layers: \nRoot: %s\n%s' % (theTask['path'], theTask['layers'])
         LOGGER.info(myMessage)
 
         try:
-            macro.addLayers(myRoot, myPaths)
+            macro.addLayers(theTask['path'], theTask['layers'])
         except QgisPathError:
             # set status to 'fail'
             LOGGER.exception('Loading layers failed: \nRoot: %s\n%s' % (
-                myRoot, myPaths))
+                theTask['path'], theTask['layers']))
             return False
 
         # See if we have a preferred impact function
-        if 'function' in theItem:
-            myFunctionId = theItem['function']
+        if 'function' in theTask:
+            myFunctionId = theTask['function']
             myResult = macro.setFunctionId(myFunctionId)
             if not myResult:
+                LOGGER.error("cannot set function %s" % theTask['function'])
                 return False
 
-        if 'aggregation' in theItem:
-            myResult = macro.setAggregationLayer(theItem['aggregation'])
+        # set aggregation layer if exist
+        myAggregation = theTask.get('aggregation')
+        if myAggregation:
+            myResult = macro.setAggregation(myAggregation)
             if not myResult:
+                LOGGER.error("cannot set aggregation %s" % myAggregation)
                 return False
 
         # set extent if exist
-        if 'extent' in theItem:
+        if 'extent' in theTask:
             # split extent string
-            myCoordinate = theItem['extent'].replace(' ', '').split(',')
+            myCoordinate = theTask['extent'].replace(' ', '').split(',')
             myCount = len(myCoordinate)
             if myCount != 4:
                 myMessage = 'extent need exactly 4 value but got %s instead' % myCount
@@ -286,35 +233,48 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
             self.iface.mapCanvas().setExtent(myExtent)
 
-        macro.runScenario()
+        def onAnalysisDone():
+
+            # set status to success
+            self.model.setStatus(theIndex, TaskModel.Success)
+
+            # NOTE(gigih):
+            # Usually after analysis is done, the impact layer
+            # become the active layer. <--- WRONG
+            myImpactLayer = self.iface.activeLayer()
+            myReportDir = str(self.reportDir)
+            self.createPDFReport(theTask['label'], myReportDir, myImpactLayer)
+
+        LOGGER.info("Run scenario %s" % theTask['label'])
+        macro.runScenario(onAnalysisDone)
 
         return True
 
-    @pyqtSignature('')
-    def on_pbnRunAll_clicked(self):
-        myReport = []
-        myFailCount = 0
-        myPassCount = 0
-
-        for myRow in range(self.tblScript.rowCount()):
-            myItem = self.tblScript.item(myRow, 0)
-            myStatusItem = self.tblScript.item(myRow, 1)
-
-            try:
-                myResult = self.runTask(myItem, myStatusItem)
-                if myResult:
-                    # P for passed
-                    myReport.append('P: %s\n' % str(myItem))
-                    myPassCount += 1
-                else:
-                    myReport.append('F: %s\n' % str(myItem))
-                    myFailCount += 1
-            except:
-                LOGGER.exception('Batch execution failed')
-                myReport.append('F: %s\n' % str(myItem))
-                myFailCount += 1
-
-        self.showBatchReport(myReport, myPassCount, myFailCount)
+    # @pyqtSignature('')
+    # def on_pbnRunAll_clicked(self):
+    #     myReport = []
+    #     myFailCount = 0
+    #     myPassCount = 0
+    #
+    #     for myRow in range(self.tblScript.rowCount()):
+    #         myItem = self.tblScript.item(myRow, 0)
+    #         myStatusItem = self.tblScript.item(myRow, 1)
+    #
+    #         try:
+    #             myResult = self.runTask(myItem, myStatusItem)
+    #             if myResult:
+    #                 # P for passed
+    #                 myReport.append('P: %s\n' % str(myItem))
+    #                 myPassCount += 1
+    #             else:
+    #                 myReport.append('F: %s\n' % str(myItem))
+    #                 myFailCount += 1
+    #         except:
+    #             LOGGER.exception('Batch execution failed')
+    #             myReport.append('F: %s\n' % str(myItem))
+    #             myFailCount += 1
+    #
+    #     self.showBatchReport(myReport, myPassCount, myFailCount)
 
     def showBatchReport(self, myReport, myPassCount, myFailCount):
         """Display a report status of Batch Runner"""
@@ -335,57 +295,103 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myUrl = QtCore.QUrl('file:///' + myPath)
         QtGui.QDesktopServices.openUrl(myUrl)
 
-    def runTask(self, theItem, theStatusItem, theCount=1):
-        """Run a single task """
+    def runAllTask(self):
+        """ Run all batch runner tasks """
 
-        # set status to 'running'
-        theStatusItem.setText(self.tr('Running'))
+        # check existing pdf report and
+        # ask user if he want to rewrite existing report
+        myPath = str(self.reportDir)
+        myTitles = [myTask['label'] for myTask in self.model.tasks]
 
-        # .. seealso:: :func:`appendRow` to understand the next 2 lines
-        myVariant = theItem.data(QtCore.Qt.UserRole)
-        myValue = myVariant.toPyObject()[0]
+        myResult = self.checkExistingPDFReport(myPath, myTitles)
+        if myResult is False:
+            return False
 
-        myResult = True
+        # run all task without checking existing report
+        for myIndex in range(0, len(self.model.tasks)):
+            self.runTask(myIndex, False)
 
-        if isinstance(myValue, str):
-            myFilename = myValue
-            # run script
-            try:
-                self.runScriptTask(myFilename, theCount)
-                # set status to 'OK'
-                theStatusItem.setText(self.tr('OK'))
-            except Exception as ex:
-                # set status to 'fail'
-                theStatusItem.setText(self.tr('Fail'))
+    def runTask(self, theIndex, theCheckExistingReport=True):
+        myTask = self.model.tasks[theIndex]
 
-                LOGGER.exception('Running macro failed')
-                myResult = False
-        elif isinstance(myValue, dict):
-            myPath = str(self.leBaseDataDir.text())
-            myTitle = str(theItem.text())
+        # set status to running...
+        self.model.setStatus(theIndex, TaskModel.Running)
 
-            # check existing pdf report
-            myResult = self.checkExistingPDFReport(myPath, [myTitle])
-            if myResult is False:
-                return False
+        if myTask['type'] == 'script':
+            self.runScriptTask(myTask['source'])
+        elif myTask['type'] == 'scenario':
+            myPath = str(self.reportDir)
+            myTitle = myTask['label']
 
-            # Its a dict containing files for a scenario
-            myResult = self.runSimpleTask(myValue)
-            if not myResult:
-                theStatusItem.setText(self.tr('Fail'))
-                myResult = False
-            else:
+            if theCheckExistingReport:
+                # check existing pdf report
+                myResult = self.checkExistingPDFReport(myPath, [myTitle])
+                if myResult is False:
+                    self.model.setStatus(theIndex. TaskModel.Normal)
+                    return False
 
-                # NOTE(gigih):
-                # Usually after analysis is done, the impact layer
-                # become the active layer. <--- WRONG
-                myImpactLayer = self.iface.activeLayer()
-                self.createPDFReport(myTitle, myPath, myImpactLayer)
+            self.runScenarioTask(theIndex, myTask)
+            #
+            # # NOTE(gigih):
+            # # Usually after analysis is done, the impact layer
+            # # become the active layer. <--- WRONG
+            # myImpactLayer = self.iface.activeLayer()
+            # self.createPDFReport(myTitle, myPath, myImpactLayer)
         else:
-            LOGGER.exception('data type not supported: "%s"' % myValue)
+            LOGGER.exception('task type not supported: "%s"' % myTask['type'])
             myResult = False
 
-        return myResult
+    # def runTask(self, theItem, theStatusItem, theCount=1):
+    #     """Run a single task """
+    #
+    #     # set status to 'running'
+    #     theStatusItem.setText(self.tr('Running'))
+    #
+    #     # .. seealso:: :func:`appendRow` to understand the next 2 lines
+    #     myVariant = theItem.data(QtCore.Qt.UserRole)
+    #     myValue = myVariant.toPyObject()[0]
+    #
+    #     myResult = True
+    #
+    #     if isinstance(myValue, str):
+    #         myFilename = myValue
+    #         # run script
+    #         try:
+    #             self.runScriptTask(myFilename, theCount)
+    #             # set status to 'OK'
+    #             theStatusItem.setText(self.tr('OK'))
+    #         except Exception as ex:
+    #             # set status to 'fail'
+    #             theStatusItem.setText(self.tr('Fail'))
+    #
+    #             LOGGER.exception('Running macro failed')
+    #             myResult = False
+    #     elif isinstance(myValue, dict):
+    #         myPath = str(self.leBaseDataDir.text())
+    #         myTitle = str(theItem.text())
+    #
+    #         # check existing pdf report
+    #         myResult = self.checkExistingPDFReport(myPath, [myTitle])
+    #         if myResult is False:
+    #             return False
+    #
+    #         # Its a dict containing files for a scenario
+    #         myResult = self.runScenarioTask(myValue)
+    #         if not myResult:
+    #             theStatusItem.setText(self.tr('Fail'))
+    #             myResult = False
+    #         else:
+    #
+    #             # NOTE(gigih):
+    #             # Usually after analysis is done, the impact layer
+    #             # become the active layer. <--- WRONG
+    #             myImpactLayer = self.iface.activeLayer()
+    #             self.createPDFReport(myTitle, myPath, myImpactLayer)
+    #     else:
+    #         LOGGER.exception('data type not supported: "%s"' % myValue)
+    #         myResult = False
+    #
+    #     return myResult
 
     def getPDFReportPath(self, theBasePath, theTitle):
         """Get PDF report filename based on theBasePath and theTitle.
@@ -476,16 +482,16 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         LOGGER.debug("report done %s %s" % (myMapPath, myTablePath))
 
     def saveCurrentScenario(self):
-        """"""
+        """ Save current scenario to text file """
         myTitleDialog = self.tr('Save Scenario')
         myFileName = QFileDialog.getSaveFileName(
             self, myTitleDialog,
-            self.lastSaveDir,
+            self.sourceDir,
             "Text files (*.txt)"
         )
 
-        if myFileName is None:
-            LOGGER.info("batal")
+        # user press 'cancel'
+        if not myFileName:
             return
 
         ### get data layer
@@ -499,9 +505,14 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myHazardPath = myHazardLayer.publicSource()
         myRootPath = os.path.commonprefix([myExposurePath, myHazardPath])
 
-        myTitle = myDock.keywordIO.readKeywords(myHazardLayer, 'title')
-        myTitle = safeTr(myTitle)
+        # get title from keyword, otherwise use filename as title
+        try:
+            myTitle = myDock.keywordIO.readKeywords(myHazardLayer, 'title')
+        except KeywordNotFoundError:
+            myTitle = os.path.basename(str(myHazardPath))
+            myTitle = os.path.splitext(myTitle)[0]
 
+        myTitle = safeTr(myTitle)
         myFunctionId = myDock.getFunctionID(myDock.cboFunction.currentIndex())
 
         # simplify the path
@@ -517,44 +528,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myParser.set(myTitle, 'function', myFunctionId)
 
         myParser.write(open(myFileName, 'w'))
-
-
-    @pyqtSignature('')
-    def on_btnRunSelected_clicked(self):
-        """Run the selected item. """
-        myCurrentRow = self.tblScript.currentRow()
-        myItem = self.tblScript.item(myCurrentRow, 0)
-        myStatusItem = self.tblScript.item(myCurrentRow, 1)
-        myCount = self.sboCount.value()
-
-        self.runTask(myItem, myStatusItem, myCount)
-
-    @pyqtSignature('bool')
-    def on_pbnAdvanced_toggled(self, theFlag):
-        """Autoconnect slot activated when advanced button is clicked"""
-
-        if theFlag:
-            self.pbnAdvanced.setText(self.tr('Hide advanced options'))
-        else:
-            self.pbnAdvanced.setText(self.tr('Show advanced options'))
-
-        self.gboOptions.setVisible(theFlag)
-        self.adjustSize()
-
-    @pyqtSignature('')  # prevents actions being handled twice
-    def on_tbBaseDataDir_clicked(self):
-        """Autoconnect slot activated when the select cache file tool button is
-        clicked.
-        """
-        myTitle = self.tr('Set the base directory for data packages')
-        self.showDirectoryDialog(self.leBaseDataDir, myTitle)
-
-    @pyqtSignature('')  # prevents actions being handled twice
-    def on_tbSourceDir_clicked(self):
-        """ Autoconnect slot activated when tbSourceDir is clicked """
-
-        myTitle = self.tr('Set the source directory for script and scenario')
-        self.showDirectoryDialog(self.leSourceDir, myTitle)
+        LOGGER.info("save current scenario to %s" % myFileName)
 
 
 def readScenarios(theFileName):
@@ -650,38 +624,63 @@ def appendRow(theTable, theLabel, theData):
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+
 ###
 class TaskModel(QAbstractListModel):
     """Task Model is class that contains all batch runner tasks"""
+
+    # Enum for status of task
+    Normal = 0
+    Running = 1
+    Fail = 3
+    Success = 4
 
     def __init__(self, theParent=None):
         """ Initialize TaskModel.
         Params:
             * theParent - parent widget
-            * theSourcePath - directory path that contains batch runner tasks
         """
 
         QAbstractListModel.__init__(self, theParent)
 
         self.tasks = []
 
-    def rowCount(self, parent=QModelIndex()):
+    def rowCount(self, theParent=QModelIndex()):
+        """ Get the task count """
         return len(self.tasks)
 
-    def data(self, index, role):
-        if index.isValid() and role == Qt.DisplayRole:
-            #return QVariant(self.listdata[index.row()])
-            myData = self.tasks[index.row()]
+    def data(self, theIndex, theRole):
+        myData = self.tasks[theIndex.row()]
+
+        if theIndex.isValid() and theRole == Qt.DisplayRole:
             return QVariant(myData['label'])
         else:
-            return QVariant()
+            # see for details of why we follow this pattern
+            # http://stackoverflow.com/questions/9257422/
+            # how-to-get-the-original-python-data-from-qvariant
+            # Make the value immutable.
+            myVariant = QVariant((myData,))
+
+            return myVariant
+
+    def setStatus(self, theIndex, theFlag):
+        """ Set status of task
+        Params:
+            * theIndex - index of task in Model
+            * theFlag - status value of task:
+                        TaskModel.Normal, TaskModel.Running,
+                        TaksModel.Fail, or TaskModel.Success
+        """
+        self.tasks[theIndex]['status'] = theFlag
+        myModelIndex = self.index(theIndex, 0)
+        self.dataChanged.emit(myModelIndex, myModelIndex)
 
     def populate(self, theSourcePath, theDataPath):
-        """ Populate table with files from theSourcePath directory.
+        """ Populate model with files from theSourcePath directory.
 
         Args:
             theSourcePath : QString - path where .txt & .py reside
-
+            theDataPath : QString - default data layer directory for scenario file to search
         """
 
         self.tasks = []
@@ -724,6 +723,7 @@ class TaskModel(QAbstractListModel):
                         'exposure': myValue['exposure'],
                         'function': myValue['function'],
                         'aggregation': myValue.get('aggregation'),
+                        'layers': myLayers
                     })
 
 
@@ -747,22 +747,33 @@ class TaskItemDelegate(QStyledItemDelegate):
 
         return myRect
 
+    def getProgressBarRect(self, theOption):
+        myRect = QRect(theOption.rect)
+        myRect.setX(theOption.rect.width() - 40)
+        myRect.setWidth(240)
+        myRect.setY(theOption.rect.y() - 20)
+        myRect.setHeight(18)
+
+        return myRect
+
     def sizeHint(self, theOption, theIndex=None):
         return QSize(180, 90)
 
-    def paint(self, painter, theOption, index):
-        painter.save()
+    def paint(self, thePainter, theOption, theIndex):
 
-        painter.setRenderHint(QPainter.Antialiasing, True)
+        myAppStyle = QApplication.style()
+        thePainter.save()
+
+        thePainter.setRenderHint(QPainter.Antialiasing, True)
 
         # draw icon
 
         # draw text
-        painter.setPen(QPen(Qt.black))
-        value = index.data(Qt.DisplayRole)
+        thePainter.setPen(QPen(Qt.black))
+        value = theIndex.data(Qt.DisplayRole)
         if value.isValid():
             text = value.toString()
-            painter.drawText(theOption.rect, Qt.AlignLeft, text)
+            thePainter.drawText(theOption.rect, Qt.AlignLeft, text)
 
         # draw run button
         # myButtonRect = QRect(option.rect)
@@ -773,10 +784,25 @@ class TaskItemDelegate(QStyledItemDelegate):
         # myButton.state = QStyle.State_Enabled
         myButton = self.runButtonStyle
         myButton.rect = self.getRunButtonRect(theOption)
-        QApplication.style().drawControl(QStyle.CE_PushButton, myButton, painter)
+        myAppStyle.drawControl(QStyle.CE_PushButton, myButton, thePainter)
 
         # draw progress bar
-        painter.restore()
+
+        # .. seealso:: :func:`appendRow` to understand the next 2 lines
+        myVariant = theIndex.data(Qt.UserRole)
+        myTask = myVariant.toPyObject()[0]
+        myStatus = myTask.get('status')
+
+        if myStatus == TaskModel.Running:
+            myProgressBar = QStyleOptionProgressBar()
+            myProgressBar.rect = self.getProgressBarRect(theOption)
+            myAppStyle.drawControl(QStyle.CE_ProgressBar, myProgressBar, thePainter)
+        elif myStatus == TaskModel.Fail:
+            LOGGER.info("Fail bro")
+        elif myStatus == TaskModel.Success:
+            LOGGER.info("Sukses")
+
+        thePainter.restore()
 
     def editorEvent(self, theEvent, theItemModel, theOption, theModelIndex):
         """
