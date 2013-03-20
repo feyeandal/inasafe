@@ -45,8 +45,7 @@ class VolcanoBuildingImpact(FunctionProvider):
                 'hazard zones for each Kawasan Rawan Bencana or radius.')
 
     parameters = OrderedDict([
-        ('distances [km]', [1, 2, 3, 5, 10]),
-        ('volcano_name', 'All')])
+        ('distances [km]', [3, 5, 10])])
 
     def run(self, layers):
         """Risk plugin for volcano hazard on building/structure
@@ -66,6 +65,7 @@ class VolcanoBuildingImpact(FunctionProvider):
         # Identify hazard and exposure layers
         my_hazard = get_hazard_layer(layers)  # Volcano hazard layer
         my_exposure = get_exposure_layer(layers)
+        is_point_data = False
 
         question = get_question(my_hazard.get_name(),
                                 my_exposure.get_name(),
@@ -87,6 +87,7 @@ class VolcanoBuildingImpact(FunctionProvider):
         if my_hazard.is_point_data:
             # Use concentric circles
             radii = self.parameters['distances [km]']
+            is_point_data = True
 
             centers = my_hazard.get_geometry()
             attributes = my_hazard.get_data()
@@ -101,6 +102,7 @@ class VolcanoBuildingImpact(FunctionProvider):
 
             #category_names = ['%s m' % x for x in radii]
             category_names = rad_m
+            name_attribute = 'NAME'  # As in e.g. the Smithsonian dataset
         else:
             # Use hazard map
             category_title = 'KRB'
@@ -109,6 +111,21 @@ class VolcanoBuildingImpact(FunctionProvider):
             category_names = ['Kawasan Rawan Bencana III',
                               'Kawasan Rawan Bencana II',
                               'Kawasan Rawan Bencana I']
+            name_attribute = 'GUNUNG'  # As in e.g. BNPB hazard map
+
+        # Get names of volcanos considered
+        if name_attribute in my_hazard.get_attribute_names():
+            D = {}
+            for att in my_hazard.get_data():
+                # Run through all polygons and get unique names
+                D[att[name_attribute]] = None
+
+            volcano_names = ''
+            for name in D:
+                volcano_names += '%s, ' % name
+            volcano_names = volcano_names[:-2]  # Strip trailing ', '
+        else:
+            volcano_names = tr('Not specified in data')
 
         if not category_title in my_hazard.get_attribute_names():
             msg = ('Hazard data %s did not contain expected '
@@ -129,7 +146,7 @@ class VolcanoBuildingImpact(FunctionProvider):
             categories[cat] = 0
 
         # Count affected population per polygon and total
-        total_affected = 0
+        # total_affected = 0
         for attr in P.get_data():
 
             # Update building count for associated polygon
@@ -142,22 +159,27 @@ class VolcanoBuildingImpact(FunctionProvider):
                 categories[cat] += 1
 
             # Update total
-            total_affected += 1
+            # total_affected += 1
 
         # Count totals
         total = len(my_exposure)
 
         # Generate simple impact report
+        blank_cell = ''
         table_body = [question,
-                      TableRow([tr('Buildings'), tr('Total'),
-                                tr('Cumulative')],
+                      TableRow([tr('Volcanos considered'),
+                                '%s' % volcano_names, blank_cell],
                                header=True),
-                      TableRow([tr('All'), format_int(total_affected), ''])]
+                      TableRow([tr('Distance [km]'), tr('Total'),
+                                tr('Cumulative')],
+                               header=True)]
 
         cum = 0
         for name in category_names:
             count = categories[name]
             cum += count
+            if is_point_data:
+                name = int(name) / 1000
             table_body.append(TableRow([name, format_int(count),
                                         format_int(cum)]))
 
