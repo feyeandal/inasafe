@@ -314,7 +314,7 @@ class Plugin:
         # Create action for batch runner dialog
         #---------------------------------------
         self.actionBatchRunner = QAction(
-            QIcon(':/plugins/inasafe/batch-runner.svg'),
+            QIcon(':/plugins/inasafe/show-batch-runner.svg'),
             self.tr('InaSAFE Batch Runner'), self.iface.mainWindow())
         self.actionBatchRunner.setStatusTip(self.tr(
             'Open InaSAFE Batch Runner'))
@@ -570,11 +570,10 @@ class Plugin:
            no exceptions explicitly raised.
         """
         # import here only so that it is AFTER i18n set up
-        from safe_qgis.converter_dialog import ConverterDialog
+        from safe_qgis.batch_runner import BatchRunner
 
-        myDialog = Ba(self.iface.mainWindow())
+        myDialog = BatchRunner(self.iface.mainWindow())
         myDialog.show()
-
 
     def resetDock(self):
         """Reset the dock to its default state.
