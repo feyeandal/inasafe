@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'batch_runner_base.ui'
 #
-# Created: Wed Apr 17 10:12:41 2013
-#      by: PyQt4 UI code generator 4.9
+# Created: Tue Mar 19 18:17:13 2013
+#      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -17,10 +17,11 @@ except AttributeError:
 class Ui_BatchRunnerBase(object):
     def setupUi(self, BatchRunnerBase):
         BatchRunnerBase.setObjectName(_fromUtf8("BatchRunnerBase"))
-        BatchRunnerBase.resize(864, 519)
+        BatchRunnerBase.resize(539, 519)
         self.gridLayout = QtGui.QGridLayout(BatchRunnerBase)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.lvTask = QtGui.QListView(BatchRunnerBase)
+        self.lvTask.setMinimumSize(QtCore.QSize(450, 0))
         self.lvTask.setObjectName(_fromUtf8("lvTask"))
         self.gridLayout.addWidget(self.lvTask, 1, 0, 1, 2)
         self.label = QtGui.QLabel(BatchRunnerBase)

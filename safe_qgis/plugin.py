@@ -572,7 +572,7 @@ class Plugin:
         # import here only so that it is AFTER i18n set up
         from safe_qgis.batch_runner import BatchRunner
 
-        myDialog = BatchRunner(self.iface.mainWindow())
+        myDialog = BatchRunner(self.iface.mainWindow(), self.iface)
         myDialog.show()
 
     def resetDock(self):
