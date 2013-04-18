@@ -1,3 +1,4 @@
+
 """
 InaSAFE Disaster risk assessment tool developed by AusAid - **GUI Dialog.**
 
@@ -27,7 +28,7 @@ import uuid
 from functools import partial
 
 from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import pyqtSlot
+from PyQt4.QtCore import pyqtSlot, pyqtSignal
 
 from qgis.core import (
     QgsMapLayer,
@@ -114,6 +115,7 @@ LOGGER = logging.getLogger('InaSAFE')
 #noinspection PyArgumentList
 class Dock(QtGui.QDockWidget, Ui_DockBase):
     """Dock implementation class for the inaSAFE plugin."""
+    analysisDone = pyqtSignal(bool)
 
     def __init__(self, iface):
         """Constructor for the dialog.
@@ -2397,6 +2399,9 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         self.saveState()
         # Hide hour glass
         self.hideBusy()
+
+        ## emit signal
+        self.analysisDone.emit(True)
 
     def _completed(self):
         """Helper function for slot activated when the process is done.
