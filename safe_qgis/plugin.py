@@ -327,6 +327,20 @@ class Plugin:
         self.iface.addPluginToMenu(self.tr('InaSAFE'),
                                    self.actionBatchRunner)
 
+        ## FIXME: need to change the image file....
+        self.actionSaveScenario = QAction(
+            QIcon(':/plugins/inasafe/show-batch-runner.svg'),
+            self.tr('Save current scenario'), self.iface.mainWindow())
+
+        myMessage = self.tr('Save current scenario to text file')
+        self.actionSaveScenario.setStatusTip(myMessage)
+        self.actionSaveScenario.setWhatsThis(myMessage)
+        self.actionSaveScenario.triggered.connect(self.saveScenario)
+
+        self.iface.addToolBarIcon(self.actionSaveScenario)
+        self.iface.addPluginToMenu(self.tr('InaSAFE'),
+                                   self.actionSaveScenario)
+
         #--------------------------------------
         # create dockwidget and tabify it with the legend
         #--------------------------------------
@@ -555,7 +569,7 @@ class Plugin:
         myDialog.show()
 
     def showBatchRunner(self):
-        """Show the converter dialog.
+        """Show the batch runner dialog.
 
         This slot is called when the user clicks the impact functions
         toolbar icon or menu item associated with this plugin
@@ -574,6 +588,14 @@ class Plugin:
 
         myDialog = BatchRunner(self.iface.mainWindow(), self.iface)
         myDialog.show()
+
+    def saveScenario(self):
+        """Save current scenario to text file
+        """
+        from safe_qgis.batch_runner import BatchRunner
+
+        myDialog = BatchRunner(self.iface.mainWindow(), self.iface)
+        myDialog.saveCurrentScenario()
 
     def resetDock(self):
         """Reset the dock to its default state.
@@ -616,3 +638,4 @@ class Plugin:
     def keyActionF7(self):
         '''Executed when user press F7'''
         self.showConverter()
+
