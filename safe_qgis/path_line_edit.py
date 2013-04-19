@@ -29,11 +29,17 @@ class PathLineEdit(QWidget):
         self.lePath = QLineEdit(self)
         self.layout.addWidget(self.lePath)
 
-        self.tbPath = QToolButton(self)
-        self.tbPath.setText('...')
-        self.layout.addWidget(self.tbPath)
+        self.tbBrowse = QToolButton(self)
+        self.tbBrowse.setText('...')
+        self.layout.addWidget(self.tbBrowse)
 
-        self.tbPath.clicked.connect(self.showDirectoryDialog)
+        self.tbBrowse.clicked.connect(self.showDirectoryDialog)
+
+    def setText(self, theValue):
+        self.lePath.setText(theValue)
+
+    def text(self):
+        return self.lePath.text()
 
     def showDirectoryDialog(self):
         """ Show a directory selection dialog.
@@ -48,4 +54,8 @@ class PathLineEdit(QWidget):
             myTitle,
             myPath,
             QFileDialog.ShowDirsOnly)
+
+        if not myNewPath:
+            return
+
         self.lePath.setText(myNewPath)
