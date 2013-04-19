@@ -323,6 +323,9 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         for myIndex in range(0, len(self.model.tasks)):
             self.runTask(myIndex, False)
 
+        ## TODO: show report
+
+
     def runTask(self, theIndex, theCheckExistingReport=True):
         myTask = self.model.tasks[theIndex]
 
@@ -424,9 +427,14 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
             ('/home/foo/data/title.pdf', '/home/foo/data/title_table.pdf')
         """
 
+        ## parse special variable like {date}
+        import datetime
+        now = datetime.datetime.now()
+        myBasePath = theBasePath.format(date=now.strftime('%Y-%m-%d'))
+
         myFileName = theTitle.replace(' ', '_')
         myFileName = myFileName + '.pdf'
-        myMapPath = os.path.join(theBasePath, myFileName)
+        myMapPath = os.path.join(myBasePath, myFileName)
         myTablePath = os.path.splitext(myMapPath)[0] + '_table.pdf'
 
         return (myMapPath, myTablePath)
@@ -474,8 +482,6 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         """Create PDF report from impact layer.
         Create map & table report PDF based from theImpactLayer data.
 
-        TODO(gigih): parse special text in theBasePath like '{date}'
-
         Params:
             * theTitle : the report title.
                          Output filename is based from this variable.
@@ -498,6 +504,10 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myMapPath, myTablePath = self.getPDFReportPath(theBasePath, theTitle)
 
         # create map pdf
+        myDirPath = os.path.dirname(myMapPath)
+        if os.path.exists(myDirPath) is False:
+            os.makedirs(myDirPath)
+
         myMap.printToPdf(myMapPath)
 
         # create table report pdf
