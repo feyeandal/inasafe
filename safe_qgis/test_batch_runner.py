@@ -74,28 +74,6 @@ class ScriptDialogTest(unittest.TestCase):
         }
         self.assertDictEqual(myExpectedDictionary, myDictionary)
 
-    # def testAppendRow(self):
-    #     """Test appendRow() functionality"""
-    #     myTable = QTableWidget(PARENT)
-    #     myTable.clearContents()
-    #
-    #     appendRow(myTable, 'Foo1', 'bar.py')
-    #     appendRow(myTable, 'Foo2', {'number': 70})
-    #
-    #     self.assertEquals(myTable.rowCount(), 2, "row count don't match")
-    #
-    #     myItem = myTable.item(0, 0)
-    #     myVariant = myItem.data(Qt.UserRole)
-    #     myValue = myVariant.toPyObject()[0]
-    #
-    #     self.assertEquals(myValue, 'bar.py', " value dont' match")
-
-        # myItem = myTable.item(1, 0)
-        # myVariant = myItem.data(Qt.UserRole)
-        # myValue = myVariant.toPyObject()[0]
-        #
-        # self.assertDictEqual(myValue, {'number': 70})
-
     def test_getPDFReportPath(self):
         """Test getPDFReport functionality"""
         myDialog = BatchRunner(PARENT, IFACE)

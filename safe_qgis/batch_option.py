@@ -47,7 +47,7 @@ class BatchOption(QDialog, Ui_BatchOptionBase):
         self.setupUi(self)
 
     @staticmethod
-    def getOptions(theDataPath=None, theReportPath=None, theIgnoreDataPath=False):
+    def getOptions(theDataPath='', theReportPath='', theIgnoreDataPath=False):
         """Get options value from dialog.
         The returned value is tuple with this format:
           (data_path: str, report_path: str, ignore_data_path: bool)
@@ -64,7 +64,7 @@ class BatchOption(QDialog, Ui_BatchOptionBase):
         myDialog = BatchOption()
 
         # set default value
-        myDialog.pleReportPath.setText(theDataPath)
+        myDialog.pleDataPath.setText(theDataPath)
         myDialog.pleReportPath.setText(theReportPath)
         myDialog.cbIgnoreDataPath.setChecked(theIgnoreDataPath)
 

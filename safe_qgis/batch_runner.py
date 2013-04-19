@@ -24,9 +24,12 @@ import logging
 from StringIO import StringIO
 from ConfigParser import ConfigParser, MissingSectionHeaderError
 
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import (pyqtSignature, QSettings, QVariant, QString, Qt)
-from PyQt4.QtGui import (QDialog, QFileDialog, QTableWidgetItem, QMessageBox)
+from PyQt4.QtCore import (pyqtSignal, QSettings, QVariant, QString, Qt,
+                          QAbstractListModel, QModelIndex, QRect, QSize,
+                          QEvent, QUrl)
+from PyQt4.QtGui import (QDialog, QFileDialog, QMessageBox, QStyledItemDelegate, QPen, QStyle,
+                         QStyleOptionButton, QPainter, QStyleOptionProgressBar, QPushButton,
+                         QApplication, QDesktopServices)
 
 from qgis.core import QgsRectangle
 
@@ -83,6 +86,9 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         # setup signal & slot
         self.pleSourcePath.lePath.textChanged.connect(self.populate)
         self.itemDelegate.runClicked.connect(self.runTask)
+        self.itemDelegate.mapClicked.connect(self.openUrl)
+        self.itemDelegate.tableClicked.connect(self.openUrl)
+        self.itemDelegate.errorDetailClicked.connect(self.showErrorMessage)
         self.pbnRunAll.clicked.connect(self.runAllTask)
         self.pbnOption.clicked.connect(self.showOptionDialog)
 
@@ -94,10 +100,10 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
         mySettings = QSettings()
 
-        self.baseDataDir = mySettings.value('inasafe/baseDataDir',
-                                            QString('')).toString()
         self.sourceDir = mySettings.value('inasafe/lastSourceDir',
                                           self.defaultSourceDir).toString()
+        self.baseDataDir = mySettings.value('inasafe/baseDataDir',
+                                            QString('')).toString()
         self.reportDir = mySettings.value('inasafe/reportDir',
                                           self.baseDataDir).toString()
         self.ignoreBaseDataDir = mySettings.value(
@@ -172,7 +178,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         directory self.reportDir
 
         Params:
-            theItem - a dictionary contains the scenario configuration
+            theTask - a dictionary contains the scenario configuration
         Returns:
             True if success, otherwise return False.
         """
@@ -180,15 +186,17 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         # always run in new project
         self.iface.newProject()
 
-        myMessage = 'Loading layers: \nRoot: %s\n%s' % (theTask['path'], theTask['layers'])
+        myMessage = 'Loading layers: \nRoot: %s\n%s' % (
+            theTask['path'], theTask['layers'])
         LOGGER.info(myMessage)
 
         try:
             macro.addLayers(theTask['path'], theTask['layers'])
         except QgisPathError:
             # set status to 'fail'
-            LOGGER.exception('Loading layers failed: \nRoot: %s\n%s' % (
-                theTask['path'], theTask['layers']))
+            myMessage = 'Loading layers failed: \nRoot: %s\n%s' % (
+                theTask['path'], theTask['layers'])
+            self.model.setErrorMessage(theIndex, myMessage)
             return False
 
         # See if we have a preferred impact function
@@ -196,7 +204,8 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
             myFunctionId = theTask['function']
             myResult = macro.setFunctionId(myFunctionId)
             if not myResult:
-                LOGGER.error("cannot set function %s" % theTask['function'])
+                myMessage = "cannot set function %s" % theTask['function']
+                self.model.setErrorMessage(theIndex, myMessage)
                 return False
 
         # set aggregation layer if exist
@@ -204,17 +213,19 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         if myAggregation:
             myResult = macro.setAggregation(myAggregation)
             if not myResult:
-                LOGGER.error("cannot set aggregation %s" % myAggregation)
+                myMessage = "cannot set aggregation %s" % myAggregation
+                self.model.setErrorMessage(theIndex, myMessage)
                 return False
 
         # set extent if exist
-        if 'extent' in theTask:
+        myExtent = theTask.get('extent')
+        if myExtent:
             # split extent string
-            myCoordinate = theTask['extent'].replace(' ', '').split(',')
+            myCoordinate = myExtent.replace(' ', '').split(',')
             myCount = len(myCoordinate)
             if myCount != 4:
                 myMessage = 'extent need exactly 4 value but got %s instead' % myCount
-                LOGGER.error(myMessage)
+                self.model.setErrorMessage(theIndex, myMessage)
                 return False
 
             # parse the value to float type
@@ -222,7 +233,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
                 myCoordinate = [float(i) for i in myCoordinate]
             except ValueError as e:
                 myMessage = e.message
-                LOGGER.error(myMessage)
+                self.model.setErrorMessage(theIndex, myMessage)
                 return False
 
             # set the extent according the value
@@ -234,16 +245,17 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
             self.iface.mapCanvas().setExtent(myExtent)
 
         def onAnalysisDone():
-
-            # set status to success
-            self.model.setStatus(theIndex, TaskModel.Success)
-
             # NOTE(gigih):
             # Usually after analysis is done, the impact layer
             # become the active layer. <--- WRONG
             myImpactLayer = self.iface.activeLayer()
             myReportDir = str(self.reportDir)
-            self.createPDFReport(theTask['label'], myReportDir, myImpactLayer)
+            myMapPath, myTablePath = self.createPDFReport(
+                theTask['label'], myReportDir, myImpactLayer)
+
+            # set status to success
+            self.model.setReportPath(theIndex, myMapPath, myTablePath)
+            self.model.setStatus(theIndex, TaskModel.Success)
 
         LOGGER.info("Run scenario %s" % theTask['label'])
         macro.runScenario(onAnalysisDone)
@@ -292,8 +304,8 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myReportFile.write('-----------------------------\n')
         myReportFile.close()
         LOGGER.info('Log written to %s' % myPath)
-        myUrl = QtCore.QUrl('file:///' + myPath)
-        QtGui.QDesktopServices.openUrl(myUrl)
+        myUrl = QUrl('file:///' + myPath)
+        QDesktopServices.openUrl(myUrl)
 
     def runAllTask(self):
         """ Run all batch runner tasks """
@@ -311,6 +323,9 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         for myIndex in range(0, len(self.model.tasks)):
             self.runTask(myIndex, False)
 
+        ## TODO: show report
+
+
     def runTask(self, theIndex, theCheckExistingReport=True):
         myTask = self.model.tasks[theIndex]
 
@@ -323,23 +338,32 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
             myPath = str(self.reportDir)
             myTitle = myTask['label']
 
+            # Check existing pdf report.
+            # It will prompt user if he want to overwrite the report or not.
+            # When user don't want to overwrite the report then
+            # the operation must be canceled
             if theCheckExistingReport:
-                # check existing pdf report
                 myResult = self.checkExistingPDFReport(myPath, [myTitle])
                 if myResult is False:
-                    self.model.setStatus(theIndex. TaskModel.Normal)
+                    self.model.setStatus(theIndex, TaskModel.Normal)
                     return False
 
-            self.runScenarioTask(theIndex, myTask)
-            #
-            # # NOTE(gigih):
-            # # Usually after analysis is done, the impact layer
-            # # become the active layer. <--- WRONG
-            # myImpactLayer = self.iface.activeLayer()
-            # self.createPDFReport(myTitle, myPath, myImpactLayer)
+            myResult = self.runScenarioTask(theIndex, myTask)
+            if myResult is False:
+                self.model.setStatus(theIndex, TaskModel.Fail)
+
         else:
             LOGGER.exception('task type not supported: "%s"' % myTask['type'])
-            myResult = False
+            #myResult = False
+
+    def openUrl(self, theIndex, thePath):
+        myUrl = QUrl('file:///' + thePath)
+        QDesktopServices.openUrl(myUrl)
+
+    def showErrorMessage(self, theIndex, theMessage):
+        """ TODO: improve the UI
+        """
+        QMessageBox.about(self, self.tr("Error Message"), theMessage)
 
     # def runTask(self, theItem, theStatusItem, theCount=1):
     #     """Run a single task """
@@ -403,9 +427,14 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
             ('/home/foo/data/title.pdf', '/home/foo/data/title_table.pdf')
         """
 
+        ## parse special variable like {date}
+        import datetime
+        now = datetime.datetime.now()
+        myBasePath = theBasePath.format(date=now.strftime('%Y-%m-%d'))
+
         myFileName = theTitle.replace(' ', '_')
         myFileName = myFileName + '.pdf'
-        myMapPath = os.path.join(theBasePath, myFileName)
+        myMapPath = os.path.join(myBasePath, myFileName)
         myTablePath = os.path.splitext(myMapPath)[0] + '_table.pdf'
 
         return (myMapPath, myTablePath)
@@ -458,6 +487,9 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
                          Output filename is based from this variable.
             * theBasePath : output directory
             * theImpactLayer : impact layer instance.
+        Returns:
+            Tuple of report path with format like this
+             (map_path, table_path)
 
         See also:
             Dock.printMap()
@@ -472,6 +504,10 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myMapPath, myTablePath = self.getPDFReportPath(theBasePath, theTitle)
 
         # create map pdf
+        myDirPath = os.path.dirname(myMapPath)
+        if os.path.exists(myDirPath) is False:
+            os.makedirs(myDirPath)
+
         myMap.printToPdf(myMapPath)
 
         # create table report pdf
@@ -479,7 +515,10 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myKeywords = myMap.keywordIO.readKeywords(theImpactLayer)
         myHtmlRenderer.printImpactTable(myKeywords, myTablePath)
 
-        LOGGER.debug("report done %s %s" % (myMapPath, myTablePath))
+        myResult = (myMapPath, myTablePath)
+        LOGGER.debug("report done %s %s" % myResult)
+
+        return myResult
 
     def saveCurrentScenario(self):
         """ Save current scenario to text file """
@@ -587,47 +626,31 @@ def readScenarios(theFileName):
     return myBlocks
 
 
-def appendRow(theTable, theLabel, theData):
-    """ Append new row to table widget.
-     Args:
-        * theTable - a QTable instance
-        * theLabel - label for the row.
-        * theData  - custom data associated with theLabel value.
-     Returns:
-        None
-     Raises:
-        None
-    """
-    myRow = theTable.rowCount()
-    theTable.insertRow(theTable.rowCount())
-
-    myItem = QTableWidgetItem(theLabel)
-
-    # see for details of why we follow this pattern
-    # http://stackoverflow.com/questions/9257422/
-    # how-to-get-the-original-python-data-from-qvariant
-    # Make the value immutable.
-    myVariant = QVariant((theData,))
-    # To retrieve it again you would need to do:
-    #myValue = myVariant.toPyObject()[0]
-    myItem.setData(Qt.UserRole, myVariant)
-
-    theTable.setItem(myRow, 0, myItem)
-    theTable.setItem(myRow, 1, QTableWidgetItem(''))
-
-
-
-
-### Experiment ---------------------------------------------------
-# from PyQt4.QtCore import QAbstractListModel, QModelIndex, QRect, QSize, QEvent
-# from PyQt4.QtGui import QItemDelegate, QStyledItemDelegate, QPen, QStyle, QBrush, QStyleOptionButton, QPainter
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
-
-###
 class TaskModel(QAbstractListModel):
-    """Task Model is class that contains all batch runner tasks"""
+    """Task Model is class that contains all batch runner tasks.
+
+    Each task have format like this:
+
+    Scenario
+    {
+        'type': 'scenario',
+        'label': 'scenario name,
+        'path': None or '/absolute/path/for/data',
+        'hazard': 'relative/hazard/path',
+        'exposure': 'relative/exposure/path',
+        'function': 'function id',
+        'aggregation': None or '/absolute/path/for/data',
+        'layers': list of all layer path
+    }
+
+    Script
+    {
+        'type': 'script',
+       'label': 'script name',
+       'source': '/absolute/path/to/script.py'
+    }
+
+    """
 
     # Enum for status of task
     Normal = 0
@@ -644,12 +667,21 @@ class TaskModel(QAbstractListModel):
         QAbstractListModel.__init__(self, theParent)
 
         self.tasks = []
+        self.currentRunningTask = None
 
     def rowCount(self, theParent=QModelIndex()):
         """ Get the task count """
         return len(self.tasks)
 
     def data(self, theIndex, theRole):
+        """ Get data of task.
+        Params:
+            * theIndex : QModelIndex - index of item in model
+            * theRole - the role of data
+        Returns:
+            the label of task if theRole is Qt.DisplayRole, otherwise
+            return a dictionary of task data.
+        """
         myData = self.tasks[theIndex.row()]
 
         if theIndex.isValid() and theRole == Qt.DisplayRole:
@@ -671,9 +703,29 @@ class TaskModel(QAbstractListModel):
                         TaskModel.Normal, TaskModel.Running,
                         TaksModel.Fail, or TaskModel.Success
         """
+
+        if self.tasks[theIndex].get('status') == TaskModel.Running:
+            self.currentRunningTask = None
+
+        # make sure that only zero or one task is running...
+        if theFlag == TaskModel.Running:
+            if self.currentRunningTask is not None:
+                self.setStatus(self.currentRunningTask, TaskModel.Normal)
+            else:
+                self.currentRunningTask = theIndex
+
+        # set status
         self.tasks[theIndex]['status'] = theFlag
+
         myModelIndex = self.index(theIndex, 0)
         self.dataChanged.emit(myModelIndex, myModelIndex)
+
+    def setReportPath(self, theIndex, theMapPath, theTablePath):
+        self.tasks[theIndex]['map_path'] = theMapPath
+        self.tasks[theIndex]['table_path'] = theTablePath
+
+    def setErrorMessage(self, theIndex, theMessage):
+        self.tasks[theIndex]['message'] = theMessage
 
     def populate(self, theSourcePath, theDataPath):
         """ Populate model with files from theSourcePath directory.
@@ -686,6 +738,7 @@ class TaskModel(QAbstractListModel):
         self.tasks = []
 
         myPath = str(theSourcePath)
+        myDataPath = str(theDataPath)
 
         # only support .py and .txt files
         for myFile in os.listdir(myPath):
@@ -693,7 +746,6 @@ class TaskModel(QAbstractListModel):
             myAbsPath = os.path.join(myPath, myFile)
 
             if myExt == '.py':
-                #appendRow(self.tblScript, myFile, myAbsPath)
                 self.tasks.append({
                     'type': 'script',
                     'label': myFile,
@@ -705,6 +757,7 @@ class TaskModel(QAbstractListModel):
                 for myKey, myValue in readScenarios(myAbsPath).iteritems():
 
                     myLayers = []
+
                     ## NOTE: hazard & exposure is must!!
                     if 'hazard' in myValue:
                         myLayers.append(myValue['hazard'])
@@ -718,46 +771,100 @@ class TaskModel(QAbstractListModel):
                     self.tasks.append({
                         'type': 'scenario',
                         'label': myKey,
-                        'path': myValue.get('path') or theDataPath,
+                        'path': myValue.get('path') or myDataPath,
                         'hazard': myValue['hazard'],
                         'exposure': myValue['exposure'],
                         'function': myValue['function'],
                         'aggregation': myValue.get('aggregation'),
+                        'extent': myValue.get('extent'),
                         'layers': myLayers
                     })
 
 
 class TaskItemDelegate(QStyledItemDelegate):
+    """ TaskItemDelegate is class that have role to
+    render single task data to screen.
+
+    NOTE(Gigih):
+    This class is too complicated.....
+    QStyledItemDelegate don't allow inserting widget so
+    we must draw the widget ourselves in paint() and handle
+    the event in editorEvent().
+
+    Must find other approach that allow us to draw complex widget
+    but flexible enough to split data related function in TaskModel.
+
+    """
+
     runClicked = pyqtSignal(int)
+    mapClicked = pyqtSignal(int, str)
+    tableClicked = pyqtSignal(int, str)
+    errorDetailClicked = pyqtSignal(int, str)
 
     def __init__(self, theParent=None, *theArgs):
         QStyledItemDelegate.__init__(self, theParent, *theArgs)
 
         self.runButtonStyle = QStyleOptionButton()
-        #self.runButtonStyle.rect = myButtonRect
         self.runButtonStyle.text = self.tr("Run")
         self.runButtonStyle.state = QStyle.State_Enabled
 
+        self.margin = 10
+        self.progressBarSize = QSize(140, 24)
+        self.runButtonSize = QSize(100, 24)
+        self.labelSize = QSize(100, 24)
+
+        self.isRunButtonPressed = False
+
     def getRunButtonRect(self, theOption):
         myRect = QRect(theOption.rect)
-        myRect.setX(theOption.rect.width() - 40)
-        myRect.setWidth(40)
-        #myRect.setY(theOption.rect.y() - 10)
-        myRect.setHeight(30)
+        myRect.setY(theOption.rect.y() + self.margin)
+        myRect.setX(
+            theOption.rect.right() - self.runButtonSize.width() - self.margin)
+        myRect.setSize(self.runButtonSize)
 
         return myRect
 
     def getProgressBarRect(self, theOption):
         myRect = QRect(theOption.rect)
-        myRect.setX(theOption.rect.width() - 40)
-        myRect.setWidth(240)
-        myRect.setY(theOption.rect.y() - 20)
-        myRect.setHeight(18)
+        myRect.setY(theOption.rect.y() + self.margin)
+        myRect.setX(theOption.rect.right() -
+                    self.progressBarSize.width() - self.margin)
+        myRect.setSize(self.progressBarSize)
+
+        return myRect
+
+    def getMapLabelRect(self, theOption):
+        myRect = QRect(theOption.rect)
+        myRect.setY(theOption.rect.y() + self.margin + 30)
+        myRect.setX(theOption.rect.x() + self.margin + 70)
+        myRect.setSize(self.labelSize)
+
+        return myRect
+
+    def getTableLabelRect(self, theOption):
+        myRect = QRect(theOption.rect)
+        myRect.setY(theOption.rect.y() + self.margin + 30)
+        myRect.setX(theOption.rect.x() + self.margin + 250)
+        myRect.setSize(self.labelSize)
+
+        return myRect
+
+    def getDetailLabelRect(self, theOption):
+        myRect = QRect(theOption.rect)
+        myRect.setY(theOption.rect.y() + self.margin + 30)
+        myRect.setX(theOption.rect.x() + self.margin + 200)
+        myRect.setSize(self.labelSize)
 
         return myRect
 
     def sizeHint(self, theOption, theIndex=None):
-        return QSize(180, 90)
+        myVariant = theIndex.data(Qt.UserRole)
+        myTask = myVariant.toPyObject()[0]
+        myStatus = myTask.get('status')
+        if myStatus == TaskModel.Success or myStatus == TaskModel.Fail:
+            return QSize(450, 80)
+        else:
+            return QSize(450, 40)
 
     def paint(self, thePainter, theOption, theIndex):
 
@@ -766,41 +873,88 @@ class TaskItemDelegate(QStyledItemDelegate):
 
         thePainter.setRenderHint(QPainter.Antialiasing, True)
 
-        # draw icon
-
-        # draw text
-        thePainter.setPen(QPen(Qt.black))
-        value = theIndex.data(Qt.DisplayRole)
-        if value.isValid():
-            text = value.toString()
-            thePainter.drawText(theOption.rect, Qt.AlignLeft, text)
-
-        # draw run button
-        # myButtonRect = QRect(option.rect)
-        #
-        # myButton = QStyleOptionButton()
-        # myButton.rect = myButtonRect
-        # myButton.text = self.tr("Run")
-        # myButton.state = QStyle.State_Enabled
-        myButton = self.runButtonStyle
-        myButton.rect = self.getRunButtonRect(theOption)
-        myAppStyle.drawControl(QStyle.CE_PushButton, myButton, thePainter)
-
-        # draw progress bar
-
-        # .. seealso:: :func:`appendRow` to understand the next 2 lines
+        # .. seealso:: :func:`TaskModel.data` to understand the next 2 lines
         myVariant = theIndex.data(Qt.UserRole)
         myTask = myVariant.toPyObject()[0]
         myStatus = myTask.get('status')
 
-        if myStatus == TaskModel.Running:
+        # draw icon
+
+        # draw label text
+        myLabel = myTask.get('label')
+        myLabelRect = QRect(theOption.rect)
+        myLabelRect.setY(theOption.rect.y() + self.margin)
+        myLabelRect.setX(theOption.rect.x() + self.margin)
+
+        thePainter.setPen(QPen(Qt.black))
+        thePainter.drawText(myLabelRect, Qt.AlignLeft, myLabel)
+
+        # draw run button
+        if myStatus is None or myStatus == TaskModel.Normal:
+            myButton = QStyleOptionButton(self.runButtonStyle)
+            myButton.rect = self.getRunButtonRect(theOption)
+
+            if self.isRunButtonPressed:
+                myButton.state = QStyle.State_Sunken
+
+            myAppStyle.drawControl(QStyle.CE_PushButton, myButton, thePainter)
+        # draw progress bar
+        elif myStatus == TaskModel.Running:
             myProgressBar = QStyleOptionProgressBar()
+            myProgressBar.text = self.tr("Running...")
+            myProgressBar.progress = 4
+            myProgressBar.maximum = 5
             myProgressBar.rect = self.getProgressBarRect(theOption)
+
+            #myAppStyle.drawControl(QStyle.CE_ProgressBarGroove, myProgressBar, thePainter)
             myAppStyle.drawControl(QStyle.CE_ProgressBar, myProgressBar, thePainter)
+            #myAppStyle.drawControl(QStyle.CE_ProgressBarContents, myProgressBar, thePainter)
+            #myAppStyle.drawControl(QStyle.CE_ProgressBarLabel, myProgressBar, thePainter)
+
         elif myStatus == TaskModel.Fail:
-            LOGGER.info("Fail bro")
+            # text: Fail
+            myLabel = self.tr("Scenario failed. Click here for ")
+            myLabelRect = QRect(theOption.rect)
+            myLabelRect.setY(theOption.rect.y() + self.margin + 30)
+            myLabelRect.setX(theOption.rect.x() + self.margin)
+
+            thePainter.setPen(QPen(Qt.black))
+            thePainter.drawText(myLabelRect, Qt.AlignLeft, myLabel)
+            # text: detail
+            myLabel = self.tr("detail")
+            myLabelRect = self.getDetailLabelRect(theOption)
+
+            thePainter.setPen(QPen(Qt.blue))
+            thePainter.drawText(myLabelRect, Qt.AlignLeft, myLabel)
+
         elif myStatus == TaskModel.Success:
-            LOGGER.info("Sukses")
+            if myTask['type'] == 'script':
+                # text: success
+                myLabel = self.tr("Success")
+                myLabelRect = QRect(theOption.rect)
+                myLabelRect.setY(theOption.rect.y() + self.margin + 30)
+                myLabelRect.setX(theOption.rect.x() + self.margin)
+            else:
+                # text: report
+                myLabel = self.tr("Report")
+                myLabelRect = QRect(theOption.rect)
+                myLabelRect.setY(theOption.rect.y() + self.margin + 30)
+                myLabelRect.setX(theOption.rect.x() + self.margin)
+
+                thePainter.setPen(QPen(Qt.black))
+                thePainter.drawText(myLabelRect, Qt.AlignLeft, myLabel)
+
+                thePainter.setPen(QPen(Qt.blue))
+
+                ## text: map path
+                myLabel = os.path.basename(myTask.get('map_path'))
+                myLabelRect = self.getMapLabelRect(theOption)
+                thePainter.drawText(myLabelRect, Qt.AlignLeft, myLabel)
+
+                ## text: table path
+                myLabel = os.path.basename(myTask.get('table_path'))
+                myLabelRect = self.getTableLabelRect(theOption)
+                thePainter.drawText(myLabelRect, Qt.AlignLeft, myLabel)
 
         thePainter.restore()
 
@@ -813,21 +967,45 @@ class TaskItemDelegate(QStyledItemDelegate):
         :return:
         """
 
-        ##
+        # .. seealso:: :func:`appendRow` to understand the next 2 lines
+        myVariant = theModelIndex.data(Qt.UserRole)
+        myTask = myVariant.toPyObject()[0]
+        myStatus = myTask.get('status')
 
-        if theEvent.type() == QEvent.MouseButtonRelease:
+        ## listen event for run button
+        if myStatus is None or myStatus == TaskModel.Normal:
             myRunButtonRect = self.getRunButtonRect(theOption)
-            if myRunButtonRect.contains(theEvent.pos()):
-                self.runClicked.emit(theModelIndex.row())
+            myType = theEvent.type()
+            if myType == QEvent.MouseButtonRelease:
+                if myRunButtonRect.contains(theEvent.pos()):
+                    self.isRunButtonPressed = False
+                    self.runClicked.emit(theModelIndex.row())
+            elif myType == QEvent.MouseButtonPress:
+                if myRunButtonRect.contains(theEvent.pos()):
+                    self.isRunButtonPressed = True
+        ## list event for report path
+        elif myStatus == TaskModel.Success:
+            myMapRect = self.getMapLabelRect(theOption)
+            myTableRect = self.getTableLabelRect(theOption)
+            myType = theEvent.type()
+            myPos = theEvent.pos()
+            if myType == QEvent.MouseButtonRelease:
+                if myMapRect.contains(myPos):
+                    self.mapClicked.emit(theModelIndex.row(), myTask['map_path'])
+                elif myTableRect.contains(myPos):
+                    self.tableClicked.emit(theModelIndex.row(), myTask['table_path'])
+            elif myType == QEvent.MouseButtonPress:
+                pass
+        elif myStatus == TaskModel.Fail:
+            myDetailRect = self.getDetailLabelRect(theOption)
+            myType = theEvent.type()
+            myPos = theEvent.pos()
+            if myType == QEvent.MouseButtonRelease:
+                if myDetailRect.contains(myPos):
+                    self.errorDetailClicked.emit(theModelIndex.row(), myTask['message'])
+            elif myType == QEvent.MouseButtonPress:
+                pass
 
-
-
-        # myButtonRect = QRect(option.rect)
-        #
-        # myButtonRect.setX(option.rect.width() - 40)
-        # myButtonRect.setWidth(40)
-        # #myButtonRect.setY(option.rect.y() - 10)
-        # myButtonRect.setHeight(30)
         return False
 
 if __name__ == '__main__':
@@ -841,14 +1019,25 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     a = BatchRunner()
 
+    # experiment
+    model = a.model
 
-    ### create content
-    # list_data = [1, 2, 3, 4]
-    # lm = MyListModel(list_data, a)
-    # de = MyDelegate()
-    #
-    # a.lvTask.setModel(lm)
-    # a.lvTask.setItemDelegate(de)
+    def dummyRunScenarioTask(theIndex, theTask):
+        print "dummy function"
+        model.setReportPath(theIndex,
+                            r'C:\Users\bungcip\Desktop\Bangunan_terendam.pdf',
+                            r'C:\Users\bungcip\Desktop\Bangunan_terendam.pdf')
+        model.setStatus(theIndex, TaskModel.Success)
+
+    a.runScenarioTask = dummyRunScenarioTask
+
+    #a.model.setStatus(0, TaskModel.Running)
+#    a.model.setReportPath(1, r'C:\Users\bungcip\Desktop\Bangunan_terendam.pdf',
+ #                         r'C:\Users\bungcip\Desktop\Bangunan_terendam.pdf')
+#    a.model.setStatus(1, TaskModel.Success)
+
+    # a.model.setErrorMessage(2, "Error lha")
+    # a.model.setStatus(2, TaskModel.Fail)
 
     a.show()
 

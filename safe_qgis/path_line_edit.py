@@ -54,4 +54,8 @@ class PathLineEdit(QWidget):
             myTitle,
             myPath,
             QFileDialog.ShowDirsOnly)
+
+        if not myNewPath:
+            return
+
         self.lePath.setText(myNewPath)
