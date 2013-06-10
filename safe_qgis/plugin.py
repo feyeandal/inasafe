@@ -298,7 +298,7 @@ class Plugin:
         # Create action for converter dialog
         #---------------------------------------
         self.actionConverter = QAction(
-            QIcon(':/plugins/inasafe/show-minimum-needs.svg'),
+            QIcon(':/plugins/inasafe/show-converter-tool.svg'),
             self.tr('InaSAFE Converter'), self.iface.mainWindow())
         self.actionConverter.setStatusTip(self.tr(
             'Open InaSAFE Converter'))
@@ -330,7 +330,7 @@ class Plugin:
 
         ## FIXME: need to change the image file....
         self.actionSaveScenario = QAction(
-            QIcon(':/plugins/inasafe/show-batch-runner.svg'),
+            QIcon(':/plugins/inasafe/save-as-scenario.svg'),
             self.tr('Save current scenario'), self.iface.mainWindow())
 
         myMessage = self.tr('Save current scenario to text file')
@@ -346,7 +346,7 @@ class Plugin:
         # Create action for import OSM Dialog
         #--------------------------------------
         self.actionImportDlg = QAction(
-            QIcon(':/plugins/inasafe/osm-download.png'),
+            QIcon(':/plugins/inasafe/show-osm-download.svg'),
             self.tr('InaSAFE OpenStreetMap Downloader'),
             self.iface.mainWindow())
         self.actionImportDlg.setStatusTip(self.tr(
