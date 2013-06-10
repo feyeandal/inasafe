@@ -23,15 +23,14 @@ __copyright__ += 'Disaster Reduction'
 import os
 
 # Import the PyQt and QGIS libraries
-from PyQt4.QtCore import (
-    QObject,
-    QLocale,
-    QTranslator,
-    SIGNAL,
-    QCoreApplication,
-    Qt,
-    QSettings,
-    QVariant)
+from PyQt4.QtCore import (QObject,
+                          QLocale,
+                          QTranslator,
+                          SIGNAL,
+                          QCoreApplication,
+                          Qt,
+                          QSettings,
+                          QVariant)
 from PyQt4.QtGui import QAction, QIcon, QApplication, QMessageBox
 try:
     # When upgrading, using the plugin manager, you may get an error when
@@ -40,10 +39,9 @@ try:
     from safe_qgis.exceptions import TranslationLoadError
 except ImportError:
     # Note these strings cant be translated.
-    QMessageBox.warning(
-        None, 'InaSAFE',
-        'Please restart QGIS to use this plugin.')
-import utilities
+    QMessageBox.warning(None, 'InaSAFE',
+                        'Please restart QGIS to use this plugin.')
+import custom_logging
 
 
 class Plugin:
@@ -76,7 +74,7 @@ class Plugin:
         self.translator = None
         self.setupI18n()
         #print self.tr('InaSAFE')
-        utilities.setupLogger()
+        custom_logging.setupLogger()
 
     #noinspection PyArgumentList
     def setupI18n(self, thePreferredLocale=None):
@@ -666,4 +664,3 @@ class Plugin:
     def keyActionF7(self):
         '''Executed when user press F7'''
         self.showConverter()
-

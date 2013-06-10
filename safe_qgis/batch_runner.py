@@ -565,7 +565,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myHazardPath = myHazardLayer.publicSource()
         myRootPath = os.path.commonprefix([myExposurePath, myHazardPath])
 
-        # get title from keyword, otherwise use filename as title
+        # get title from keywords, otherwise use filename as title
         try:
             myTitle = myDock.keywordIO.readKeywords(myHazardLayer, 'title')
         except KeywordNotFoundError:
@@ -577,6 +577,8 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
         # simplify the path
         myExposurePath = myExposurePath.split(myRootPath)[1]
+        LOGGER.info('Root path: %s' % myRootPath)
+        LOGGER.info('Hazard path: %s' % myHazardPath)
         myHazardPath = myHazardPath.split(myRootPath)[1]
 
         # write to file

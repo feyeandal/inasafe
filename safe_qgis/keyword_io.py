@@ -129,7 +129,7 @@ class KeywordIO(QObject):
         except:
             raise
 
-    def appendKeywords(self, theLayer, theKeywords):
+    def updateKeywords(self, theLayer, theKeywords):
         """Write keywords for a datasource.
 
         Args:
@@ -554,7 +554,8 @@ class KeywordIO(QObject):
             if theKeyword in myDict:
                 return myDict[theKeyword]
             else:
-                raise KeywordNotFoundError('No hash found for %s' % myHash)
+                raise KeywordNotFoundError('Keyword "%s" not found in %s' % (
+                    theKeyword, myDict))
 
         except sqlite.Error, e:
             LOGGER.debug("Error %s:" % e.args[0])
@@ -563,3 +564,19 @@ class KeywordIO(QObject):
             raise
         finally:
             self.closeConnection()
+
+    def getStatisticsDetails(self, theQGISImpactLayer):
+        #find needed statistics type
+        try:
+            myStatisticsType = self.readKeywords(
+                theQGISImpactLayer, 'statistics_type')
+            myStatisticsClasses = self.readKeywords(
+                theQGISImpactLayer, 'statistics_classes')
+
+        except KeywordNotFoundError:
+            #default to summing
+            myStatisticsType = 'sum'
+            myStatisticsClasses = {}
+
+        return myStatisticsType, myStatisticsClasses
+
