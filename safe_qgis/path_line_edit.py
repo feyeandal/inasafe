@@ -12,15 +12,18 @@ Contact : ole.moller.nielsen@gmail.com
 """
 import logging
 from PyQt4.QtGui import QWidget, QFileDialog
+from PyQt4.QtCore import pyqtSignature, pyqtSlot, QMetaObject
 from safe_qgis.path_line_edit_base import Ui_PathLineEditBase
 LOGGER = logging.getLogger('InaSAFE')
 
 
 class PathLineEdit(QWidget, Ui_PathLineEditBase):
+
     def __init__(self, theParent=None):
+        """Constructor."""
         QWidget.__init__(self, theParent)
         self.setupUi(self)
-        self.tbBrowse.clicked.connect(self.browseClicked)
+        QMetaObject.connectSlotsByName(self)
         LOGGER.info('Path Line Edit widget initialised')
 
     def setText(self, theValue):
@@ -29,8 +32,10 @@ class PathLineEdit(QWidget, Ui_PathLineEditBase):
     def text(self):
         return self.lePath.text()
 
-    def browseClicked(self):
+    @pyqtSlot()
+    def on_tbBrowse_clicked(self):
         """ Show a directory selection dialog.
+
         This function will show the dialog then set theLineEdit widget
         text with output from the dialog.
         """

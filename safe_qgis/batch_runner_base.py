@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'batch_runner_base.ui'
 #
-# Created: Mon Jun 10 11:50:15 2013
+# Created: Mon Jun 10 17:33:14 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -29,10 +29,6 @@ class Ui_BatchRunnerBase(object):
         BatchRunnerBase.resize(468, 519)
         self.gridLayout = QtGui.QGridLayout(BatchRunnerBase)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.lvTask = QtGui.QListView(BatchRunnerBase)
-        self.lvTask.setMinimumSize(QtCore.QSize(450, 0))
-        self.lvTask.setObjectName(_fromUtf8("lvTask"))
-        self.gridLayout.addWidget(self.lvTask, 1, 0, 1, 2)
         self.label = QtGui.QLabel(BatchRunnerBase)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -41,22 +37,29 @@ class Ui_BatchRunnerBase(object):
         self.label.setSizePolicy(sizePolicy)
         self.label.setObjectName(_fromUtf8("label"))
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+        self.leSourcePath = QtGui.QLineEdit(BatchRunnerBase)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.leSourcePath.sizePolicy().hasHeightForWidth())
+        self.leSourcePath.setSizePolicy(sizePolicy)
+        self.leSourcePath.setObjectName(_fromUtf8("leSourcePath"))
+        self.gridLayout.addWidget(self.leSourcePath, 0, 1, 1, 1)
+        self.tbBrowse = QtGui.QToolButton(BatchRunnerBase)
+        self.tbBrowse.setObjectName(_fromUtf8("tbBrowse"))
+        self.gridLayout.addWidget(self.tbBrowse, 0, 2, 1, 1)
+        self.lvTask = QtGui.QListView(BatchRunnerBase)
+        self.lvTask.setMinimumSize(QtCore.QSize(450, 0))
+        self.lvTask.setObjectName(_fromUtf8("lvTask"))
+        self.gridLayout.addWidget(self.lvTask, 1, 0, 1, 3)
+        self.pbnRunAll = QtGui.QPushButton(BatchRunnerBase)
+        self.pbnRunAll.setObjectName(_fromUtf8("pbnRunAll"))
+        self.gridLayout.addWidget(self.pbnRunAll, 2, 0, 1, 1)
         self.pbnOption = QtGui.QPushButton(BatchRunnerBase)
         self.pbnOption.setCheckable(False)
         self.pbnOption.setChecked(False)
         self.pbnOption.setObjectName(_fromUtf8("pbnOption"))
-        self.gridLayout.addWidget(self.pbnOption, 2, 1, 1, 1)
-        self.pbnRunAll = QtGui.QPushButton(BatchRunnerBase)
-        self.pbnRunAll.setObjectName(_fromUtf8("pbnRunAll"))
-        self.gridLayout.addWidget(self.pbnRunAll, 2, 0, 1, 1)
-        self.pleSourcePath = PathLineEdit(BatchRunnerBase)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pleSourcePath.sizePolicy().hasHeightForWidth())
-        self.pleSourcePath.setSizePolicy(sizePolicy)
-        self.pleSourcePath.setObjectName(_fromUtf8("pleSourcePath"))
-        self.gridLayout.addWidget(self.pleSourcePath, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.pbnOption, 2, 1, 1, 2)
 
         self.retranslateUi(BatchRunnerBase)
         QtCore.QMetaObject.connectSlotsByName(BatchRunnerBase)
@@ -64,7 +67,7 @@ class Ui_BatchRunnerBase(object):
     def retranslateUi(self, BatchRunnerBase):
         BatchRunnerBase.setWindowTitle(_translate("BatchRunnerBase", "InaSAFE Batch Runner", None))
         self.label.setText(_translate("BatchRunnerBase", "Base path", None))
-        self.pbnOption.setText(_translate("BatchRunnerBase", "Options", None))
+        self.tbBrowse.setText(_translate("BatchRunnerBase", "...", None))
         self.pbnRunAll.setText(_translate("BatchRunnerBase", "Run All", None))
+        self.pbnOption.setText(_translate("BatchRunnerBase", "Options", None))
 
-from safe_qgis.path_line_edit import PathLineEdit

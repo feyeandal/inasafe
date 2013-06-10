@@ -96,8 +96,6 @@ KEYWORD_STYLE = styles.KEYWORD_STYLE
 LOGO_ELEMENT = m.Image('qrc:/plugins/inasafe/inasafe-logo.svg', 'InaSAFE Logo')
 LOGGER = logging.getLogger('InaSAFE')
 
-#from pydev import pydevd
-
 
 #noinspection PyArgumentList
 class Dock(QtGui.QDockWidget, Ui_DockBase):

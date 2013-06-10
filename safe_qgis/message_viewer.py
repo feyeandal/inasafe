@@ -22,6 +22,7 @@ from safe import messaging as m
 from third_party.pydispatch import dispatcher
 
 from PyQt4 import Qt, QtCore, QtGui, QtWebKit
+
 LOGGER = logging.getLogger('InaSAFE')
 DYNAMIC_MESSAGE_SIGNAL = 'ImpactFunctionMessage'
 STATIC_MESSAGE_SIGNAL = 'ApplicationMessage'

@@ -105,7 +105,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         self.populate(self.sourceDir)
 
         # setup signal & slot
-        self.pleSourcePath.lePath.textChanged.connect(self.populate)
+        self.leSourcePath.textChanged.connect(self.populate)
         #self.itemDelegate.runClicked.connect(self.runTask)
         #self.itemDelegate.mapClicked.connect(self.openUrl)
         #self.itemDelegate.tableClicked.connect(self.openUrl)
@@ -130,7 +130,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         self.ignoreBaseDataDir = mySettings.value(
             'inasafe/ignoreBaseDataDir', self.ignoreBaseDataDir).toBool()
 
-        self.pleSourcePath.setText(self.sourceDir)
+        self.leSourcePath.setText(self.sourceDir)
 
     def saveState(self):
         """Save current state of GUI to configuration file"""
@@ -385,7 +385,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
     def showErrorMessage(self, theIndex, theMessage):
         """ TODO: improve the UI
         """
-        _ = theIndex # suppress unused
+        _ = theIndex  # suppress unused
         QMessageBox.about(self, self.tr("Error Message"), theMessage)
 
     # def runTask(self, theItem, theStatusItem, theCount=1):
@@ -545,6 +545,26 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
     def saveCurrentScenario(self):
         """ Save current scenario to text file """
+        ### get data layer
+        myDock = macro.getDock()
+
+        # get absolute path of exposure & hazard layer
+        myExposureLayer = myDock.getExposureLayer()
+        myHazardLayer = myDock.getHazardLayer()
+
+        if myExposureLayer is None:
+            self.showErrorMessage(None, self.tr(
+                'Error: No exposure layer is defined. Please add an exposure '
+                'layer to the project before attempting to save this scenario'
+                '.'))
+            return
+        if myHazardLayer is None:
+            self.showErrorMessage(None, self.tr(
+                'Error: No hazard layer is defined. Please add an exposure '
+                'layer to the project before attempting to save this scenario'
+                '.'))
+            return
+
         myTitleDialog = self.tr('Save Scenario')
         myFileName = QFileDialog.getSaveFileName(
             self, myTitleDialog, self.sourceDir, "Text files (*.txt)"
@@ -554,15 +574,8 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         if not myFileName:
             return
 
-        ### get data layer
-        myDock = macro.getDock()
-
-        # get absolute path of exposure & hazard layer
-        myExposureLayer = myDock.getExposureLayer()
-        myHazardLayer = myDock.getHazardLayer()
-
-        myExposurePath = myExposureLayer.publicSource()
-        myHazardPath = myHazardLayer.publicSource()
+        myExposurePath = myExposureLayer.source()
+        myHazardPath = myHazardLayer.source()
         myRootPath = os.path.commonprefix([myExposurePath, myHazardPath])
 
         # get title from keywords, otherwise use filename as title
@@ -1043,3 +1056,23 @@ class TaskItemDelegate(QStyledItemDelegate):
                 pass
 
         return False
+
+    def on_tbBrowse_clicked(self):
+        """ Show a directory selection dialog.
+
+        This function will show the dialog then set theLineEdit widget
+        text with output from the dialog.
+        """
+        LOGGER.info('browse clicked')
+        myPath = self.lePath.text()
+        myTitle = self.tr('Choose directory')
+        myNewPath = QFileDialog.getExistingDirectory(
+            self,
+            myTitle,
+            myPath,
+            QFileDialog.ShowDirsOnly)
+
+        if not myNewPath:
+            return
+
+        self.lePath.setText(myNewPath)

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'path_line_edit_base.ui'
 #
-# Created: Mon Jun 10 11:52:52 2013
+# Created: Mon Jun 10 17:09:01 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -27,12 +27,9 @@ class Ui_PathLineEditBase(object):
     def setupUi(self, PathLineEditBase):
         PathLineEditBase.setObjectName(_fromUtf8("PathLineEditBase"))
         PathLineEditBase.resize(285, 33)
-        self.gridLayout = QtGui.QGridLayout(PathLineEditBase)
-        self.gridLayout.setMargin(0)
-        self.gridLayout.setSpacing(0)
-        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout = QtGui.QHBoxLayout(PathLineEditBase)
         self.horizontalLayout.setSpacing(0)
+        self.horizontalLayout.setMargin(0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.lePath = QtGui.QLineEdit(PathLineEditBase)
         self.lePath.setObjectName(_fromUtf8("lePath"))
@@ -40,7 +37,6 @@ class Ui_PathLineEditBase(object):
         self.tbBrowse = QtGui.QToolButton(PathLineEditBase)
         self.tbBrowse.setObjectName(_fromUtf8("tbBrowse"))
         self.horizontalLayout.addWidget(self.tbBrowse)
-        self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 1)
 
         self.retranslateUi(PathLineEditBase)
         QtCore.QMetaObject.connectSlotsByName(PathLineEditBase)
