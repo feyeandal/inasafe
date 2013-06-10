@@ -68,6 +68,7 @@ from safe_qgis.exceptions import KeywordNotFoundError
 LOGGER = logging.getLogger('InaSAFE')
 
 
+# noinspection PyArgumentList
 class BatchRunner(QDialog, Ui_BatchRunnerBase):
     """Script Dialog for InaSAFE."""
 
@@ -325,6 +326,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myReportFile.close()
         LOGGER.info('Log written to %s' % myPath)
         myUrl = QUrl('file:///' + myPath)
+        # noinspection PyCallByClass,PyTypeChecker
         QDesktopServices.openUrl(myUrl)
 
     def runAllTask(self):
@@ -377,11 +379,13 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
     def openUrl(self, theIndex, thePath):
         myUrl = QUrl('file:///' + thePath)
+        # noinspection PyCallByClass,PyTypeChecker
         QDesktopServices.openUrl(myUrl)
 
     def showErrorMessage(self, theIndex, theMessage):
         """ TODO: improve the UI
         """
+        _ = theIndex # suppress unused 
         QMessageBox.about(self, self.tr("Error Message"), theMessage)
 
     # def runTask(self, theItem, theStatusItem, theCount=1):
