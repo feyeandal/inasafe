@@ -17,11 +17,12 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
 
 import sys
 import os
+import logging
 from safe import messaging as m
 from third_party.pydispatch import dispatcher
 
 from PyQt4 import Qt, QtCore, QtGui, QtWebKit
-
+LOGGER = logging.getLogger('InaSAFE')
 DYNAMIC_MESSAGE_SIGNAL = 'ImpactFunctionMessage'
 STATIC_MESSAGE_SIGNAL = 'ApplicationMessage'
 
@@ -67,7 +68,7 @@ class MessageViewer(QtWebKit.QWebView):
 
         #add select all
         action = self.page().action(QtWebKit.QWebPage.SelectAll)
-        action.setEnabled(not self.pageToHtml().isEmpty())
+        action.setEnabled(not self.pageToText() == '')
         context_menu.addAction(action)
 
         #add copy
@@ -158,4 +159,4 @@ class MessageViewer(QtWebKit.QWebView):
 
     def _printPageToText(self):
         """Print to console the current page contents as plain text."""
-        print self.pageToText()
+        LOGGER.info(self.pageToText())
