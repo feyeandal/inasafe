@@ -1,11 +1,11 @@
 [Merapi_volcano_osm_buildings]
-exposure:Merapi/Data/bangunan.shp
-hazard:Merapi/Data/merapi_krb.shp
-function:Volcano Building Impact
-extent:110.13,-7.81,110.67,-7.50
+exposure=Merapi/Data/bangunan.shp
+hazard=Merapi/Data/merapi_krb.shp
+function=Volcano Building Impact
+extent=110.13,-7.81,110.67,-7.50
 
 [Merapi_volcano_population]
-exposure:Merapi/Data/jawa2_popmap10_all.tif
-hazard:Merapi/Data/merapi_krb.shp
-function:Volcano Polygon Hazard Population
-extent:110.13,-7.81,110.67,-7.50
+exposure=Merapi/Data/jawa2_popmap10_all.tif
+hazard=Merapi/Data/merapi_krb.shp
+function=Volcano Polygon Hazard Population
+extent=110.13,-7.81,110.67,-7.50

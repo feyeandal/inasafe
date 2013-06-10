@@ -22,14 +22,34 @@ import sys
 import logging
 
 from StringIO import StringIO
-from ConfigParser import ConfigParser, MissingSectionHeaderError
+from ConfigParser import ConfigParser, MissingSectionHeaderError, ParsingError
 
-from PyQt4.QtCore import (pyqtSignal, QSettings, QVariant, QString, Qt,
-                          QAbstractListModel, QModelIndex, QRect, QSize,
-                          QEvent, QUrl)
-from PyQt4.QtGui import (QDialog, QFileDialog, QMessageBox, QStyledItemDelegate, QPen, QStyle,
-                         QStyleOptionButton, QPainter, QStyleOptionProgressBar, QPushButton,
-                         QApplication, QDesktopServices)
+from PyQt4.QtCore import (
+    pyqtSignal,
+    QSettings,
+    QVariant,
+    QString,
+    Qt,
+    QAbstractListModel,
+    QModelIndex,
+    QRect,
+    QSize,
+    QEvent,
+    QUrl)
+
+from PyQt4.QtGui import (
+    QDialog,
+    QFileDialog,
+    QMessageBox,
+    QStyledItemDelegate,
+    QPen,
+    QStyle,
+    QStyleOptionButton,
+    QPainter,
+    QStyleOptionProgressBar,
+    QPushButton,
+    QApplication,
+    QDesktopServices)
 
 from qgis.core import QgsRectangle
 
@@ -100,15 +120,14 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
         mySettings = QSettings()
 
-        self.sourceDir = mySettings.value('inasafe/lastSourceDir',
-                                          self.defaultSourceDir).toString()
-        self.baseDataDir = mySettings.value('inasafe/baseDataDir',
-                                            QString('')).toString()
-        self.reportDir = mySettings.value('inasafe/reportDir',
-                                          self.baseDataDir).toString()
+        self.sourceDir = mySettings.value(
+            'inasafe/lastSourceDir', self.defaultSourceDir).toString()
+        self.baseDataDir = mySettings.value(
+            'inasafe/baseDataDir', QString('')).toString()
+        self.reportDir = mySettings.value(
+            'inasafe/reportDir', self.baseDataDir).toString()
         self.ignoreBaseDataDir = mySettings.value(
-            'inasafe/ignoreBaseDataDir',
-            self.ignoreBaseDataDir).toBool()
+            'inasafe/ignoreBaseDataDir', self.ignoreBaseDataDir).toBool()
 
         self.pleSourcePath.setText(self.sourceDir)
 
@@ -224,7 +243,8 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
             myCoordinate = myExtent.replace(' ', '').split(',')
             myCount = len(myCoordinate)
             if myCount != 4:
-                myMessage = 'extent need exactly 4 value but got %s instead' % myCount
+                myMessage = ('Extent needs exactly 4 values but got %s.'
+                             % myCount)
                 self.model.setErrorMessage(theIndex, myMessage)
                 return False
 
@@ -324,7 +344,6 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
             self.runTask(myIndex, False)
 
         ## TODO: show report
-
 
     def runTask(self, theIndex, theCheckExistingReport=True):
         myTask = self.model.tasks[theIndex]
@@ -433,11 +452,11 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myBasePath = theBasePath.format(date=now.strftime('%Y-%m-%d'))
 
         myFileName = theTitle.replace(' ', '_')
-        myFileName = myFileName + '.pdf'
+        myFileName += '.pdf'
         myMapPath = os.path.join(myBasePath, myFileName)
         myTablePath = os.path.splitext(myMapPath)[0] + '_table.pdf'
 
-        return (myMapPath, myTablePath)
+        return myMapPath, myTablePath
 
     def checkExistingPDFReport(self, theBasePath, theTitles):
         """ Check the existence of pdf report in theBasePath.
@@ -466,7 +485,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         myMessage = myMessage.arg(theBasePath)
 
         myDetail = 'Existing PDF Report: \n'
-        myDetail = myDetail + '\n'.join(myPaths)
+        myDetail += '\n'.join(myPaths)
 
         myMsgBox = QMessageBox(self)
         myMsgBox.setIcon(QMessageBox.Question)
@@ -524,9 +543,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         """ Save current scenario to text file """
         myTitleDialog = self.tr('Save Scenario')
         myFileName = QFileDialog.getSaveFileName(
-            self, myTitleDialog,
-            self.sourceDir,
-            "Text files (*.txt)"
+            self, myTitleDialog, self.sourceDir, "Text files (*.txt)"
         )
 
         # user press 'cancel'
@@ -592,7 +609,7 @@ def readScenarios(theFileName):
         aggregation: /path/to/aggregation_layer.tif
         extent: minx, miny, maxx, maxy
     """
-
+    LOGGER.debug(theFileName)
     # Input checks
     myFilename = os.path.abspath(theFileName)
 
@@ -731,8 +748,9 @@ class TaskModel(QAbstractListModel):
         """ Populate model with files from theSourcePath directory.
 
         Args:
-            theSourcePath : QString - path where .txt & .py reside
-            theDataPath : QString - default data layer directory for scenario file to search
+            * theSourcePath : QString - path where .txt & .py reside
+            * theDataPath : QString - default data layer directory for scenario
+                file to search
         """
 
         self.tasks = []
@@ -754,31 +772,36 @@ class TaskModel(QAbstractListModel):
 
             elif myExt == '.txt':
                 # insert scenarios from file into table widget
-                for myKey, myValue in readScenarios(myAbsPath).iteritems():
+                try:
+                    for myKey, myValue in readScenarios(myAbsPath).iteritems():
 
-                    myLayers = []
+                        myLayers = []
 
-                    ## NOTE: hazard & exposure is must!!
-                    if 'hazard' in myValue:
-                        myLayers.append(myValue['hazard'])
-                    if 'exposure' in myValue:
-                        myLayers.append(myValue['exposure'])
+                        ## NOTE: hazard & exposure is must!!
+                        if 'hazard' in myValue:
+                            myLayers.append(myValue['hazard'])
+                        if 'exposure' in myValue:
+                            myLayers.append(myValue['exposure'])
 
-                    # optional
-                    if 'aggregation' in myValue:
-                        myLayers.append(myValue['aggregation'])
+                        # optional
+                        if 'aggregation' in myValue:
+                            myLayers.append(myValue['aggregation'])
 
-                    self.tasks.append({
-                        'type': 'scenario',
-                        'label': myKey,
-                        'path': myValue.get('path') or myDataPath,
-                        'hazard': myValue['hazard'],
-                        'exposure': myValue['exposure'],
-                        'function': myValue['function'],
-                        'aggregation': myValue.get('aggregation'),
-                        'extent': myValue.get('extent'),
-                        'layers': myLayers
-                    })
+                        self.tasks.append({
+                            'type': 'scenario',
+                            'label': myKey,
+                            'path': myValue.get('path') or myDataPath,
+                            'hazard': myValue['hazard'],
+                            'exposure': myValue['exposure'],
+                            'function': myValue['function'],
+                            'aggregation': myValue.get('aggregation'),
+                            'extent': myValue.get('extent'),
+                            'layers': myLayers
+                        })
+                except ParsingError, e:
+                    LOGGER.info('%s could not be parsed' % myFile)
+                    LOGGER.exception(e)
+                    pass
 
 
 class TaskItemDelegate(QStyledItemDelegate):
@@ -906,10 +929,14 @@ class TaskItemDelegate(QStyledItemDelegate):
             myProgressBar.maximum = 5
             myProgressBar.rect = self.getProgressBarRect(theOption)
 
-            #myAppStyle.drawControl(QStyle.CE_ProgressBarGroove, myProgressBar, thePainter)
-            myAppStyle.drawControl(QStyle.CE_ProgressBar, myProgressBar, thePainter)
-            #myAppStyle.drawControl(QStyle.CE_ProgressBarContents, myProgressBar, thePainter)
-            #myAppStyle.drawControl(QStyle.CE_ProgressBarLabel, myProgressBar, thePainter)
+            #myAppStyle.drawControl(
+            # QStyle.CE_ProgressBarGroove, myProgressBar, thePainter)
+            myAppStyle.drawControl(
+                QStyle.CE_ProgressBar, myProgressBar, thePainter)
+            #myAppStyle.drawControl(
+            # QStyle.CE_ProgressBarContents, myProgressBar, thePainter)
+            #myAppStyle.drawControl(
+            # QStyle.CE_ProgressBarLabel, myProgressBar, thePainter)
 
         elif myStatus == TaskModel.Fail:
             # text: Fail
@@ -991,9 +1018,11 @@ class TaskItemDelegate(QStyledItemDelegate):
             myPos = theEvent.pos()
             if myType == QEvent.MouseButtonRelease:
                 if myMapRect.contains(myPos):
-                    self.mapClicked.emit(theModelIndex.row(), myTask['map_path'])
+                    self.mapClicked.emit(
+                        theModelIndex.row(), myTask['map_path'])
                 elif myTableRect.contains(myPos):
-                    self.tableClicked.emit(theModelIndex.row(), myTask['table_path'])
+                    self.tableClicked.emit(
+                        theModelIndex.row(), myTask['table_path'])
             elif myType == QEvent.MouseButtonPress:
                 pass
         elif myStatus == TaskModel.Fail:
@@ -1002,46 +1031,9 @@ class TaskItemDelegate(QStyledItemDelegate):
             myPos = theEvent.pos()
             if myType == QEvent.MouseButtonRelease:
                 if myDetailRect.contains(myPos):
-                    self.errorDetailClicked.emit(theModelIndex.row(), myTask['message'])
+                    self.errorDetailClicked.emit(
+                        theModelIndex.row(), myTask['message'])
             elif myType == QEvent.MouseButtonPress:
                 pass
 
         return False
-
-if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
-    from PyQt4.QtCore import QCoreApplication
-    import sys
-
-    QCoreApplication.setOrganizationDomain('aifdr')
-    QCoreApplication.setApplicationName('inasafe')
-
-    app = QApplication(sys.argv)
-    a = BatchRunner()
-
-    # experiment
-    model = a.model
-
-    def dummyRunScenarioTask(theIndex, theTask):
-        print "dummy function"
-        model.setReportPath(theIndex,
-                            r'C:\Users\bungcip\Desktop\Bangunan_terendam.pdf',
-                            r'C:\Users\bungcip\Desktop\Bangunan_terendam.pdf')
-        model.setStatus(theIndex, TaskModel.Success)
-
-    a.runScenarioTask = dummyRunScenarioTask
-
-    #a.model.setStatus(0, TaskModel.Running)
-#    a.model.setReportPath(1, r'C:\Users\bungcip\Desktop\Bangunan_terendam.pdf',
- #                         r'C:\Users\bungcip\Desktop\Bangunan_terendam.pdf')
-#    a.model.setStatus(1, TaskModel.Success)
-
-    # a.model.setErrorMessage(2, "Error lha")
-    # a.model.setStatus(2, TaskModel.Fail)
-
-    a.show()
-
-    #a.saveCurrentScenario()
-
-    app.exec_()
-
