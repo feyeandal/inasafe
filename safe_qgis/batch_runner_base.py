@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'batch_runner_base.ui'
 #
-# Created: Tue Mar 19 18:17:13 2013
-#      by: PyQt4 UI code generator 4.8.3
+# Created: Mon Jun 10 11:50:15 2013
+#      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,12 +12,21 @@ from PyQt4 import QtCore, QtGui
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
-    _fromUtf8 = lambda s: s
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
 
 class Ui_BatchRunnerBase(object):
     def setupUi(self, BatchRunnerBase):
         BatchRunnerBase.setObjectName(_fromUtf8("BatchRunnerBase"))
-        BatchRunnerBase.resize(539, 519)
+        BatchRunnerBase.resize(468, 519)
         self.gridLayout = QtGui.QGridLayout(BatchRunnerBase)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.lvTask = QtGui.QListView(BatchRunnerBase)
@@ -53,9 +62,9 @@ class Ui_BatchRunnerBase(object):
         QtCore.QMetaObject.connectSlotsByName(BatchRunnerBase)
 
     def retranslateUi(self, BatchRunnerBase):
-        BatchRunnerBase.setWindowTitle(QtGui.QApplication.translate("BatchRunnerBase", "InaSAFE Batch Runner", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setText(QtGui.QApplication.translate("BatchRunnerBase", "Base Path:", None, QtGui.QApplication.UnicodeUTF8))
-        self.pbnOption.setText(QtGui.QApplication.translate("BatchRunnerBase", "Option", None, QtGui.QApplication.UnicodeUTF8))
-        self.pbnRunAll.setText(QtGui.QApplication.translate("BatchRunnerBase", "Run All", None, QtGui.QApplication.UnicodeUTF8))
+        BatchRunnerBase.setWindowTitle(_translate("BatchRunnerBase", "InaSAFE Batch Runner", None))
+        self.label.setText(_translate("BatchRunnerBase", "Base path", None))
+        self.pbnOption.setText(_translate("BatchRunnerBase", "Options", None))
+        self.pbnRunAll.setText(_translate("BatchRunnerBase", "Run All", None))
 
 from safe_qgis.path_line_edit import PathLineEdit

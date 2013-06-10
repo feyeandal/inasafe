@@ -94,10 +94,10 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
         # initialized task list view
         self.model = TaskModel(self)
-        self.itemDelegate = TaskItemDelegate(self)
+        #self.itemDelegate = TaskItemDelegate(self)
 
         self.lvTask.setModel(self.model)
-        self.lvTask.setItemDelegate(self.itemDelegate)
+        #self.lvTask.setItemDelegate(self.itemDelegate)
 
         #self.adjustSize()
         self.restoreState()
@@ -106,10 +106,10 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
         # setup signal & slot
         self.pleSourcePath.lePath.textChanged.connect(self.populate)
-        self.itemDelegate.runClicked.connect(self.runTask)
-        self.itemDelegate.mapClicked.connect(self.openUrl)
-        self.itemDelegate.tableClicked.connect(self.openUrl)
-        self.itemDelegate.errorDetailClicked.connect(self.showErrorMessage)
+        #self.itemDelegate.runClicked.connect(self.runTask)
+        #self.itemDelegate.mapClicked.connect(self.openUrl)
+        #self.itemDelegate.tableClicked.connect(self.openUrl)
+        #self.itemDelegate.errorDetailClicked.connect(self.showErrorMessage)
         self.pbnRunAll.clicked.connect(self.runAllTask)
         self.pbnOption.clicked.connect(self.showOptionDialog)
 
@@ -385,7 +385,7 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
     def showErrorMessage(self, theIndex, theMessage):
         """ TODO: improve the UI
         """
-        _ = theIndex # suppress unused 
+        _ = theIndex # suppress unused
         QMessageBox.about(self, self.tr("Error Message"), theMessage)
 
     # def runTask(self, theItem, theStatusItem, theCount=1):

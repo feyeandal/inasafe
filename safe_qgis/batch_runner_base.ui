@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>539</width>
+    <width>468</width>
     <height>519</height>
    </rect>
   </property>
@@ -33,14 +33,14 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Base Path:</string>
+      <string>Base path</string>
      </property>
     </widget>
    </item>
    <item row="2" column="1">
     <widget class="QPushButton" name="pbnOption">
      <property name="text">
-      <string>Option</string>
+      <string>Options</string>
      </property>
      <property name="checkable">
       <bool>false</bool>
@@ -73,7 +73,7 @@
   <customwidget>
    <class>PathLineEdit</class>
    <extends>QLineEdit</extends>
-   <header location="global">safe_qgis/path_line_edit.h</header>
+   <header location="global">safe_qgis.path_line_edit</header>
   </customwidget>
  </customwidgets>
  <resources/>

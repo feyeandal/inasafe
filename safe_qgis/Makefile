@@ -52,6 +52,8 @@ UI_FILES = dock_base.py \
 					 minimum_needs_base.py \
 					 options_dialog_base.py \
                                          converter_dialog_base.py \
+                                         batch_runner_base.py \
+                                         path_line_edit_base.py \
                                          import_dialog_base.py
 
 RESOURCE_FILES = resources.py

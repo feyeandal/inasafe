@@ -10,30 +10,18 @@ Contact : ole.moller.nielsen@gmail.com
      (at your option) any later version.
 
 """
+import logging
+from PyQt4.QtGui import QWidget, QFileDialog
+from safe_qgis.path_line_edit_base import Ui_PathLineEditBase
+LOGGER = logging.getLogger('InaSAFE')
 
-from PyQt4.QtGui import (QWidget, QHBoxLayout, QSizePolicy,
-                         QLineEdit, QToolButton, QFileDialog)
 
-
-class PathLineEdit(QWidget):
+class PathLineEdit(QWidget, Ui_PathLineEditBase):
     def __init__(self, theParent=None):
         QWidget.__init__(self, theParent)
-        self.initUi()
-
-    def initUi(self):
-
-        self.layout = QHBoxLayout(self)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.setLayout(self.layout)
-
-        self.lePath = QLineEdit(self)
-        self.layout.addWidget(self.lePath)
-
-        self.tbBrowse = QToolButton(self)
-        self.tbBrowse.setText('...')
-        self.layout.addWidget(self.tbBrowse)
-
-        self.tbBrowse.clicked.connect(self.showDirectoryDialog)
+        self.setupUi(self)
+        self.tbBrowse.clicked.connect(self.browseClicked)
+        LOGGER.info('Path Line Edit widget initialised')
 
     def setText(self, theValue):
         self.lePath.setText(theValue)
@@ -41,12 +29,12 @@ class PathLineEdit(QWidget):
     def text(self):
         return self.lePath.text()
 
-    def showDirectoryDialog(self):
+    def browseClicked(self):
         """ Show a directory selection dialog.
         This function will show the dialog then set theLineEdit widget
         text with output from the dialog.
         """
-
+        LOGGER.info('browse clicked')
         myPath = self.lePath.text()
         myTitle = self.tr('Choose directory')
         myNewPath = QFileDialog.getExistingDirectory(
