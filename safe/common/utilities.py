@@ -2,6 +2,7 @@
 """
 import os
 import sys
+import numpy
 import zipfile
 import gettext
 from datetime import date
@@ -382,6 +383,12 @@ def format_decimal(interval, my_number):
     interval = get_significant_decimal(interval)
     if isinstance(interval, Integral) or isinstance(my_number, Integral):
         return format_int(int(my_number))
+    if interval != interval:
+        # nan
+        return str(my_number)
+    if my_number != my_number:
+        # nan
+        return str(my_number)
     decimal_places = len(str(interval).split('.')[1])
     my_number_int = str(my_number).split('.')[0]
     my_number_decimal = str(my_number).split('.')[1][:decimal_places]
@@ -395,6 +402,10 @@ def get_significant_decimal(my_decimal):
     """
     if isinstance(my_decimal, Integral):
         return my_decimal
+    if my_decimal != my_decimal:
+        # nan
+        return my_decimal
+
     my_int_part = str(my_decimal).split('.')[0]
     my_decimal_part = str(my_decimal).split('.')[1]
     first_not_zero = 0
@@ -443,6 +454,8 @@ def humanize_class(my_classes):
                                         8  -  9
     """
     min_value = 0
+    if min_value - my_classes[0] == 0:
+        return humanize_class(my_classes[1:])
     humanize_classes = []
     interval = my_classes[-1] - my_classes[-2]
     for max_value in my_classes:
@@ -468,3 +481,32 @@ def unhumanize_class(my_classes):
                           format_decimal(interval, max_value)))
         min_value = max_value
     return my_result
+
+
+def create_classes(my_list, num_classes):
+    """Create classes from my_list. Classes will use linspace from numpy.
+    It will extend from min and max of elements in my_list. If min == 0,
+    it won't be included. The number of classes is equal to num_classes.
+    Please see the unit test for this function for more explanation
+    """
+    min_value = numpy.nanmin(my_list)
+    max_value = numpy.nanmax(my_list)
+    print 'min_value, max_value: ', min_value, max_value
+    if min_value == 0:
+        num_classes += 1
+    classes = numpy.linspace(min_value, max_value, num_classes).tolist()
+    if min_value == 0:
+        classes = classes[1:]
+    return classes
+
+
+def create_label(my_tuple, extra_label=None):
+    """Return a label based on my_tuple (a,b) and extra label.
+    a and b are string.
+    The output will be something like:
+                [a - b] extra_label
+    """
+    if extra_label is not None:
+        return '[' + ' - '.join(my_tuple) + '] ' + str(extra_label)
+    else:
+        return '[' + ' - '.join(my_tuple) + ']'

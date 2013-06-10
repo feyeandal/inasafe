@@ -54,7 +54,7 @@ from safe_qgis.utilities import (
     getWGS84resolution,
     isPolygonLayer,
     getLayerAttributeNames,
-    setVectorStyle,
+    setVectorGraduatedStyle,
     htmlHeader,
     htmlFooter,
     setRasterStyle,
@@ -62,7 +62,8 @@ from safe_qgis.utilities import (
     getDefaults,
     impactLayerAttribution,
     copyInMemory,
-    addComboItemInOrder)
+    addComboItemInOrder,
+    setVectorCategorizedStyle)
 
 from safe_qgis.impact_calculator import ImpactCalculator
 from safe_qgis.safe_interface import (
@@ -383,21 +384,29 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                           '<tr><td>' + myNotes + '</td></tr>\n')
             my_limitations_msg = (
                 '<ol>'
-                + '<li>' + self.tr('InaSAFE is not hazard modelling tools')
+                + '<li>'
+                + self.tr('InaSAFE is not a hazard modelling tool.')
                 + '</li>'
-                + '<li>' + self.tr('Exposure data in the form of roads (or any'
-                                   ' other line feature) is not supported.')
+                + '<li>'
+                + self.tr(
+                    'Exposure data in the form of roads (or any other line '
+                    'feature) is not yet supported.')
                 + '</li>'
-                + '<li>' + self.tr('Polygon area analysis (such as land use) '
-                                   'is not supported.')
+                + '<li>'
+                + self.tr(
+                    'Polygon area analysis (such as land use) is not yet '
+                    'supported.')
                 + '</li>'
-                + '<li>' + self.tr('Population density data must be provided '
-                                   'in WGS84 geographic coordinates')
+                + '<li>'
+                + self.tr(
+                    'Population density data must be provided in WGS84 '
+                    'geographic coordinates.')
                 + '</li>'
-                + '<li>' + self.tr(
-                    'Neither AIFDR, the World Bank, nor GFDRR take any '
-                    'responsibility for the correctness of outputs from '
-                    'InaSAFE or decisions derived as a consequence')
+                + '<li>'
+                + self.tr(
+                    'Neither AIFDR, the World Bank, nor World Bank-GFDRR take '
+                    'any responsibility for the correctness of outputs from '
+                    'InaSAFE or decisions derived as a consequence.')
                 + '</ol>'
             )
             my_limitations = ('<tr><th class="info button-cell">'
@@ -739,6 +748,9 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             try:
                 myTitle = self.keywordIO.readKeywords(myLayer, 'title')
             except:  # pylint: disable=W0702
+                # automatically adding file name to title in keywords
+                # See #575
+                self.keywordIO.appendKeywords(myLayer, {'title': myName})
                 myTitle = myName
             else:
                 # Lookup internationalised title if available
@@ -1896,7 +1908,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
 
                 myStyle = {'target_field': myAttr,
                            'style_classes': myClasses}
-                setVectorStyle(self.postProcessingLayer, myStyle)
+                setVectorGraduatedStyle(self.postProcessingLayer, myStyle)
             else:
                 #make style of layer pretty much invisible
                 myProps = {'style': 'no',
@@ -2454,15 +2466,25 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
 
         # Get requested style for impact layer of either kind
         myStyle = myEngineImpactLayer.get_style_info()
-
+        myStyleType = myEngineImpactLayer.get_style_type()
         # Determine styling for QGIS layer
         if myEngineImpactLayer.is_vector:
+            LOGGER.debug('myEngineImpactLayer.is_vector')
             if not myStyle:
                 # Set default style if possible
                 pass
-            else:
-                setVectorStyle(myQGISImpactLayer, myStyle)
+            elif myStyleType == 'categorizedSymbol':
+                LOGGER.debug('use categorized')
+                setVectorCategorizedStyle(myQGISImpactLayer, myStyle)
+            elif myStyleType == 'graduatedSymbol':
+                LOGGER.debug('use graduated')
+                setVectorGraduatedStyle(myQGISImpactLayer, myStyle)
+            # use default style
+            # else:
+            #     LOGGER.debug('use else')
+            #     setVectorGraduatedStyle(myQGISImpactLayer, myStyle)
         elif myEngineImpactLayer.is_raster:
+            LOGGER.debug('myEngineImpactLayer.is_raster')
             if not myStyle:
                 myQGISImpactLayer.setDrawingStyle(
                     QgsRasterLayer.SingleBandPseudoColor)
@@ -3191,6 +3213,9 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
 
         myWidth = myBufferedGeoExtent[2] - myBufferedGeoExtent[0]
         myHeight = myBufferedGeoExtent[3] - myBufferedGeoExtent[1]
+        # Basically, remove exception if CellSize is None,
+        if myCellSize is None:
+            return
         try:
             myWidth = myWidth / myCellSize
             myHeight = myHeight / myCellSize

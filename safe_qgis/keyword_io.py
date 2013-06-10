@@ -92,7 +92,6 @@ class KeywordIO(QObject):
         """
         mySource = str(theLayer.source())
         myFlag = self.areKeywordsFileBased(theLayer)
-        myKeywords = None
 
         try:
             if myFlag:
@@ -150,7 +149,9 @@ class KeywordIO(QObject):
         try:
             self.writeKeywords(theLayer, myKeywords)
         except OperationalError, e:
-            raise KeywordDbError(e)
+            myMessage = self.tr('Keyword database path: ') + self\
+                .keywordDbPath
+            raise KeywordDbError(str(e) + '\n' + myMessage)
 
     def copyKeywords(self, theSourceLayer,
                      theDestinationFile, theExtraKeywords=None):
@@ -187,8 +188,8 @@ class KeywordIO(QObject):
         myKeywords = self.readKeywords(theSourceLayer)
         if theExtraKeywords is None:
             theExtraKeywords = {}
-        myMessage = self.tr('Expected extraKeywords to be a dictionary. Got %s'
-               % str(type(theExtraKeywords))[1:-1])
+        myMessage = self.tr('Expected extraKeywords to be a dictionary. Got '
+                            '%s' % str(type(theExtraKeywords))[1:-1])
         verify(isinstance(theExtraKeywords, dict), myMessage)
         # compute the output keywords file name
         myDestinationBase = os.path.splitext(theDestinationFile)[0]
@@ -199,9 +200,9 @@ class KeywordIO(QObject):
                 myKeywords[key] = theExtraKeywords[key]
             writeKeywordsToFile(myNewDestination, myKeywords)
         except Exception, e:
-            myMessage = self.tr('Failed to copy keywords file from :'
-                           '\n%s\nto\%s: %s' %
-                   (theSourceLayer.source(), myNewDestination, str(e)))
+            myMessage = self.tr(
+                'Failed to copy keywords file from : \n%s\nto\n%s: %s' % (
+                theSourceLayer.source(), myNewDestination, str(e)))
             raise Exception(myMessage)
         return
 
@@ -256,9 +257,8 @@ class KeywordIO(QObject):
         Raises:
             None
         """
-        myParentDir = os.path.abspath(
-                                    os.path.join(
-                                        os.path.dirname(__file__), '..'))
+        myParentDir = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), '..'))
         return os.path.join(myParentDir, 'keywords.db')
 
     def setupKeywordDbPath(self):
@@ -276,8 +276,8 @@ class KeywordIO(QObject):
         """
         mySettings = QSettings()
         myPath = mySettings.value(
-                                'inasafe/keywordCachePath',
-                                self.defaultKeywordDbPath()).toString()
+            'inasafe/keywordCachePath',
+            self.defaultKeywordDbPath()).toString()
         self.keywordDbPath = str(myPath)
 
     def openConnection(self):
@@ -488,14 +488,15 @@ class KeywordIO(QObject):
                 #insert a new rec
                 #myCursor.execute('insert into keyword(hash) values(:hash);',
                 #             {'hash': myHash})
-                myCursor.execute('insert into keyword(hash, dict) values('
-                                 ':hash, :dict);',
-                             {'hash': myHash, 'dict': sqlite.Binary(myPickle)})
+                myCursor.execute(
+                    'insert into keyword(hash, dict) values(:hash, :dict);',
+                    {'hash': myHash, 'dict': sqlite.Binary(myPickle)})
                 self.connection.commit()
             else:
                 #update existing rec
-                myCursor.execute('update keyword set dict=? where hash = ?;',
-                             (sqlite.Binary(myPickle), myHash))
+                myCursor.execute(
+                    'update keyword set dict=? where hash = ?;',
+                    (sqlite.Binary(myPickle), myHash))
                 self.connection.commit()
         except sqlite.Error:
             LOGGER.exception('Error writing keywords to SQLite db %s' %

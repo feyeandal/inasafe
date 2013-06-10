@@ -26,8 +26,8 @@ from os.path import join
 # Add PARENT directory to path to make test aware of other modules
 pardir = os.path.abspath(join(os.path.dirname(__file__), '..'))
 sys.path.append(pardir)
-for p in sys.path:
-    print p + '\n'
+#for p in sys.path:
+#    print p + '\n'
 
 from PyQt4 import QtCore
 from PyQt4.QtTest import QTest
@@ -686,8 +686,8 @@ class DockTest(unittest.TestCase):
         DOCK.cboHazard.setCurrentIndex(myIndex)
 
         # Exposure layer
-        myIndex = DOCK.cboExposure.findText('Padang_WGS84')
-        myMessage = ('Could not find layer Padang_WGS84:\n'
+        myIndex = DOCK.cboExposure.findText('Padang WGS84')
+        myMessage = ('Could not find layer Padang WGS84:\n'
                      '%s' % (combosToString(DOCK)))
         assert myIndex != -1, myMessage
         DOCK.cboExposure.setCurrentIndex(myIndex)
@@ -701,7 +701,7 @@ class DockTest(unittest.TestCase):
 
         myDict = getUiState(DOCK)
         myExpectedDict = {'Hazard': PADANG2009_title,
-                          'Exposure': 'Padang_WGS84',
+                          'Exposure': 'Padang WGS84',
                           'Impact Function Id':
                           'Earthquake Guidelines Function',
                           'Impact Function Title':
