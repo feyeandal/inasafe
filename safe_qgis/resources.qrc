@@ -12,6 +12,7 @@
         <file alias="save-as-scenario.svg">resources/img/icons/save-as-scenario.svg</file>
         <file alias="show-converter-tool.svg">resources/img/icons/show-converter-tool.svg</file>
         <!-- logos -->
+        <file alias="inasafe-logo.svg">resources/img/logos/inasafe-logo.svg</file>
         <file alias="bnpb_logo.png">resources/img/logos/bnpb_logo.png</file>
         <file alias="bnpb_logo_64.png">resources/img/logos/bnpb_logo_64.png</file>
         <file alias="bnpb_logo_32.png">resources/img/logos/bnpb_logo_32.png</file>
