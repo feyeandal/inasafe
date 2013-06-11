@@ -49,6 +49,20 @@ class AbstractPostprocessor():
         """
         self._results = None
 
+    def description(self):
+        """Describe briefly what the post processor does.
+
+        Args:
+            None
+
+        Returns:
+            Str the translated description
+
+        Raises:
+            Errors are propagated
+        """
+        raise NotImplementedError('Please don\'t use this class directly')
+
     def setup(self, params):
         """Abstract method to be called from the concrete implementation
          with AbstractPostprocessor.setup(self, None) it takes care of results

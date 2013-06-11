@@ -15,13 +15,12 @@ __date__ = '27/05/2013'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
 
-import sys
 import os
 import logging
 from safe import messaging as m
-from third_party.pydispatch import dispatcher
+from safe_qgis.utilities import htmlHeader, htmlFooter
 
-from PyQt4 import Qt, QtCore, QtGui, QtWebKit
+from PyQt4 import QtCore, QtGui, QtWebKit
 
 LOGGER = logging.getLogger('InaSAFE')
 DYNAMIC_MESSAGE_SIGNAL = 'ImpactFunctionMessage'

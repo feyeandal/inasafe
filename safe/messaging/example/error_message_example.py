@@ -15,16 +15,12 @@ __date__ = '27/05/2013'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
 
-import sys
-import os
 import traceback
 from safe.messaging import (
     Message,
     ErrorMessage,
     ImportantText,
-    Text,
     Paragraph)
-from third_party.pydispatch import dispatcher
 
 
 DYNAMIC_MESSAGE_SIGNAL = 'ImpactFunctionMessage'
