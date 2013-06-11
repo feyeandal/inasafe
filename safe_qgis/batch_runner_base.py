@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'batch_runner_base.ui'
 #
-# Created: Tue Jun 11 10:38:30 2013
+# Created: Tue Jun 11 14:31:25 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,6 +26,7 @@ except AttributeError:
 class Ui_BatchRunnerBase(object):
     def setupUi(self, BatchRunnerBase):
         BatchRunnerBase.setObjectName(_fromUtf8("BatchRunnerBase"))
+        BatchRunnerBase.setWindowModality(QtCore.Qt.ApplicationModal)
         BatchRunnerBase.resize(553, 483)
         self.gridLayout = QtGui.QGridLayout(BatchRunnerBase)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))

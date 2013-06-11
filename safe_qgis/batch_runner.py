@@ -26,6 +26,7 @@ from ConfigParser import ConfigParser, MissingSectionHeaderError, ParsingError
 
 from PyQt4.QtCore import (
     pyqtSignal,
+    pyqtSlot,
     QSettings,
     QVariant,
     QString,
@@ -68,6 +69,8 @@ from safe_qgis import macro
 from safe_qgis.utilities import safeTr
 from safe_qgis.exceptions import KeywordNotFoundError
 
+#from pydev import pydevd
+
 LOGGER = logging.getLogger('InaSAFE')
 
 
@@ -85,8 +88,24 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         Raises:
            no exceptions explicitly raised
         """
+
+        #pydevd.settrace(
+        #    'localhost', port=5678, stdoutToServer=True, stderrToServer=True)
+
         QDialog.__init__(self, theParent)
         self.setupUi(self)
+
+        myRunButton = self.buttonBox.button(QDialogButtonBox.Ok)
+        myRunButton.setText(self.tr('Run'))
+        myRunButton.clicked.connect(self.runAllTasks)
+
+        myOptionsButton = self.buttonBox.button(QDialogButtonBox.Open)
+        myOptionsButton.setText(self.tr('Options ...'))
+        myOptionsButton.clicked.connect(self.showOptionDialog)
+
+        myCloseButton = self.buttonBox.button(QDialogButtonBox.Close)
+        myCloseButton.clicked.connect(self.reject)
+        return
 
         self.iface = theIface
         myRoot = os.path.dirname(__file__)
@@ -113,26 +132,6 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         #self.itemDelegate.mapClicked.connect(self.openUrl)
         #self.itemDelegate.tableClicked.connect(self.openUrl)
         #self.itemDelegate.errorDetailClicked.connect(self.showErrorMessage)
-
-        myRunButton = self.buttonBox.button(QDialogButtonBox.Ok)
-        myRunButton.setText(self.tr('Run'))
-        QObject.connect(
-            myRunButton,
-            SIGNAL('clicked()'),
-            self.runAllTasks)
-
-        myOptionsButton = self.buttonBox.button(QDialogButtonBox.Open)
-        myOptionsButton.setText(self.tr('Options ...'))
-        QObject.connect(
-            myOptionsButton,
-            SIGNAL('clicked()'),
-            self.showOptionDialog)
-
-        myCloseButton = self.buttonBox.button(QDialogButtonBox.Close)
-        QObject.connect(
-            myCloseButton,
-            SIGNAL('clicked()'),
-            self.reject)
 
     def populate(self, theBasePath):
         self.model.populate(theBasePath, self.sourceDir)
@@ -163,6 +162,12 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         mySettings.setValue('inasafe/reportDir', self.reportDir)
         mySettings.setValue('inasafe/ignoreBaseDataDir', self.ignoreBaseDataDir)
 
+    def reject(self):
+        """Overload default reject."""
+        LOGGER.debug('Closing batch runner')
+        super.reject()
+
+    @pyqtSlot()
     def showOptionDialog(self):
         """ Show option dialog """
         LOGGER.debug('Batch run options dialog opening')
@@ -1097,3 +1102,11 @@ class TaskItemDelegate(QStyledItemDelegate):
             return
 
         self.lePath.setText(myNewPath)
+
+if __name__ == '__main__':
+    from PyQt4.Qt import QApplication
+
+    app = QApplication(sys.argv)
+    runner = BatchRunner()
+    runner.exec_()
+    sys.exit(app.exec_())
