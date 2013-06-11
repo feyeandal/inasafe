@@ -16,9 +16,9 @@
 # *                                                                         *
 # ***************************************************************************/
 
-######### EDITABLE AREA starts ###################
-# Maintain the list of ui files and rc files here
-# that should be compiled to py files.
+##################### EDITABLE AREA starts ##################################
+# List of ui files and rc files here that should be compiled to py files.
+#############################################################################
 
 UI_FILES = dock_base.ui \
 	options_dialog_base.ui \
@@ -27,13 +27,13 @@ UI_FILES = dock_base.ui \
 	minimum_needs_base.ui \
 	converter_dialog_base.ui \
 	batch_runner_base.ui \
+	batch_options_base.ui \
 	import_dialog_base.ui \
 	function_options_dialog_base.ui
 
 RESOURCE_FILES = resources.qrc
 
-######### EDITABLE AREA ENDS ###################
-
+###################### EDITABLE AREA ENDS ###################################
 
 COMPILED_UI = $(UI_FILES:%.ui=%.py)
 
@@ -49,13 +49,10 @@ ui: $(COMPILED_UI)
 
 resources: $(COMPILED_RESOURCES)
 
-
 # Conversion rules
-
 
 %_rc.py : %.qrc
 	pyrcc4 -o $@ $<
 
 %.py : %.ui
 	pyuic4 -o $@ $<
-

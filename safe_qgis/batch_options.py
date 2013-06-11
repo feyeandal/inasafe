@@ -24,13 +24,12 @@ import logging
 from PyQt4.QtGui import (QDialog, QFileDialog, QTableWidgetItem, QMessageBox)
 
 
-from safe_qgis.batch_option_base import Ui_BatchOptionBase
-from safe_qgis.path_line_edit import PathLineEdit
+from safe_qgis.batch_options_base import Ui_BatchOptionsBase
 
 LOGGER = logging.getLogger('InaSAFE')
 
 
-class BatchOption(QDialog, Ui_BatchOptionBase):
+class BatchOptions(QDialog, Ui_BatchOptionsBase):
     """Script Dialog for InaSAFE."""
 
     def __init__(self, theParent=None):
@@ -61,7 +60,7 @@ class BatchOption(QDialog, Ui_BatchOptionBase):
             A tuple when 'OK' button is pressed, false otherwise
         """
 
-        myDialog = BatchOption()
+        myDialog = BatchOptions()
 
         # set default value
         myDialog.pleDataPath.setText(theDataPath)
@@ -79,20 +78,4 @@ class BatchOption(QDialog, Ui_BatchOptionBase):
         myReportPath = myDialog.pleReportPath.text()
         myIgnoreDataPath = myDialog.cbIgnoreDataPath.isChecked()
 
-        return (myDataPath, myReportPath, myIgnoreDataPath)
-
-
-if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
-    from PyQt4.QtCore import QCoreApplication
-    import sys
-
-    QCoreApplication.setOrganizationDomain('aifdr')
-    QCoreApplication.setApplicationName('inasafe')
-
-    app = QApplication(sys.argv)
-    myValue = BatchOption.getOptions()
-
-    print myValue
-
-    app.exec_()
+        return myDataPath, myReportPath, myIgnoreDataPath

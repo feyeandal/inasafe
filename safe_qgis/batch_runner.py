@@ -35,7 +35,9 @@ from PyQt4.QtCore import (
     QRect,
     QSize,
     QEvent,
-    QUrl)
+    QUrl,
+    QObject,
+    SIGNAL)
 
 from PyQt4.QtGui import (
     QDialog,
@@ -46,6 +48,7 @@ from PyQt4.QtGui import (
     QStyle,
     QStyleOptionButton,
     QPainter,
+    QDialogButtonBox,
     QStyleOptionProgressBar,
     QPushButton,
     QApplication,
@@ -54,7 +57,7 @@ from PyQt4.QtGui import (
 from qgis.core import QgsRectangle
 
 from safe_qgis.batch_runner_base import Ui_BatchRunnerBase
-from safe_qgis.batch_option import BatchOption
+from safe_qgis.batch_options import BatchOptions
 
 from safe_qgis.map import Map
 from safe_qgis.html_renderer import HtmlRenderer
@@ -110,8 +113,26 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         #self.itemDelegate.mapClicked.connect(self.openUrl)
         #self.itemDelegate.tableClicked.connect(self.openUrl)
         #self.itemDelegate.errorDetailClicked.connect(self.showErrorMessage)
-        self.pbnRunAll.clicked.connect(self.runAllTask)
-        self.pbnOption.clicked.connect(self.showOptionDialog)
+
+        myRunButton = self.buttonBox.button(QDialogButtonBox.Ok)
+        myRunButton.setText(self.tr('Run'))
+        QObject.connect(
+            myRunButton,
+            SIGNAL('clicked()'),
+            self.runAllTasks)
+
+        myOptionsButton = self.buttonBox.button(QDialogButtonBox.Open)
+        myOptionsButton.setText(self.tr('Options ...'))
+        QObject.connect(
+            myOptionsButton,
+            SIGNAL('clicked()'),
+            self.showOptionDialog)
+
+        myCloseButton = self.buttonBox.button(QDialogButtonBox.Close)
+        QObject.connect(
+            myCloseButton,
+            SIGNAL('clicked()'),
+            self.reject)
 
     def populate(self, theBasePath):
         self.model.populate(theBasePath, self.sourceDir)
@@ -144,8 +165,8 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
     def showOptionDialog(self):
         """ Show option dialog """
-
-        myOptions = BatchOption.getOptions(
+        LOGGER.debug('Batch run options dialog opening')
+        myOptions = BatchOptions.getOptions(
             self.baseDataDir, self.reportDir, self.ignoreBaseDataDir)
 
         if myOptions:
@@ -329,9 +350,9 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         # noinspection PyCallByClass,PyTypeChecker
         QDesktopServices.openUrl(myUrl)
 
-    def runAllTask(self):
+    def runAllTasks(self):
         """ Run all batch runner tasks """
-
+        LOGGER.debug('Batch run all requested')
         # check existing pdf report and
         # ask user if he want to rewrite existing report
         myPath = str(self.reportDir)
