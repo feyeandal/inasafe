@@ -100,7 +100,11 @@ class MessageViewer(QtWebKit.QWebView):
         self.show_messages()
 
     def error_message_event(self, sender, message):
-        """Error message event handler - set message state based on event."""
+        """Error message event handler - set message state based on event.
+
+        .. note:: We are simply delegating to the dynamic message queue.
+
+        """
         _ = sender  # we arent using it
         self.dynamic_messages.append(message)
         self.show_messages()
