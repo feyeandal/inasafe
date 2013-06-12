@@ -59,7 +59,9 @@ from safe_qgis.safe_interface import (
     safeTr,
     get_version,
     temp_dir,
-    ReadLayerError)
+    ReadLayerError,
+    get_postprocessors,
+    get_postprocessor_human_name)
 
 from safe_interface import messaging as m
 from safe_interface import (
@@ -1037,7 +1039,8 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
         self.aggregator.deintersect(myHazardLayer, myExposureLayer)
         # Identify input layers
         self.calculator.setHazardLayer(self.aggregator.hazardLayer.source())
-        self.calculator.setExposureLayer(self.aggregator.exposureLayer.source())
+        self.calculator.setExposureLayer(
+            self.aggregator.exposureLayer.source())
 
         # Use canonical function name to identify selected function
         myFunctionID = self.getFunctionID()
@@ -1241,7 +1244,8 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             return
         except InsufficientOverlapError, e:
             self.spawnError(e, self.tr(
-                'An exception occurred when setting up the impact calculator.'))
+                'An exception occurred when setting up the impact calculator.')
+            )
             return
         except NoFeaturesInExtentError, e:
             self.spawnError(e, self.tr(
@@ -1422,7 +1426,8 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
 
         else:
             myMessage = self.tr('Impact layer %1 was neither a raster or a '
-                                'vector layer').arg(theQGISImpactLayer.source())
+                                'vector layer').arg(
+                                    theQGISImpactLayer.source())
             # noinspection PyExceptionInherit
             raise ReadLayerError(myMessage)
 
@@ -1832,8 +1837,8 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                     m.Text(self.tr(
                         'No keywords have been defined for this layer yet. If '
                         'you wish to use it as an impact or hazard layer in a '
-                        'scenario, please use the keyword editor. You can open '
-                        'the keyword editor by clicking on the ')),
+                        'scenario, please use the keyword editor. You can open'
+                        ' the keyword editor by clicking on the ')),
                     m.Image('qrc:/plugins/inasafe/keywords.png'),
                     m.Text(self.tr(
                         'icon in the toolbar, or choosing Plugins -> InaSAFE '
