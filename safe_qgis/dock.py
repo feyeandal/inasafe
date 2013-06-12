@@ -59,9 +59,7 @@ from safe_qgis.safe_interface import (
     safeTr,
     get_version,
     temp_dir,
-    ReadLayerError,
-    get_postprocessors,
-    get_postprocessor_human_name)
+    ReadLayerError)
 
 from safe_interface import messaging as m
 from safe_interface import (
@@ -422,7 +420,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             self.tr('layer (e.g. earthquake MMI) and one '),
             m.EmphasizedText(self.tr('exposure'), **KEYWORD_STYLE),
             self.tr(
-                'layer (e.g. dwellings) are available. When you are '
+                'layer (e.g. structures) are available. When you are '
                 'ready, click the '),
             m.EmphasizedText(self.tr('run'), **KEYWORD_STYLE),
             self.tr('button below.'))
@@ -445,9 +443,9 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                 'geographic coordinates.'))
         myList.add(
             self.tr(
-                'Neither AIFDR, the World Bank, nor World Bank-GFDRR take '
-                'any responsibility for the correctness of outputs from '
-                'InaSAFE or decisions derived as a consequence.'))
+                'Neither BNPB, AusAID, nor the World Bank-GFDRR, take any '
+                'responsibility for the correctness of outputs from InaSAFE '
+                'or decisions derived as a consequence.'))
         myMessage.add(myList)
         return myMessage
 
@@ -1145,7 +1143,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             # See if we are re-running the same type of analysis, if not
             # we should prompt the user for new keywords for agg layer.
             self._checkForStateChange()
-        except (KeywordDbError, Exception), e:
+        except (KeywordDbError, Exception), e:   # pylint: disable=W0703
             myMessage = getErrorMessage(e)
             self.showErrorMessage(myMessage)
             return
@@ -1161,8 +1159,8 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
             return None  # ignore any error
 
         # Ensure there is enough memory
-        myMessage = checkMemoryUsage(myBufferedGeoExtent, myCellSize)
-        if myMessage is not None:
+        myResult = checkMemoryUsage(myBufferedGeoExtent, myCellSize)
+        if not myResult:
             # noinspection PyCallByClass,PyTypeChecker
             myResult = QtGui.QMessageBox.warning(
                 self, self.tr('InaSAFE'),
@@ -1259,24 +1257,6 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                 'coordinate reference system to WGS84/GeoGraphic.'))
             return
         except MemoryError, e:
-            # This breaks dry as it is repeated elsewhere START
-            myHazardLayer = self.getHazardLayer()
-            myExposureLayer = self.getExposureLayer()
-            if not (myHazardLayer and myExposureLayer):
-                return
-            try:
-                _, myBufferedGeoExtent, myCellSize, _, _, _ = \
-                    self.getClipParameters()
-            except (RuntimeError,
-                    InsufficientOverlapError,
-                    AttributeError) as e:
-                LOGGER.exception('Error calculating extents. %s' % str(
-                    e.message))
-                return None  # ignore any error
-            myMessage = checkMemoryUsage(
-                myBufferedGeoExtent,
-                myCellSize)
-            # This breaks dry END
             self.spawnError(
                 e,
                 self.tr(
@@ -1285,7 +1265,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
                     'your computer so that it has more memory may help. '
                     'Alternatively, consider using a smaller geographical '
                     'area for your analysis, or using rasters with a larger '
-                    'cell size.') + myMessage)
+                    'cell size.'))
             return
 
         try:
@@ -1523,7 +1503,7 @@ class Dock(QtGui.QDockWidget, Ui_DockBase):
 
         #TODO (MB) do we really want this check?
         if self.aggregator.errorMessage is None:
-                self.postProcess()
+            self.postProcess()
         else:
             myContext = self.aggregator.errorMessage
             myException = AggregatioError(self.tr(

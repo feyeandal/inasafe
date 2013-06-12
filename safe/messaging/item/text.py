@@ -16,11 +16,15 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
 
 import os
-from message_element import MessageElement, InvalidMessageItemError
+from message_element import MessageElement
+from exceptions import InvalidMessageItemError
+
+#FIXME (MB) remove when all to_* methods are implemented
+#pylint: disable=W0223
 
 
 class Text(MessageElement):
-    """free text in the messaging system with automatically added whitespaces"""
+    """free text in the messaging with automatically added whitespaces"""
 
     def __init__(self, *args, **kwargs):
         """Creates a Text object to contain a list of Text objects

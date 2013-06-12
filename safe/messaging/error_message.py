@@ -19,7 +19,9 @@ import logging
 
 from safe.common.utilities import ugettext as tr
 
-from item.message_element import MessageElement, InvalidMessageItemError
+from item.message_element import MessageElement
+from item.exceptions import InvalidMessageItemError
+
 from . import (
     Message,
     Text,
@@ -53,6 +55,9 @@ TRACEBACK_STYLE = {
     'level': 5,
     'icon': 'icon-info-sign icon-white',
     'style_class': 'inverse'}
+
+#FIXME (MB) remove when all to_* methods are implemented
+#pylint: disable=W0223
 
 
 class ErrorMessage(MessageElement):

@@ -1,5 +1,5 @@
 """
-InaSAFE Disaster risk assessment tool developed by AusAid - **ItemList module.**
+InaSAFE Disaster risk assessment tool developed by AusAid - **Cell.**
 
 Contact : ole.moller.nielsen@gmail.com
 
@@ -17,6 +17,9 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
 
 from message_element import MessageElement
 from text import Text
+
+#FIXME (MB) remove when all to_* methods are implemented
+#pylint: disable=W0223
 
 
 class Cell(MessageElement):

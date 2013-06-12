@@ -1,5 +1,5 @@
 """
-InaSAFE Disaster risk assessment tool developed by AusAid - **Items**
+InaSAFE Disaster risk assessment tool developed by AusAid - **Exceptions**
 
 Contact : ole.moller.nielsen@gmail.com
 
@@ -11,6 +11,11 @@ Contact : ole.moller.nielsen@gmail.com
 
 __author__ = 'marco@opengis.ch'
 __revision__ = '$Format:%H$'
-__date__ = '27/05/2013'
+__date__ = '11/06/2013'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
+
+
+class InvalidMessageItemError(Exception):
+    """Custom exception for when the passed MessageElement is invalid."""
+    pass

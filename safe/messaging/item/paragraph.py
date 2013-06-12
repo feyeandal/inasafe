@@ -18,6 +18,9 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
 from message_element import MessageElement
 from text import Text
 
+#FIXME (MB) remove when all to_* methods are implemented
+#pylint: disable=W0223
+
 
 class Paragraph(MessageElement):
     """A Paragraph class for text blocks much like the p in html"""
@@ -61,7 +64,7 @@ class Paragraph(MessageElement):
             return
         else:
             return '<p%s>%s%s</p>' % (
-                self.html_attributes(), self.html_icon(),  self.text.to_html())
+                self.html_attributes(), self.html_icon(), self.text.to_html())
 
     def to_text(self):
         """Render a Paragraph MessageElement as plain text

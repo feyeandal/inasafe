@@ -1,5 +1,5 @@
 """
-InaSAFE Disaster risk assessment tool developed by AusAid - **ItemList module.**
+InaSAFE Disaster risk assessment tool developed by AusAid - **Numbered List**
 
 Contact : ole.moller.nielsen@gmail.com
 
@@ -16,6 +16,9 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
 
 from abstract_list import AbstractList
+
+#FIXME (MB) remove when all to_* methods are implemented
+#pylint: disable=W0223
 
 
 class NumberedList(AbstractList):
@@ -82,6 +85,6 @@ class NumberedList(AbstractList):
         else:
             text = ''
             for i, item in enumerate(self.items):
-                text += ' %s. %s\n' % (i+1, item.to_text())
+                text += ' %s. %s\n' % (i + 1, item.to_text())
 
             return text
