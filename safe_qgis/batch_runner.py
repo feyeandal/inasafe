@@ -20,6 +20,7 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
 import os
 import sys
 import logging
+import datetime
 
 from StringIO import StringIO
 from ConfigParser import ConfigParser, MissingSectionHeaderError, ParsingError
@@ -36,9 +37,7 @@ from PyQt4.QtCore import (
     QRect,
     QSize,
     QEvent,
-    QUrl,
-    QObject,
-    SIGNAL)
+    QUrl)
 
 from PyQt4.QtGui import (
     QDialog,
@@ -51,7 +50,6 @@ from PyQt4.QtGui import (
     QPainter,
     QDialogButtonBox,
     QStyleOptionProgressBar,
-    QPushButton,
     QApplication,
     QDesktopServices)
 
@@ -74,7 +72,7 @@ from safe_qgis.exceptions import KeywordNotFoundError
 LOGGER = logging.getLogger('InaSAFE')
 
 
-# noinspection PyArgumentList
+# noinspection PyArgumentList,PyCallByClass,PyTypeChecker
 class BatchRunner(QDialog, Ui_BatchRunnerBase):
     """Script Dialog for InaSAFE."""
 
@@ -105,7 +103,6 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
         myCloseButton = self.buttonBox.button(QDialogButtonBox.Close)
         myCloseButton.clicked.connect(self.reject)
-        return
 
         self.iface = theIface
         myRoot = os.path.dirname(__file__)
@@ -128,10 +125,10 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
 
         # setup signal & slot
         self.leSourcePath.textChanged.connect(self.populate)
-        #self.itemDelegate.runClicked.connect(self.runTask)
-        #self.itemDelegate.mapClicked.connect(self.openUrl)
-        #self.itemDelegate.tableClicked.connect(self.openUrl)
-        #self.itemDelegate.errorDetailClicked.connect(self.showErrorMessage)
+        self.itemDelegate.runClicked.connect(self.runTask)
+        self.itemDelegate.mapClicked.connect(self.openUrl)
+        self.itemDelegate.tableClicked.connect(self.openUrl)
+        self.itemDelegate.errorDetailClicked.connect(self.showErrorMessage)
 
     def populate(self, theBasePath):
         self.model.populate(theBasePath, self.sourceDir)
@@ -477,7 +474,6 @@ class BatchRunner(QDialog, Ui_BatchRunnerBase):
         """
 
         ## parse special variable like {date}
-        import datetime
         now = datetime.datetime.now()
         myBasePath = theBasePath.format(date=now.strftime('%Y-%m-%d'))
 
@@ -849,6 +845,7 @@ class TaskModel(QAbstractListModel):
                     pass
 
 
+# noinspection PyUnresolvedReferences
 class TaskItemDelegate(QStyledItemDelegate):
     """ TaskItemDelegate is class that have role to
     render single task data to screen.
@@ -1092,6 +1089,7 @@ class TaskItemDelegate(QStyledItemDelegate):
         LOGGER.info('browse clicked')
         myPath = self.lePath.text()
         myTitle = self.tr('Choose directory')
+        # noinspection PyCallByClass,PyTypeChecker
         myNewPath = QFileDialog.getExistingDirectory(
             self,
             myTitle,
