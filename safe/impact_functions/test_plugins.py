@@ -2,7 +2,7 @@ import numpy
 import unittest
 
 from safe.impact_functions.core import FunctionProvider
-from safe.impact_functions.core import get_plugins
+from safe.impact_functions.core import get_plugins  
 
 from safe.impact_functions.core import requirements_collect
 from safe.impact_functions.core import requirement_check
